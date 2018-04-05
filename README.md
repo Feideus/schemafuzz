@@ -22,6 +22,8 @@ I would like to say thank you to John Currier for invent this database entity-re
 In next days I have plan to release new SchemaSpy version and concentrate to refactor and improve the solution.
 In new **SchemaSpy 6.0** version you will find:
 
+This is a minor change
+
 1. Absolutely new amazing look and feel generated content
 
 2. You can very easily change SchemaSpy theme because all of the logic was moved outside the Java code
