@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<database name="sample_database1" schema="public" type="PostgreSQL - 9.5.12">
+   <tables>
+      <table name="departments" numRows="100" remarks="" schema="public" type="TABLE">
+         <column autoUpdated="true" defaultValue="nextval('departments_id_seq'::regclass)" digits="0" id="0" name="id" nullable="false" remarks="" size="10" type="serial"/>
+         <column autoUpdated="false" digits="0" id="1" name="code" nullable="false" remarks="" size="4" type="varchar"/>
+         <column autoUpdated="false" digits="0" id="2" name="capital" nullable="false" remarks="" size="10" type="varchar"/>
+         <column autoUpdated="false" digits="0" id="3" name="region" nullable="false" remarks="" size="4" type="varchar">
+            <parent column="code" foreignKey="departments_region_fkey" implied="false" onDeleteCascade="false" schema="public" table="regions"/>
+         </column>
+         <column autoUpdated="false" digits="0" id="4" name="name" nullable="false" remarks="" size="2147483647" type="text"/>
+         <index name="departments_capital_key" unique="true">
+            <column ascending="true" name="capital"/>
+         </index>
+         <index name="departments_code_key" unique="true">
+            <column ascending="true" name="code"/>
+         </index>
+         <index name="departments_id_key" unique="true">
+            <column ascending="true" name="id"/>
+         </index>
+         <index name="departments_name_key" unique="true">
+            <column ascending="true" name="name"/>
+         </index>
+      </table>
+      <table name="regions" numRows="26" remarks="" schema="public" type="TABLE">
+         <column autoUpdated="true" defaultValue="nextval('regions_id_seq'::regclass)" digits="0" id="0" name="id" nullable="false" remarks="" size="10" type="serial"/>
+         <column autoUpdated="false" digits="0" id="1" name="code" nullable="false" remarks="" size="4" type="varchar"/>
+         <column autoUpdated="false" digits="0" id="2" name="capital" nullable="false" remarks="" size="10" type="varchar"/>
+         <column autoUpdated="false" digits="0" id="3" name="name" nullable="false" remarks="" size="2147483647" type="text"/>
+         <index name="regions_code_key" unique="true">
+            <column ascending="true" name="code"/>
+         </index>
+         <index name="regions_id_key" unique="true">
+            <column ascending="true" name="id"/>
+         </index>
+         <index name="regions_name_key" unique="true">
+            <column ascending="true" name="name"/>
+         </index>
+      </table>
+      <table name="test" numRows="0" remarks="" schema="public" type="TABLE">
+         <column autoUpdated="false" digits="0" id="0" name="nom" nullable="true" remarks="" size="2147483647" type="varchar"/>
+         <column autoUpdated="false" digits="0" id="1" name="prenom" nullable="true" remarks="" size="2147483647" type="varchar"/>
+      </table>
+      <table name="towns" numRows="36684" remarks="" schema="public" type="TABLE">
+         <column autoUpdated="true" defaultValue="nextval('towns_id_seq'::regclass)" digits="0" id="0" name="id" nullable="false" remarks="" size="10" type="serial"/>
+         <column autoUpdated="false" digits="0" id="1" name="code" nullable="false" remarks="" size="10" type="varchar"/>
+         <column autoUpdated="false" digits="0" id="2" name="article" nullable="true" remarks="" size="2147483647" type="text"/>
+         <column autoUpdated="false" digits="0" id="3" name="name" nullable="false" remarks="" size="2147483647" type="text"/>
+         <column autoUpdated="false" digits="0" id="4" name="department" nullable="false" remarks="" size="4" type="varchar">
+            <parent column="code" foreignKey="towns_department_fkey" implied="false" onDeleteCascade="false" schema="public" table="departments"/>
+         </column>
+         <index name="towns_code_department_key" unique="true">
+            <column ascending="true" name="code"/>
+            <column ascending="true" name="department"/>
+         </index>
+         <index name="towns_id_key" unique="true">
+            <column ascending="true" name="id"/>
+         </index>
+      </table>
+   </tables>
+</database>

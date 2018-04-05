@@ -1,0 +1,5 @@
+schemaspy.t=pgsql
+schemaspy.host=localhost
+schemaspy.port=5432
+schemaspy.u=feideus
+schemaspy.p=feideus

@@ -1,0 +1,4 @@
+departments
+towns
+regions
+test
