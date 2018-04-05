@@ -37,7 +37,9 @@ public class DatabaseService {
     }
 
     public void gatheringSchemaDetails(Config config, Database db, ProgressListener listener) throws SQLException {
+
         LOGGER.info("Gathering schema details");
+        LOGGER.info("Inside SchemaGatheringMethod Marker 1");
 
         listener.startedGatheringDetails();
 
@@ -46,9 +48,11 @@ public class DatabaseService {
         initTables(config, db, listener, meta);
         if (config.isViewsEnabled())
             initViews(config, db, listener, meta);
-        
+
         initCatalogs(db);
         initSchemas(db);
+
+        LOGGER.info("Inside SchemaGatheringMethod Marker 2");
 
         initCheckConstraints(config, db, listener);
         initTableIds(config, db);
@@ -64,8 +68,10 @@ public class DatabaseService {
 
         connectTables(db, listener);
         updateFromXmlMetadata(config, db, db.getSchemaMeta());
+
+        LOGGER.info("schema details ?"+config);
     }
-    
+
    private void initCatalogs(Database db) throws SQLException {
 
             String sql = Config.getInstance().getDbProperties().getProperty("selectCatalogsSql");
@@ -466,17 +472,25 @@ public class DatabaseService {
     }
 
     private void initCheckConstraints(Config config, Database db, ProgressListener listener) {
+
+
+        LOGGER.info("HEY THERE");
+
         String sql = config.getDbProperties().getProperty("selectCheckConstraintsSql");
         if (sql != null) {
             try (PreparedStatement stmt = sqlService.prepareStatement(sql, db,null);
                  ResultSet rs = stmt.executeQuery()) {
 
+                LOGGER.info("schema details ?"+rs.toString());
                 while (rs.next()) {
                     String tableName = rs.getString("table_name");
                     Table table = db.getLocals().get(tableName);
                     if (table != null)
                         table.addCheckConstraint(rs.getString("constraint_name"), rs.getString("text"));
                 }
+
+                LOGGER.info("schema details ?"+rs.toString());
+
             } catch (SQLException sqlException) {
                 // don't die just because this failed
                 String msg = listener.recoverableExceptionEncountered("Failed to retrieve check constraints", sqlException, sql);
