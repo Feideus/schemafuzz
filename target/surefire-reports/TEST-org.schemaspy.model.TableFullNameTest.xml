@@ -65,7 +65,7 @@
   <testcase classname="org.schemaspy.model.TableFullNameTest" name="testFullName[1]" time="0"/>
   <testcase classname="org.schemaspy.model.TableFullNameTest" name="testFullName[2]" time="0"/>
   <testcase classname="org.schemaspy.model.TableFullNameTest" name="testFullName[3]" time="0"/>
-  <testcase classname="org.schemaspy.model.TableFullNameTest" name="testFullName[4]" time="0"/>
+  <testcase classname="org.schemaspy.model.TableFullNameTest" name="testFullName[4]" time="0.001"/>
   <testcase classname="org.schemaspy.model.TableFullNameTest" name="testFullName[5]" time="0"/>
-  <testcase classname="org.schemaspy.model.TableFullNameTest" name="testFullName[6]" time="0.001"/>
+  <testcase classname="org.schemaspy.model.TableFullNameTest" name="testFullName[6]" time="0"/>
 </testsuite>
