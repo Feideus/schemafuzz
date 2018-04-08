@@ -193,7 +193,7 @@
 				 <td>
 				  <table border='0' cellspacing='0' cellpadding='0'>
 				   <tr>
-					<td title="towns.department references public.departments.code via towns_department_fkey">
+					<td title="towns.TableColumn [table=towns, name=department, id=4, typeName=varchar, shortTypeName=null, type=12, length=4, decimalDigits=0, detailedSize=4, isNullable=false, isAutoUpdated=false, isUnique=false] references public.departments.TableColumn [table=departments, name=code, id=1, typeName=varchar, shortTypeName=null, type=12, length=4, decimalDigits=0, detailedSize=4, isNullable=false, isAutoUpdated=false, isUnique=null] via towns_department_fkey">
 						<a href='../../public/tables/departments.html'>departments</a><span class='relatedKey'>.code</span>
 					</td>
 					<td class="constraint detail">
@@ -236,13 +236,13 @@
 				  <td class='uniqueKey' title='Unique Key'><i class='icon ion-key iconkey'></i> towns_code_department_key</td>
 				  <td>Must be unique</td>
 				  <td><span title='Ascending'>Asc</span>/<span title='Ascending'>Asc</span></td>
-				  <td>code + department</td>
+				  <td>TableColumn [table=towns, name=code, id=1, typeName=varchar, shortTypeName=null, type=12, length=10, decimalDigits=0, detailedSize=10, isNullable=false, isAutoUpdated=false, isUnique=null] + TableColumn [table=towns, name=department, id=4, typeName=varchar, shortTypeName=null, type=12, length=4, decimalDigits=0, detailedSize=4, isNullable=false, isAutoUpdated=false, isUnique=false]</td>
 				 </tr>				 
 				 <tr>
 				  <td class='uniqueKey' title='Unique Key'><i class='icon ion-key iconkey'></i> towns_id_key</td>
 				  <td>Must be unique</td>
 				  <td><span title='Ascending'>Asc</span></td>
-				  <td>id</td>
+				  <td>TableColumn [table=towns, name=id, id=0, typeName=serial, shortTypeName=null, type=4, length=10, decimalDigits=0, detailedSize=10, isNullable=false, isAutoUpdated=true, isUnique=null]</td>
 				 </tr>				 
 				</tbody>
 				</table>   			  

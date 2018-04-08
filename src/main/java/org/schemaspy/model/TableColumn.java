@@ -136,7 +136,7 @@ public class TableColumn {
     public void setType(Integer type) {
     	this.type = type;
     }
-    
+
     /**
      * Type of the column.
      * See {@link DatabaseMetaData#getColumns(String, String, String, String)}'s <code>TYPE_NAME</code>.
@@ -513,10 +513,13 @@ public class TableColumn {
     /**
      * Returns the name of this column.
      */
-    @Override
-    public String toString() {
-        return getName();
-    }
+     @Override
+     public String toString() {
+       return "TableColumn [table=" + table + ", name=" + name + ", id=" + id + ", typeName=" + typeName +
+       ", shortTypeName=" + shortTypeName + ", type=" + type + ", length=" + length + ", decimalDigits=" +
+       decimalDigits + ", detailedSize=" + detailedSize + ", isNullable=" + isNullable + ", isAutoUpdated=" +
+       isAutoUpdated + ", isUnique=" + isUnique + "]";
+     }
 
     /**
      * Two {@link TableColumn}s are considered equal if their tables and names match.

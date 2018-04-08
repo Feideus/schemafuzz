@@ -250,6 +250,20 @@ public class SchemaAnalyzer {
                 LOGGER.info("View the results by opening {}", new File(outputDir, "index.html"));
             }
 
+            System.out.println("COUCOU BATARD");
+
+            Map<String, Table> lesTables = new HashMap();
+            Map<String,List<TableColumn>> lesColumns = new HashMap();
+
+            lesTables = db.getTablesMap();
+
+            for (Map.Entry<String, Table> entry : lesTables.entrySet())
+            {
+                lesColumns.put(entry.getKey(), entry.getValue().getColumns());
+            }
+
+            System.out.println(lesColumns.toString());
+
             return db;
         } catch (Config.MissingRequiredParameterException missingParam) {
             config.dumpUsage(missingParam.getMessage(), missingParam.isDbTypeSpecific());
