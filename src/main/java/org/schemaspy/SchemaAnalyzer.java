@@ -262,13 +262,18 @@ public class SchemaAnalyzer {
 
             for (Map.Entry<String, Table> entry : lesTables.entrySet())
             {
-                lesColumns.put(entry.getKey(), entry.getValue().getColumns());
+                lesColumns.put(entry.getKey(), entry.getValue().getColumns()+"\n");
             }
 
             System.out.println(lesColumns.toString());
 
             System.out.println("La query "+config.getQuery());
 
+            //Treat Query here if there is one
+            //
+            //
+
+            
             return db;
         } catch (Config.MissingRequiredParameterException missingParam) {
             config.dumpUsage(missingParam.getMessage(), missingParam.isDbTypeSpecific());

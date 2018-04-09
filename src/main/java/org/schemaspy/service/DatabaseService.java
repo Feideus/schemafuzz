@@ -39,7 +39,6 @@ public class DatabaseService {
     public void gatheringSchemaDetails(Config config, Database db, ProgressListener listener) throws SQLException {
 
         LOGGER.info("Gathering schema details");
-        LOGGER.info("Inside SchemaGatheringMethod Marker 1");
 
         listener.startedGatheringDetails();
 
@@ -51,8 +50,6 @@ public class DatabaseService {
 
         initCatalogs(db);
         initSchemas(db);
-
-        LOGGER.info("Inside SchemaGatheringMethod Marker 2");
 
         initCheckConstraints(config, db, listener);
         initTableIds(config, db);
@@ -68,8 +65,6 @@ public class DatabaseService {
 
         connectTables(db, listener);
         updateFromXmlMetadata(config, db, db.getSchemaMeta());
-
-        LOGGER.info("schema details ?"+config);
     }
 
    private void initCatalogs(Database db) throws SQLException {
