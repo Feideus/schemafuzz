@@ -40,9 +40,6 @@ public class CommandLineArgumentParserTest {
                 .hasMessageContaining("The following options are required:");
     }
 
-    /**
-     * given all required params (o and u) -> expect all ok
-     */
     @Test
     public void givenAllRequiredParamsProvided_ExpectToSuccessfullyParseCommandLineArguments() throws Exception {
         String[] args = {
@@ -57,7 +54,7 @@ public class CommandLineArgumentParserTest {
         assertThat(arguments.getUser()).isEqualTo("MyUser");
     }
 
-    @Test
+  @Test
     public void givenNoRequiredParameterAndDefaultProviderWithRequiredValue_ExpectSuccess() {
         PropertyFileDefaultProvider defaultProvider = mock(PropertyFileDefaultProvider.class);
         given(defaultProvider.getDefaultValueFor("schemaspy.outputDirectory")).willReturn("mydirectory");

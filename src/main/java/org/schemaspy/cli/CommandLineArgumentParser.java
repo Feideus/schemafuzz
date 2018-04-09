@@ -41,6 +41,7 @@ public class CommandLineArgumentParser {
     }
 
     public CommandLineArguments parse(String... localArgs) {
+
         CommandLineArguments arguments = new CommandLineArguments();
         jCommander.addObject(arguments);
 

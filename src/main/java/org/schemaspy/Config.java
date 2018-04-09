@@ -76,6 +76,7 @@ public final class Config {
     private String password;
     private Boolean promptForPassword;
     private String db;
+    private String query; //THE USERS QUERY FOR INJECTION MODE
     private String host;
     private Integer port;
     private String server;
@@ -148,6 +149,7 @@ public final class Config {
 
         setInstance(this);
         options = fixupArgs(Arrays.asList(argv));
+        System.out.println("Les Options : "+options.toString());
         helpRequired = options.remove("-?") ||
                 options.remove("/?") ||
                 options.remove("?") ||
@@ -171,6 +173,12 @@ public final class Config {
      *
      * @param config
      */
+
+    public String getQuery()
+    {
+      return this.query;
+    }
+
     public static void setInstance(Config config) {
         instance = config;
     }
@@ -1474,7 +1482,15 @@ public final class Config {
                 expandedArgs.add(arg.substring(indexOfEquals + 1));
             } else {
                 expandedArgs.add(arg);
+                System.out.println("Args = " +arg.toString()+"\n");
+
             }
+        }
+        if (expandedArgs.contains("-query") || expandedArgs.contains("-q") || expandedArgs.contains("--query"))
+        {
+            int indexOfQuery = expandedArgs.indexOf("-query");
+            this.query = expandedArgs.get(indexOfQuery+1);
+            System.out.println("Index de -query = "+indexOfQuery);
         }
         if (expandedArgs.indexOf("-configFile") < 0) {
             loadProperties(DEFAULT_PROPERTIES_FILE);

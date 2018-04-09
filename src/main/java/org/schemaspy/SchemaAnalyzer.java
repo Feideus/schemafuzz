@@ -84,15 +84,18 @@ public class SchemaAnalyzer {
 
         boolean render = config.isHtmlGenerationEnabled();
         ProgressListener progressListener = new ConsoleProgressListener(render, commandLineArguments);
-
         // if -all(evaluteAll) or -schemas given then analyzeMultipleSchemas
         List<String> schemas = config.getSchemas();
+
+
         if (schemas != null || config.isEvaluateAllEnabled()) {
             return this.analyzeMultipleSchemas(config, progressListener);
         } else {
             File outputDirectory = commandLineArguments.getOutputDirectory();
             Objects.requireNonNull(outputDirectory);
             String schema = commandLineArguments.getSchema();
+            System.out.println("Query ICI ? = "+commandLineArguments.getQuery());
+            System.out.println("Schema ICI ? = "+commandLineArguments.getSchema());
             return analyze(schema, config, outputDirectory, progressListener);
         }
     }
@@ -263,6 +266,8 @@ public class SchemaAnalyzer {
             }
 
             System.out.println(lesColumns.toString());
+
+            System.out.println("La query "+config.getQuery());
 
             return db;
         } catch (Config.MissingRequiredParameterException missingParam) {

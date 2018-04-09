@@ -108,6 +108,14 @@ public class CommandLineArguments {
     )
     private String catalog;
 
+    @Parameter(
+            names = {
+                    "-q", "--query", "query",
+            },
+            descriptionKey = "query"
+    )
+    private String query;
+
     /* TODO Password handling is more complex, see Config class (prompt for password, fallback to Environment variable, multiple schemas, etc.)
     @Parameter(
             names = {
@@ -144,6 +152,10 @@ public class CommandLineArguments {
             }
     )
     private Integer port;
+
+    public String getQuery() {
+        return query;
+    }
 
     public boolean isHelpRequired() {
         return helpRequired;

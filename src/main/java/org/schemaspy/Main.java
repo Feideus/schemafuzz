@@ -52,12 +52,13 @@ public class Main implements CommandLineRunner {
     @Autowired
     private ApplicationContext context;
 
-    public static void main(String... args) {
+    public static void main(String[] args) {
         SpringApplication.run(Main.class, args);
     }
 
     @Override
-    public void run(String... args) {
+    public void run(String[] args) {
+
         if (arguments.isHelpRequired()) {
             commandLineArgumentParser.printUsage();
             exitApplication(0);

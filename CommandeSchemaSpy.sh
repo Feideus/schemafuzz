@@ -1,2 +1,1 @@
-java -jar target/schemaspy-6.0.0-rc2.jar -t pgsql -db sample_database1 -hostOptionalPort 127.0.0.1 -o sample_database/result_from_exec -dp postgresql-42.2.2.jar  -u $USER -p $USER
-
+java -jar target/schemaspy-6.0.0-rc2.jar -t pgsql -db sample_database1 -hostOptionalPort 127.0.0.1 -o sample_database/result_from_exec -dp postgresql-42.2.2.jar -u $USER -p $USER -query "INSERT INTO Towns VALUES (1,2,3)"
