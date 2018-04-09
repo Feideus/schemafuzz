@@ -257,15 +257,21 @@ public class SchemaAnalyzer {
 
             Map<String, Table> lesTables = new HashMap();
             Map<String,List<TableColumn>> lesColumns = new HashMap();
+            Map<String,Collection<ForeignKeyConstraint>> lesForeignKeys = new HashMap();
+            Map<String, Map<String, String>> lesCheckConstraints = new HashMap();
 
             lesTables = db.getTablesMap();
 
             for (Map.Entry<String, Table> entry : lesTables.entrySet())
             {
-                lesColumns.put(entry.getKey(), entry.getValue().getColumns()+"\n");
+                lesColumns.put(entry.getKey(), entry.getValue().getColumns()); //erreur ICI
+                lesForeignKeys.put(entry.getKey(), entry.getValue().getForeignKeys()); //Erreur ICI aussi
+                lesCheckConstraints.put(entry.getKey(), entry.getValue().getCheckConstraints());
             }
 
             System.out.println(lesColumns.toString());
+            System.out.println("lesForeignKeys = "+lesForeignKeys+"\n");
+            System.out.println("lesCheckConstraints= "+lesCheckConstraints+"\n");
 
             System.out.println("La query "+config.getQuery());
 
@@ -273,7 +279,7 @@ public class SchemaAnalyzer {
             //
             //
 
-            
+
             return db;
         } catch (Config.MissingRequiredParameterException missingParam) {
             config.dumpUsage(missingParam.getMessage(), missingParam.isDbTypeSpecific());
