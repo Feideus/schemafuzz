@@ -466,25 +466,24 @@ public class DatabaseService {
         }
     }
 
-    private void initCheckConstraints(Config config, Database db, ProgressListener listener) {
+    private void initCheckConstraints(Config config, Database db, ProgressListener listener)
+    {
 
-
-        LOGGER.info("HEY THERE");
-
-        String sql = config.getDbProperties().getProperty("selectCheckConstraintsSql");
+        //String sql = config.getDbProperties().getProperty("selectCheckConstraintsSql");
+        String sql = "SELECT * FROM information_schema.check_constraints WHERE constraint_schema = 'public'";
         if (sql != null) {
+
             try (PreparedStatement stmt = sqlService.prepareStatement(sql, db,null);
                  ResultSet rs = stmt.executeQuery()) {
 
-                LOGGER.info("schema details ?"+rs.toString());
+
                 while (rs.next()) {
-                    String tableName = rs.getString("table_name");
+                    int indexOfUnderscore = rs.getString("constraint_name").indexOf("_");
+                    String tableName = rs.getString("constraint_name").substring(0,indexOfUnderscore);
                     Table table = db.getLocals().get(tableName);
                     if (table != null)
-                        table.addCheckConstraint(rs.getString("constraint_name"), rs.getString("text"));
+                        table.addCheckConstraint(rs.getString("constraint_name"), rs.getString("check_clause"));
                 }
-
-                LOGGER.info("schema details ?"+rs.toString());
 
             } catch (SQLException sqlException) {
                 // don't die just because this failed
@@ -696,6 +695,25 @@ public class DatabaseService {
                 }
             }
         }
+    }
+
+    public void injectUserQuery(Config config, Database db,ProgressListener listener)
+    {
+      String theQuery = config.getQuery();
+
+      try (PreparedStatement stmt = sqlService.prepareStatement(theQuery, db,null))
+           {
+             stmt.execute();
+             LOGGER.info("Query Succesfull");
+           }
+      catch (SQLException sqlException)
+      {
+               String msg = listener.recoverableExceptionEncountered("Failed to execute the given sql statement", sqlException, theQuery);
+               if (msg != null)
+               {
+                   LOGGER.warn(msg);
+               }
+      }
     }
 
     /**

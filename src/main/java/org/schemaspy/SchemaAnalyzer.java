@@ -20,6 +20,7 @@
  */
 package org.schemaspy;
 
+import java.sql.PreparedStatement;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
@@ -94,8 +95,6 @@ public class SchemaAnalyzer {
             File outputDirectory = commandLineArguments.getOutputDirectory();
             Objects.requireNonNull(outputDirectory);
             String schema = commandLineArguments.getSchema();
-            System.out.println("Query ICI ? = "+commandLineArguments.getQuery());
-            System.out.println("Schema ICI ? = "+commandLineArguments.getSchema());
             return analyze(schema, config, outputDirectory, progressListener);
         }
     }
@@ -275,10 +274,10 @@ public class SchemaAnalyzer {
 
             System.out.println("La query "+config.getQuery());
 
-            //Treat Query here if there is one
-            //
-            //
-
+            if(config.getQueryRequired())
+            {
+              databaseService.injectUserQuery(config, db, progressListener);
+            }
 
             return db;
         } catch (Config.MissingRequiredParameterException missingParam) {

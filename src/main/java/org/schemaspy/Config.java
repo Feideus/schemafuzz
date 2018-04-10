@@ -76,6 +76,7 @@ public final class Config {
     private String password;
     private Boolean promptForPassword;
     private String db;
+    private Boolean queryRequired;
     private String query; //THE USERS QUERY FOR INJECTION MODE
     private String host;
     private Integer port;
@@ -177,6 +178,11 @@ public final class Config {
     public String getQuery()
     {
       return this.query;
+    }
+
+    public Boolean getQueryRequired()
+    {
+      return this.queryRequired;
     }
 
     public static void setInstance(Config config) {
@@ -1477,7 +1483,7 @@ public final class Config {
 
         for (String arg : args) {
             int indexOfEquals = arg.indexOf('=');
-            if (indexOfEquals != -1 && indexOfEquals - 1 != arg.indexOf(ESCAPED_EQUALS)) {
+            if ((indexOfEquals != -1) && (indexOfEquals-1 != arg.indexOf(ESCAPED_EQUALS)) && !args.contains("-q") && !args.contains("-query") && !args.contains("--query") ) {
                 expandedArgs.add(arg.substring(0, indexOfEquals));
                 expandedArgs.add(arg.substring(indexOfEquals + 1));
             } else {
@@ -1488,6 +1494,7 @@ public final class Config {
         }
         if (expandedArgs.contains("-query") || expandedArgs.contains("-q") || expandedArgs.contains("--query"))
         {
+            this.queryRequired = true;
             int indexOfQuery = expandedArgs.indexOf("-query");
             this.query = expandedArgs.get(indexOfQuery+1);
             System.out.println("Index de -query = "+indexOfQuery);

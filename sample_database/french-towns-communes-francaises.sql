@@ -34,7 +34,7 @@ CREATE TABLE Departments (
 
 -- Towns / Communes
 CREATE TABLE Towns (
-   id SERIAL UNIQUE NOT NULL,
+   id SERIAL UNIQUE NOT NULL CHECK (id > 0), 
    code VARCHAR(10) NOT NULL, -- Only unique inside a department
    article TEXT,
    name TEXT NOT NULL, -- Names are not really unique, for instance 'Sainte-Croix'
