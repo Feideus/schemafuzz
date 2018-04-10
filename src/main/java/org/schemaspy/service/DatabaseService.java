@@ -703,7 +703,7 @@ public class DatabaseService {
 
       try (PreparedStatement stmt = sqlService.prepareStatement(theQuery, db,null))
            {
-             stmt.execute();
+             stmt.execute(); // Next time try to display the query response
              LOGGER.info("Query Succesfull");
            }
       catch (SQLException sqlException)
