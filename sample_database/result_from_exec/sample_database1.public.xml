@@ -37,7 +37,11 @@
             <column ascending="true" name="name"/>
          </index>
       </table>
-      <table name="towns" numRows="36680" remarks="" schema="public" type="TABLE">
+      <table name="test" numRows="0" remarks="" schema="public" type="TABLE">
+         <column autoUpdated="false" digits="0" id="0" name="nom" nullable="true" remarks="" size="2147483647" type="varchar"/>
+         <column autoUpdated="false" digits="0" id="1" name="prenom" nullable="true" remarks="" size="2147483647" type="varchar"/>
+      </table>
+      <table name="towns" numRows="36684" remarks="" schema="public" type="TABLE">
          <column autoUpdated="true" defaultValue="nextval('towns_id_seq'::regclass)" digits="0" id="0" name="id" nullable="false" remarks="" size="10" type="serial"/>
          <column autoUpdated="false" digits="0" id="1" name="code" nullable="false" remarks="" size="10" type="varchar"/>
          <column autoUpdated="false" digits="0" id="2" name="article" nullable="true" remarks="" size="2147483647" type="text"/>
@@ -52,7 +56,6 @@
          <index name="towns_id_key" unique="true">
             <column ascending="true" name="id"/>
          </index>
-         <checkConstraint constraint="((id &gt; 0))" name="towns_id_check"/>
       </table>
    </tables>
 </database>

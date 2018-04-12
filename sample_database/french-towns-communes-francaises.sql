@@ -1,7 +1,7 @@
 -- French towns / Communes françaises
 
 -- Authoritative source / Source faisant autorité :
--- (No permanent link, sorry) / (Pas de lien stable, hélas) 
+-- (No permanent link, sorry) / (Pas de lien stable, hélas)
 
 -- Towns / Communes :
 -- http://www.insee.fr/fr/nom_def_met/nomenclatures/cog/dbf/2005/txt/comsimp2005.zip
@@ -13,10 +13,13 @@ BEGIN;
 
 -- Database schema / Schéma de la base de données
 
+ 
+
+
 -- Regions / Régions
 CREATE TABLE Regions (
    id SERIAL UNIQUE NOT NULL,
-   code VARCHAR(4) UNIQUE NOT NULL, 
+   code VARCHAR(4) UNIQUE NOT NULL,
    capital VARCHAR(10) NOT NULL, -- REFERENCES Towns (code),
    name TEXT UNIQUE NOT NULL
 );
@@ -24,9 +27,9 @@ CREATE TABLE Regions (
 -- Departments / Départements
 CREATE TABLE Departments (
    id SERIAL UNIQUE NOT NULL,
-   code VARCHAR(4) UNIQUE NOT NULL, -- Not always numeric, for instance Corsica 
+   code VARCHAR(4) UNIQUE NOT NULL, -- Not always numeric, for instance Corsica
                                     -- with 2A and 2B
-   capital VARCHAR(10) UNIQUE NOT NULL, -- REFERENCES Towns (code), 
+   capital VARCHAR(10) UNIQUE NOT NULL, -- REFERENCES Towns (code),
              -- Actually, it is the concatenation of D.code + T.code.
    region VARCHAR(4) NOT NULL REFERENCES Regions (code),
    name TEXT UNIQUE NOT NULL
@@ -34,7 +37,7 @@ CREATE TABLE Departments (
 
 -- Towns / Communes
 CREATE TABLE Towns (
-   id SERIAL UNIQUE NOT NULL CHECK (id > 0), 
+   id SERIAL UNIQUE NOT NULL CHECK (id > 0),
    code VARCHAR(10) NOT NULL, -- Only unique inside a department
    article TEXT,
    name TEXT NOT NULL, -- Names are not really unique, for instance 'Sainte-Croix'

@@ -158,6 +158,7 @@ public final class Config {
                 options.remove("-help") ||
                 options.remove("--help");
         dbHelpRequired = options.remove("-dbHelp") || options.remove("-dbhelp");
+        queryRequired = options.remove("-q") || options.remove("-query") || options.remove("--query");
     }
 
     public static Config getInstance() {

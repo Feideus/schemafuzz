@@ -16,6 +16,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.regex.Pattern;
+import org.schemaspy.Config;
 
 /**
  * Created by rkasa on 2016-12-10.
@@ -470,7 +471,7 @@ public class DatabaseService {
     {
 
         //String sql = config.getDbProperties().getProperty("selectCheckConstraintsSql");
-        String sql = "SELECT * FROM information_schema.check_constraints WHERE constraint_schema = 'public'";
+        String sql = "SELECT constraint_name,check_clause FROM information_schema.check_constraints WHERE NOT (constraint_schema = 'pg_catalog') ";
         if (sql != null) {
 
             try (PreparedStatement stmt = sqlService.prepareStatement(sql, db,null);
@@ -494,6 +495,7 @@ public class DatabaseService {
             }
         }
     }
+
 
     private void initColumnTypes(Config config, Database db, ProgressListener listener) {
         String sql = config.getDbProperties().getProperty("selectColumnTypesSql");
@@ -708,15 +710,15 @@ public class DatabaseService {
            }
       catch (SQLException sqlException)
       {
-               String msg = listener.recoverableExceptionEncountered("Failed to execute the given sql statement", sqlException, theQuery);
-               if (msg != null)
-               {
-                   LOGGER.warn(msg);
-               }
+          String msg = listener.recoverableExceptionEncountered("Failed to execute the given sql statement", sqlException, theQuery);
+          if (msg != null)
+          {
+              LOGGER.warn(msg);
+          }
       }
     }
 
-    /**
+    /*
      * Initializes stored procedures / functions.
      *
      * @throws SQLException

@@ -30,6 +30,8 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.schemaspy.Config;
+
 
 public class Database {
 
@@ -39,6 +41,9 @@ public class Database {
     private final Catalog catalog ;
     private final Schema schema;
     private final Map<String, Table> tables = new CaseInsensitiveMap<Table>();
+    private Map<String,List<TableColumn>> lesColumns;
+    private Map<String,Collection<ForeignKeyConstraint>> lesForeignKeys;
+    private Map<String, Map<String, String>> lesCheckConstraints;
     private final Map<String, View> views = new CaseInsensitiveMap<View>();
     private final Map<String, Table> remoteTables = new CaseInsensitiveMap<Table>(); // key: schema.tableName
     private final Map<String, Table> locals = new CombinedMap(tables, views);
@@ -61,10 +66,25 @@ public class Database {
         this.databaseName = name;
         this.catalog = new Catalog(catalog);
         this.schema = new Schema(schema);
+        this.lesColumns = new HashMap();
+        this.lesForeignKeys = new HashMap();
+        this.lesCheckConstraints = new HashMap();
     }
 
     public String getName() {
         return databaseName;
+    }
+
+    public Map<String,List<TableColumn>> getLesColumns() {
+        return lesColumns;
+    }
+
+    public Map<String,Collection<ForeignKeyConstraint>> getLesForeignKeys() {
+        return lesForeignKeys;
+    }
+
+    public Map<String, Map<String, String>> getLesCheckConstraints() {
+        return lesCheckConstraints;
     }
 
     public Catalog getCatalog() {
@@ -399,5 +419,21 @@ public class Database {
 		public void clear() {
             throw new UnsupportedOperationException();
         }
+    }
+
+    public void initMeta(Config config)
+    {
+
+      for (Map.Entry<String, Table> entry : tables.entrySet())
+      {
+          lesColumns.put(entry.getKey(), entry.getValue().getColumns());
+          lesForeignKeys.put(entry.getKey(), entry.getValue().getForeignKeys());
+          lesCheckConstraints.put(entry.getKey(), entry.getValue().getCheckConstraints());
+      }
+
+      System.out.println(lesColumns.toString());
+      System.out.println("lesForeignKeys = "+lesForeignKeys+"\n");
+      System.out.println("lesCheckConstraints= "+lesCheckConstraints+"\n");
+
     }
 }

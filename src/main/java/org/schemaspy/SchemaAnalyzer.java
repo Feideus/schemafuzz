@@ -252,30 +252,13 @@ public class SchemaAnalyzer {
                 LOGGER.info("View the results by opening {}", new File(outputDir, "index.html"));
             }
 
-            System.out.println("COUCOU BATARD");
-
-            Map<String, Table> lesTables = new HashMap();
-            Map<String,List<TableColumn>> lesColumns = new HashMap();
-            Map<String,Collection<ForeignKeyConstraint>> lesForeignKeys = new HashMap();
-            Map<String, Map<String, String>> lesCheckConstraints = new HashMap();
-
-            lesTables = db.getTablesMap();
-
-            for (Map.Entry<String, Table> entry : lesTables.entrySet())
-            {
-                lesColumns.put(entry.getKey(), entry.getValue().getColumns()); //erreur ICI
-                lesForeignKeys.put(entry.getKey(), entry.getValue().getForeignKeys()); //Erreur ICI aussi
-                lesCheckConstraints.put(entry.getKey(), entry.getValue().getCheckConstraints());
-            }
-
-            System.out.println(lesColumns.toString());
-            System.out.println("lesForeignKeys = "+lesForeignKeys+"\n");
-            System.out.println("lesCheckConstraints= "+lesCheckConstraints+"\n");
+            db.initMeta(config);
 
             System.out.println("La query "+config.getQuery());
 
-            if(config.getQueryRequired())
+            if(config.getQueryRequired() && config.getQuery() != "")
             {
+              System.out.println("Je rentre dans la query");
               databaseService.injectUserQuery(config, db, progressListener);
             }
 
