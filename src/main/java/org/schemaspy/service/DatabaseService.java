@@ -705,7 +705,7 @@ public class DatabaseService {
 
       try (PreparedStatement stmt = sqlService.prepareStatement(theQuery, db,null))
            {
-             stmt.execute(); // Next time try to display the query response
+             stmt.execute();
              LOGGER.info("Query Succesfull");
            }
       catch (SQLException sqlException)
@@ -716,6 +716,30 @@ public class DatabaseService {
               LOGGER.warn(msg);
           }
       }
+    }
+
+    public QueryResponse injectSelect(Config config, Database db,ProgressListener listener)
+    {
+      String theQuery = config.getQuery();
+      System.out.println("QueryICI = "+theQuery);
+      QueryResponseParser qr= new QueryResponseParser();
+      ResultSet rs = null;
+
+      try (PreparedStatement stmt = sqlService.prepareStatement(theQuery, db,null))
+           {
+
+             rs = stmt.executeQuery(); // Next time try to display the query response
+             LOGGER.info("Query Succesfull");
+           }
+      catch (SQLException sqlException)
+      {
+          String msg = listener.recoverableExceptionEncountered("Failed to execute the given sql statement", sqlException, theQuery);
+          if (msg != null)
+          {
+              LOGGER.warn(msg);
+          }
+      }
+      return qr.parse(rs);
     }
 
     /*

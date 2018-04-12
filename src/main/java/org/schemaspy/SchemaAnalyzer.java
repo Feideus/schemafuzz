@@ -254,6 +254,8 @@ public class SchemaAnalyzer {
 
             db.initMeta(config);
 
+            databaseService.injectSelect(config, db, progressListener).toString(); /// AUCUN OUTPUT ICI A DEBUGGER DURGENCE
+
             System.out.println("La query "+config.getQuery());
 
             if(config.getQueryRequired() && config.getQuery() != "")

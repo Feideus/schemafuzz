@@ -1,0 +1,5 @@
+org/schemaspy/model/QueryResponseParser.class
+org/schemaspy/model/Row.class
+org/schemaspy/model/NotNullConstraint.class
+org/schemaspy/model/CheckConstraint.class
+org/schemaspy/model/QueryResponse.class

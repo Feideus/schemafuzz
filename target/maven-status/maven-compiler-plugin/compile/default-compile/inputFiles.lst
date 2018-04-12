@@ -4,6 +4,7 @@
 /home/feideus/Work/mySchemaSpyCopy/src/main/java/org/schemaspy/cli/PropertyFileDefaultProviderFactory.java
 /home/feideus/Work/mySchemaSpyCopy/src/main/java/org/schemaspy/model/xml/TableColumnMeta.java
 /home/feideus/Work/mySchemaSpyCopy/src/main/java/org/schemaspy/model/ConnectionFailure.java
+/home/feideus/Work/mySchemaSpyCopy/src/main/java/org/schemaspy/model/Row.java
 /home/feideus/Work/mySchemaSpyCopy/src/main/java/org/schemaspy/validator/NameValidator.java
 /home/feideus/Work/mySchemaSpyCopy/src/main/java/org/schemaspy/TableOrderer.java
 /home/feideus/Work/mySchemaSpyCopy/src/main/java/org/schemaspy/model/ForeignKey.java
@@ -12,6 +13,7 @@
 /home/feideus/Work/mySchemaSpyCopy/src/main/java/org/schemaspy/cli/ConfigFileArgument.java
 /home/feideus/Work/mySchemaSpyCopy/src/main/java/org/schemaspy/util/ConnectionURLBuilder.java
 /home/feideus/Work/mySchemaSpyCopy/src/main/java/org/schemaspy/cli/CommandLineArguments.java
+/home/feideus/Work/mySchemaSpyCopy/src/main/java/org/schemaspy/model/QueryResponseParser.java
 /home/feideus/Work/mySchemaSpyCopy/src/main/java/org/schemaspy/model/ForeignKeyConstraint.java
 /home/feideus/Work/mySchemaSpyCopy/src/main/java/org/schemaspy/model/RailsForeignKeyConstraint.java
 /home/feideus/Work/mySchemaSpyCopy/src/main/java/org/schemaspy/db/config/ResourceFinder.java
@@ -23,6 +25,7 @@
 /home/feideus/Work/mySchemaSpyCopy/src/main/java/org/schemaspy/service/SqlService.java
 /home/feideus/Work/mySchemaSpyCopy/src/main/java/org/schemaspy/model/xml/ForeignKeyMeta.java
 /home/feideus/Work/mySchemaSpyCopy/src/main/java/org/schemaspy/WiringConfiguration.java
+/home/feideus/Work/mySchemaSpyCopy/src/main/java/org/schemaspy/model/QueryResponse.java
 /home/feideus/Work/mySchemaSpyCopy/src/main/java/org/schemaspy/model/xml/TableMeta.java
 /home/feideus/Work/mySchemaSpyCopy/src/main/java/org/schemaspy/model/RoutineParameter.java
 /home/feideus/Work/mySchemaSpyCopy/src/main/java/org/schemaspy/logging/LogLevelConditionalThrowableProxyConverter.java
@@ -33,6 +36,7 @@
 /home/feideus/Work/mySchemaSpyCopy/src/main/java/org/schemaspy/model/Database.java
 /home/feideus/Work/mySchemaSpyCopy/src/main/java/org/schemaspy/cli/PropertyFileDefaultProvider.java
 /home/feideus/Work/mySchemaSpyCopy/src/main/java/org/schemaspy/model/ConsoleProgressListener.java
+/home/feideus/Work/mySchemaSpyCopy/src/main/java/org/schemaspy/model/NotNullConstraint.java
 /home/feideus/Work/mySchemaSpyCopy/src/main/java/org/schemaspy/cli/CommandLineArgumentParser.java
 /home/feideus/Work/mySchemaSpyCopy/src/main/java/org/schemaspy/util/Inflection.java
 /home/feideus/Work/mySchemaSpyCopy/src/main/java/org/schemaspy/model/RemoteTable.java
@@ -66,4 +70,5 @@
 /home/feideus/Work/mySchemaSpyCopy/src/main/java/org/schemaspy/model/Routine.java
 /home/feideus/Work/mySchemaSpyCopy/src/main/java/org/schemaspy/util/ResourceNotFoundException.java
 /home/feideus/Work/mySchemaSpyCopy/src/main/java/org/schemaspy/util/PasswordReader.java
+/home/feideus/Work/mySchemaSpyCopy/src/main/java/org/schemaspy/model/CheckConstraint.java
 /home/feideus/Work/mySchemaSpyCopy/src/main/java/org/schemaspy/util/LineWriter.java
