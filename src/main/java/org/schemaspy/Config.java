@@ -25,10 +25,7 @@ import org.schemaspy.cli.CommandLineArguments;
 import org.schemaspy.db.config.PropertiesResolver;
 import org.schemaspy.model.InvalidConfigurationException;
 import org.schemaspy.util.DbSpecificConfig;
-import org.schemaspy.util.Dot;
 import org.schemaspy.util.PasswordReader;
-import org.schemaspy.view.DefaultSqlFormatter;
-import org.schemaspy.view.SqlFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -99,8 +96,6 @@ public final class Config {
     private String description;
     private PropertiesResolver propertiesResolver = new PropertiesResolver();
     private Properties dbProperties;
-    private SqlFormatter sqlFormatter;
-    private String sqlFormatterClass;
     private Boolean generateHtml;
     private Boolean includeImpliedConstraints;
     private Boolean logoEnabled;
@@ -111,8 +106,6 @@ public final class Config {
     private Boolean meterEnabled;
     private Boolean railsEnabled;
     private Boolean evaluateAll;
-    private Boolean highQuality;
-    private Boolean lowQuality;
     private Boolean paginationEnabled;
     private String imageFormat;
     private Boolean loadJDBCJarsEnabled = false;
@@ -208,48 +201,6 @@ public final class Config {
         return includeImpliedConstraints;
     }
 
-    /**
-     * Set the path to Graphviz so we can find dot to generate ER diagrams
-     *
-     * @param graphvizDir
-     */
-    public void setGraphvizDir(String graphvizDir) {
-        if (graphvizDir.endsWith("\""))
-            graphvizDir = graphvizDir.substring(0, graphvizDir.length() - 1);
-
-        setGraphvizDir(new File(graphvizDir));
-    }
-
-    /**
-     * Set the path to Graphviz so we can find dot to generate ER diagrams
-     *
-     * @param graphvizDir
-     */
-    public void setGraphvizDir(File graphvizDir) {
-        this.graphvizDir = graphvizDir;
-    }
-
-    /**
-     * Return the path to Graphviz (used to find the dot executable to run to
-     * generate ER diagrams).<p/>
-     * <p>
-     * Returns graphiz path or null
-     * was not specified.
-     *
-     * @return
-     */
-    public File getGraphvizDir() {
-        if (graphvizDir == null) {
-            String gv = pullParam("-gv");
-            if (gv != null) {
-                setGraphvizDir(gv);
-            } else {
-                // expect to find Graphviz's bin directory on the PATH
-            }
-        }
-
-        return graphvizDir;
-    }
 
     /**
      * Meta files are XML-based files that provide additional metadata
@@ -1021,57 +972,6 @@ public final class Config {
     }
 
     /**
-     * Set the name of the {@link SqlFormatter SQL formatter} class to use to
-     * format SQL into HTML.<p/>
-     * The implementation of the class must be made available to the class
-     * loader, typically by specifying the path to its jar with <em>-dp</em>
-     * ({@link #setDriverPath(String)}).
-     */
-    public void setSqlFormatter(String formatterClassName) {
-        sqlFormatterClass = formatterClassName;
-        sqlFormatter = null;
-    }
-
-    /**
-     * Set the {@link SqlFormatter SQL formatter} to use to format
-     * SQL into HTML.
-     */
-    public void setSqlFormatter(SqlFormatter sqlFormatter) {
-        this.sqlFormatter = sqlFormatter;
-        if (sqlFormatter != null)
-            sqlFormatterClass = sqlFormatter.getClass().getName();
-    }
-
-    /**
-     * Returns an implementation of {@link SqlFormatter SQL formatter} to use to format
-     * SQL into HTML.  The default implementation is {@link DefaultSqlFormatter}.
-     *
-     * @return
-     * @throws InvalidConfigurationException if unable to instantiate an instance
-     */
-    @SuppressWarnings("unchecked")
-    public SqlFormatter getSqlFormatter() {
-        if (sqlFormatter == null) {
-            if (sqlFormatterClass == null) {
-                sqlFormatterClass = pullParam("-sqlFormatter");
-
-                if (sqlFormatterClass == null)
-                    sqlFormatterClass = DefaultSqlFormatter.class.getName();
-            }
-
-            try {
-                Class<SqlFormatter> clazz = (Class<SqlFormatter>) Class.forName(sqlFormatterClass);
-                sqlFormatter = clazz.newInstance();
-            } catch (Exception exc) {
-                throw new InvalidConfigurationException("Failed to initialize instance of SQL formatter: ", exc)
-                        .setParamName("-sqlFormatter").setParamValue(sqlFormatterClass);
-            }
-        }
-
-        return sqlFormatter;
-    }
-
-    /**
      * Set the details to show on the columns page, where "details" are
      * comma and/or space separated.
      * <p>
@@ -1166,79 +1066,6 @@ public final class Config {
         return schemaSpec;
     }
 
-    /**
-     * Set the renderer to use for the -Tpng[:renderer[:formatter]] dot option as specified
-     * at <a href='http://www.graphviz.org/doc/info/command.html'>
-     * http://www.graphviz.org/doc/info/command.html</a>.<p>
-     * Note that the leading ":" is required while :formatter is optional.<p>
-     * The default renderer is typically GD.<p>
-     * Note that using {@link #setHighQuality(boolean)} is the preferred approach
-     * over using this method.
-     */
-    public void setRenderer(String renderer) {
-        Dot.getInstance().setRenderer(renderer);
-    }
-
-    /**
-     * @return
-     * @see #setRenderer(String)
-     */
-    public String getRenderer() {
-        String renderer = pullParam("-renderer");
-        if (renderer != null)
-            setRenderer(renderer);
-
-        return Dot.getInstance().getRenderer();
-    }
-
-    /**
-     * If <code>false</code> then generate output of "lower quality"
-     * than the default.
-     * Note that the default is intended to be "higher quality",
-     * but various installations of Graphviz may have have different abilities.
-     * That is, some might not have the "lower quality" libraries and others might
-     * not have the "higher quality" libraries.<p>
-     * Higher quality output takes longer to generate and results in significantly
-     * larger image files (which take longer to download / display), but it generally
-     * looks better.
-     */
-    public void setHighQuality(boolean highQuality) {
-        this.highQuality = highQuality;
-        lowQuality = !highQuality;
-        Dot.getInstance().setHighQuality(highQuality);
-    }
-
-    /**
-     * @see #setHighQuality(boolean)
-     */
-    public boolean isHighQuality() {
-        if (highQuality == null) {
-            highQuality = options.remove("-hq");
-            if (highQuality) {
-                // use whatever is the default unless explicitly specified otherwise
-                Dot.getInstance().setHighQuality(highQuality);
-            }
-        }
-
-        highQuality = Dot.getInstance().isHighQuality();
-        return highQuality;
-    }
-
-    /**
-     * @see #setHighQuality(boolean)
-     */
-    public boolean isLowQuality() {
-        if (lowQuality == null) {
-            lowQuality = options.remove("-lq");
-            if (lowQuality) {
-                // use whatever is the default unless explicitly specified otherwise
-                Dot.getInstance().setHighQuality(!lowQuality);
-            }
-        }
-
-        lowQuality = !Dot.getInstance().isHighQuality();
-        return lowQuality;
-    }
 
     /**
      * Returns <code>true</code> if the options indicate that the user wants
@@ -1613,13 +1440,13 @@ public final class Config {
             System.out.println();
         }
 
-        if (detailedDb) {
+        /*if (detailedDb) {
             System.out.println("Built-in database types and their required connection parameters:");
             for (String type : getBuiltInDatabaseTypes(getLoadedFromJar())) {
                 new DbSpecificConfig(type).dumpUsage();
             }
             System.out.println();
-        }
+        }*/
 
         if (detailedDb) {
             System.out.println("You can use your own database types by specifying the filespec of a .properties file with -t.");
@@ -1723,11 +1550,7 @@ public final class Config {
         params.add("-t");
         params.add(getDbType());
         params.add("-imageformat");
-        params.add(getImageFormat());
-        isHighQuality();    // query to set renderer correctly
-        isLowQuality();     // query to set renderer correctly
-        params.add("-renderer");  // instead of -hq and/or -lq
-        params.add(getRenderer());
+        params.add(getImageFormat());    // query to set renderer correctly
         value = getDescription();
         if (value != null) {
             params.add("-desc");
@@ -1798,13 +1621,7 @@ public final class Config {
             params.add("-template");
             params.add(value);
         }
-        if (getGraphvizDir() != null) {
-            params.add("-gv");
-            params.add(getGraphvizDir().toString());
-        }
 
-        params.add("-sqlFormatter");
-        params.add(getSqlFormatter().getClass().getName());
         params.add("-i");
         params.add(getTableInclusions().toString());
         params.add("-I");

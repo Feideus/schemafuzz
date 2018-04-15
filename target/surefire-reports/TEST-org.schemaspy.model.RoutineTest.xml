@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<testsuite tests="2" failures="0" name="org.schemaspy.model.RoutineTest" time="0.001" errors="0" skipped="0">
+<testsuite tests="2" failures="0" name="org.schemaspy.model.RoutineTest" time="0" errors="0" skipped="0">
   <properties>
     <property name="java.runtime.name" value="Java(TM) SE Runtime Environment"/>
     <property name="sun.boot.library.path" value="/usr/lib/jvm/java-8-oracle/jre/lib/amd64"/>
     <property name="java.vm.version" value="25.161-b12"/>
     <property name="java.vm.vendor" value="Oracle Corporation"/>
-    <property name="maven.multiModuleProjectDirectory" value="/home/feideus/Work/mySchemaSpyCopy"/>
+    <property name="maven.multiModuleProjectDirectory" value="/home/feideus/Work/BFHWork/mySchemaSpyCopy"/>
     <property name="java.vendor.url" value="http://java.oracle.com/"/>
     <property name="path.separator" value=":"/>
     <property name="guice.disable.misplaced.annotation.check" value="true"/>
@@ -15,7 +15,7 @@
     <property name="sun.java.launcher" value="SUN_STANDARD"/>
     <property name="sun.os.patch.level" value="unknown"/>
     <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
-    <property name="user.dir" value="/home/feideus/Work/mySchemaSpyCopy"/>
+    <property name="user.dir" value="/home/feideus/Work/BFHWork/mySchemaSpyCopy"/>
     <property name="java.runtime.version" value="1.8.0_161-b12"/>
     <property name="java.awt.graphicsenv" value="sun.awt.X11GraphicsEnvironment"/>
     <property name="java.endorsed.dirs" value="/usr/lib/jvm/java-8-oracle/jre/lib/endorsed"/>
@@ -34,12 +34,12 @@
     <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
     <property name="os.version" value="4.13.0-38-generic"/>
     <property name="user.home" value="/home/feideus"/>
-    <property name="user.timezone" value="Europe/Rome"/>
+    <property name="user.timezone" value="Europe/Zurich"/>
     <property name="java.awt.printerjob" value="sun.print.PSPrinterJob"/>
     <property name="java.specification.version" value="1.8"/>
     <property name="file.encoding" value="UTF-8"/>
     <property name="user.name" value="feideus"/>
-    <property name="java.class.path" value="/home/feideus/Work/mySchemaSpyCopy/.mvn/wrapper/maven-wrapper.jar"/>
+    <property name="java.class.path" value="/home/feideus/Work/BFHWork/mySchemaSpyCopy/.mvn/wrapper/maven-wrapper.jar"/>
     <property name="java.vm.specification.version" value="1.8"/>
     <property name="sun.arch.data.model" value="64"/>
     <property name="java.home" value="/usr/lib/jvm/java-8-oracle/jre"/>
@@ -61,6 +61,6 @@
     <property name="sun.desktop" value="gnome"/>
     <property name="sun.cpu.isalist" value=""/>
   </properties>
-  <testcase classname="org.schemaspy.model.RoutineTest" name="definition" time="0.001"/>
+  <testcase classname="org.schemaspy.model.RoutineTest" name="definition" time="0"/>
   <testcase classname="org.schemaspy.model.RoutineTest" name="nullDefinitionIsReplacedWithEmptyString" time="0"/>
 </testsuite>

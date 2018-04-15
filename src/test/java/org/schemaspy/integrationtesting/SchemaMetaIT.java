@@ -17,8 +17,6 @@ import org.schemaspy.service.DatabaseService;
 import org.schemaspy.service.SqlService;
 import org.schemaspy.testing.H2MemoryRule;
 import org.schemaspy.util.LineWriter;
-import org.schemaspy.view.DotFormatter;
-import org.schemaspy.view.WriteStats;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -293,42 +291,5 @@ public class SchemaMetaIT {
 
         assertThat(database.getTablesByName().get("ACCOUNT").getNumChildren())
                 .isLessThan(databaseWithSchemaMeta.getTablesByName().get("ACCOUNT").getNumChildren());
-    }
-
-    @Test
-    public void disableDiagramAssociations() throws Exception {
-        Database database = new Database(
-                databaseMetaData,
-                "SchemaMetaIT",
-                catalog,
-                schema,
-                null
-        );
-        databaseService.gatheringSchemaDetails(config, database, progressListener);
-
-        SchemaMeta schemaMeta = new SchemaMeta("src/test/resources/integrationTesting/schemaMetaIT/input/disableDiagramAssociations.xml","SchemaMetaIT", schema);
-        Database databaseWithSchemaMeta = new Database(
-                databaseMetaData,
-                "SchemaMetaIT",
-                catalog,
-                schema,
-                schemaMeta
-        );
-        databaseService.gatheringSchemaDetails(config, databaseWithSchemaMeta, progressListener);
-
-        File withoutSchemaMetaOutput = temporaryFolder.newFolder("withOutSchemaMeta");
-        try (LineWriter lineWriter = new LineWriter(new File(withoutSchemaMetaOutput, "company.dot"),"UTF-8")) {
-            DotFormatter.getInstance().writeAllRelationships(database.getTablesByName().get("COMPANY"), false, new WriteStats(database.getTables()), lineWriter, withoutSchemaMetaOutput);
-        }
-        String dotFileWithoutSchemaMeta = Files.readAllLines(new File(withoutSchemaMetaOutput, "company.dot").toPath()).stream().collect(Collectors.joining());
-
-        File withSchemaMetaOutput = temporaryFolder.newFolder("withSchemaMeta");
-        try (LineWriter lineWriter = new LineWriter(new File(withSchemaMetaOutput, "company.dot"),"UTF-8")){
-            DotFormatter.getInstance().writeAllRelationships(databaseWithSchemaMeta.getTablesByName().get("COMPANY"), false, new WriteStats(databaseWithSchemaMeta.getTables()), lineWriter, withSchemaMetaOutput);
-        }
-        String dotFileWithSchemaMeta  = Files.readAllLines(new File(withSchemaMetaOutput, "company.dot").toPath()).stream().collect(Collectors.joining());
-
-        assertThat(dotFileWithoutSchemaMeta).contains("\"COUNTRY\":\"COUNTRYID\"");
-        assertThat(dotFileWithSchemaMeta).doesNotContain("\"COUNTRY\":\"COUNTRYID\"");
     }
 }
