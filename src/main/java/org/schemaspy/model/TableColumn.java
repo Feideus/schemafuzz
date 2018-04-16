@@ -30,7 +30,7 @@ import java.util.TreeMap;
 import java.util.regex.Pattern;
 
 public class TableColumn {
-    private final Table table;
+    private Table table;
     private String name;
     private Object id;
     private String typeName;
@@ -51,6 +51,11 @@ public class TableColumn {
     private boolean isExcluded = false;
     private boolean isAllExcluded = false;
 
+
+
+    public TableColumn() {
+
+    }
     /**
      * Create a column associated with a table.
      *
@@ -515,10 +520,10 @@ public class TableColumn {
      */
      @Override
      public String toString() {
-       return "TableColumn [table=" + table + ", name=" + name + ", id=" + id + ", typeName=" + typeName +
-       ", shortTypeName=" + shortTypeName + ", type=" + type + ", length=" + length + ", decimalDigits=" +
-       decimalDigits + ", detailedSize=" + detailedSize + ", isNullable=" + isNullable + ", isAutoUpdated=" +
-       isAutoUpdated + ", isUnique=" + isUnique + "]";
+       return "\n\n-----TableColumn [table=" + table + "\n name=" + name + "\n id=" + id + "\n typeName=" + typeName +
+       "\n shortTypeName=" + shortTypeName + "\n type=" + type + "\n length=" + length + "\n decimalDigits=" +
+       decimalDigits + "\n detailedSize=" + detailedSize + "\n isNullable=" + isNullable + "\n isAutoUpdated=" +
+       isAutoUpdated + "\n isUnique=" + isUnique + "]";
      }
 
     /**

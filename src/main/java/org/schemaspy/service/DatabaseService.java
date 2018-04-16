@@ -1,6 +1,5 @@
 package org.schemaspy.service;
 
-import org.schemaspy.Config;
 import org.schemaspy.model.*;
 import org.schemaspy.model.xml.SchemaMeta;
 import org.schemaspy.model.xml.TableMeta;
@@ -483,7 +482,9 @@ public class DatabaseService {
                     String tableName = rs.getString("constraint_name").substring(0,indexOfUnderscore);
                     Table table = db.getLocals().get(tableName);
                     if (table != null)
+                    {
                         table.addCheckConstraint(rs.getString("constraint_name"), rs.getString("check_clause"));
+                    }
                 }
 
             } catch (SQLException sqlException) {

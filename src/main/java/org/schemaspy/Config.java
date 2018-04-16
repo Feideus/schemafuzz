@@ -62,7 +62,6 @@ public final class Config {
     private Map<String, String> originalDbSpecificOptions;
     private boolean helpRequired;
     private boolean dbHelpRequired;
-    private File graphvizDir;
     private String dbType;
     private String schema;
     private List<String> schemas;

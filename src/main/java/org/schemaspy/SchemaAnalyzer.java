@@ -20,26 +20,17 @@
  */
 package org.schemaspy;
 
-import java.sql.PreparedStatement;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.FileFilterUtils;
-import org.apache.commons.io.filefilter.IOFileFilter;
+
 import org.schemaspy.cli.CommandLineArguments;
 import org.schemaspy.model.*;
 import org.schemaspy.model.xml.SchemaMeta;
 import org.schemaspy.service.DatabaseService;
 import org.schemaspy.service.SqlService;
 import org.schemaspy.util.ConnectionURLBuilder;
-import org.schemaspy.util.LineWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.net.URL;
-import java.nio.file.Files;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
@@ -181,35 +172,33 @@ public class SchemaAnalyzer {
                     throw new EmptySchemaException();
             }
 
-            List<ForeignKeyConstraint> recursiveConstraints = new ArrayList<>();
-
-            // create an orderer to be able to determine insertion and deletion ordering of tables
-            TableOrderer orderer = new TableOrderer();
-
-            // side effect is that the RI relationships get trashed
-            // also populates the recursiveConstraints collection
-            List<Table> orderedTables = orderer.getTablesOrderedByRI(db.getTables(), recursiveConstraints);
-
             duration = progressListener.finishedGatheringDetails();
             long overallDuration = progressListener.finished(tables, config);
 
-            if (config.isHtmlGenerationEnabled()) {
-                LOGGER.info("Wrote table details in {} seconds", duration / 1000);
-
+            if (config.isHtmlGenerationEnabled())
                 LOGGER.info("Wrote relationship details of {} tables/views in {} seconds.", tables.size(), overallDuration / 1000);
-            }
 
-            db.initMeta(config);
 
-            databaseService.injectSelect(config, db, progressListener).toString(); /// AUCUNE SORTIE ICI A DEBUGGER DURGENCE
+            db.initMeta(config,db);
 
-            System.out.println("La query "+config.getQuery());
+            ///-------------- TEST ZONE
+            LOGGER.info("Done initializing Meta");
+
+            System.out.println("lesColumns"+db.getLesColumns().toString());
+            System.out.println("lesForeignKeys = "+db.getLesForeignKeys().toString()+"\n");
+            System.out.println("lesCheckConstraints= "+db.getLesCheckConstraints().toString()+"\n");
+
+
+             ///databaseService.injectSelect(config, db, progressListener).toString(); /// AUCUNE SORTIE ICI A DEBUGGER DURGENCE
+            ///System.out.println("La query "+config.getQuery());
 
             if(config.getQueryRequired() && config.getQuery() != "")
             {
               System.out.println("Je rentre dans la query");
               databaseService.injectUserQuery(config, db, progressListener);
             }
+
+            /// ----------- END OF TEST ZONE
 
             return db;
         } catch (Config.MissingRequiredParameterException missingParam) {

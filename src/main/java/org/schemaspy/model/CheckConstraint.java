@@ -17,7 +17,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package org.schemaspy.model;
-
+import java.util.*;
 
 
 
@@ -27,23 +27,25 @@ package org.schemaspy.model;
  * via foreign and primary keys.
  */
 public class CheckConstraint {
-    private final String name;
+    private String name;
     private Table parentTable;
     private TableColumn checkedColumn;
     private TableColumn targetColumn;
-    private Object constantValue;
+    private String constantValue;
     private String operation;
+    private ArrayList<CheckConstraint> orClauses;
 
-
-
-    public CheckConstraint(String name) {
-      this.name = name;
+    public CheckConstraint()
+    {
+      super();
   	}
+
+
 
   	/**
   	* Default CheckConstraint constructor
   	*/
-  	public CheckConstraint(Table parentTable, TableColumn checkedColumn, TableColumn targetColumn, Object constantValue,String name, String operation) {
+  	public CheckConstraint(Table parentTable, TableColumn checkedColumn, TableColumn targetColumn, String constantValue,String name, String operation) {
   		this.parentTable = parentTable;
   		this.checkedColumn = checkedColumn;
   		this.targetColumn = targetColumn;
@@ -52,11 +54,15 @@ public class CheckConstraint {
       this.name = name;
   	}
 
-    /**
-     * Returns a string representation of this foreign key constraint.
-     *
-     * @return
-     */
+    public ArrayList<CheckConstraint> getOrClauses()
+    {
+      return orClauses;
+    }
+
+    public void setOrClauses(ArrayList<CheckConstraint> orClauses)
+    {
+      this.orClauses = orClauses;
+    }
 
     public boolean equals(final CheckConstraint ckConstraint) {
           Boolean res = false;
@@ -134,7 +140,7 @@ public class CheckConstraint {
 	* Sets new value of constantValue
 	* @param
 	*/
-	public void setConstantValue(Object constantValue) {
+	public void setConstantValue(String constantValue) {
 		this.constantValue = constantValue;
 	}
 
@@ -158,4 +164,121 @@ public class CheckConstraint {
 	* Returns value of Logger
 	* @return
   */
+
+	/**
+	* Create string representation of CheckConstraint for printing
+	* @return
+	*/
+	@Override
+	public String toString() {
+		return "CheckConstraint [name=" + name + "\n parentTable=" + parentTable + "\n checkedColumn=" + checkedColumn + "\n targetColumn=" + targetColumn + "\n constantValue=" + constantValue + "\n operation=" + operation + "]\n\n";
+	}
+
+ public static CheckConstraint parse (String tableName, String stringCC, Database db)
+ {
+      System.out.println("DODKSKDQS");
+      System.out.println("tableName = "+tableName);
+
+      CheckConstraint cc = new CheckConstraint();
+
+      cc.name = tableName;
+      cc.parentTable = db.getTablesByName().get(tableName);
+
+
+      if(stringCC.contains("OR"))
+      {
+        System.out.println("coucou OR");
+        cc.orClauses.add(CheckConstraint.parse(tableName,stringCC.substring(stringCC.indexOf("OR")+2),db));
+        stringCC = stringCC.substring(0,stringCC.indexOf("OR"));
+      }
+
+      if(stringCC.contains("AND"))
+      {
+        System.out.println("coucou AND");
+        CheckConstraint.parse(tableName,stringCC.substring(stringCC.indexOf("AND")+3),db);
+        stringCC = stringCC.substring(0,stringCC.indexOf("AND"));
+      }
+
+      if(stringCC.contains("<"))
+      {
+        System.out.println("coucou <");
+        if(db.columnExists(stringCC.substring(stringCC.lastIndexOf("("),stringCC.indexOf("<"))))
+        {
+          cc.checkedColumn =  db.findColumn(stringCC.substring(stringCC.lastIndexOf("("),stringCC.indexOf("<")));
+        }
+
+        if(db.columnExists(stringCC.substring(stringCC.indexOf("<"),stringCC.indexOf(")"))))
+        {
+          cc.targetColumn =  db.findColumn(stringCC.substring(stringCC.lastIndexOf("<"),stringCC.indexOf(")")));
+        }
+          else
+            cc.constantValue = stringCC.substring(stringCC.lastIndexOf("<"),stringCC.indexOf(")"));
+
+              if(stringCC.substring(stringCC.indexOf("<"),stringCC.indexOf("<")+1) == "=")
+              {
+                cc.operation = "<=";
+              }
+              else
+                cc.operation = "<";
+      }
+      else if(stringCC.contains(">"))
+      {
+        System.out.println("coucou >");
+                      if(db.columnExists(stringCC.substring(stringCC.lastIndexOf("("),stringCC.indexOf(">"))))
+                      {
+                        cc.checkedColumn =  db.findColumn(stringCC.substring(stringCC.lastIndexOf("("),stringCC.indexOf(">")));
+                      }
+                      if(db.columnExists(stringCC.substring(stringCC.indexOf(">"),stringCC.indexOf(")"))))
+                      {
+                        cc.targetColumn =  db.findColumn(stringCC.substring(stringCC.lastIndexOf(">"),stringCC.indexOf(")")));
+                      }
+                      else
+                        cc.constantValue = stringCC.substring(stringCC.lastIndexOf(">"),stringCC.indexOf(")"));
+
+                      if(stringCC.substring(stringCC.indexOf(">"),stringCC.indexOf(">")+1) == "=")
+                          cc.operation = ">=";
+                      else
+                          cc.operation = ">";
+      }
+      else if(stringCC.contains("=") && !stringCC.contains(">") && !stringCC.contains("<"))
+      {
+        if(db.columnExists(stringCC.substring(stringCC.lastIndexOf("("),stringCC.indexOf("="))))
+        {
+          cc.checkedColumn =  db.findColumn(stringCC.substring(stringCC.lastIndexOf("("),stringCC.indexOf("=")));
+        }
+        if(db.columnExists(stringCC.substring(stringCC.indexOf("="),stringCC.indexOf(")"))))
+        {
+          cc.targetColumn =  db.findColumn(stringCC.substring(stringCC.lastIndexOf("="),stringCC.indexOf(")")));
+        }
+        else
+          cc.constantValue = stringCC.substring(stringCC.lastIndexOf("="),stringCC.indexOf(")"));
+
+          cc.operation = "=";
+      }
+
+    return cc;
+
+ }
+
+ public static ArrayList<CheckConstraint> parseAll(Map<String,String> stringCCMap, Database db)
+ {
+   System.out.println(stringCCMap);
+
+   System.out.println("COUCOUDSDSD");
+
+   ArrayList<CheckConstraint> res = new ArrayList<CheckConstraint>();
+
+   for (Map.Entry<String, String> entry : stringCCMap.entrySet())
+   {
+     if(entry != null)
+     {
+        System.out.println("INICI");
+        res.add(CheckConstraint.parse(entry.getKey(),entry.getValue(),db));
+     }
+
+   }
+
+   return res;
+ }
+
 }

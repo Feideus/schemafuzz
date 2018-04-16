@@ -41,9 +41,9 @@ public class Database {
     private final Catalog catalog ;
     private final Schema schema;
     private final Map<String, Table> tables = new CaseInsensitiveMap<Table>();
-    private Map<String,List<TableColumn>> lesColumns;
-    private Map<String,Collection<ForeignKeyConstraint>> lesForeignKeys;
-    private Map<String, Map<String, String>> lesCheckConstraints;
+    private Map<String,List<TableColumn>> lesColumns = new HashMap();
+    private Map<String,Collection<ForeignKeyConstraint>> lesForeignKeys = new HashMap();
+    private Map<String, ArrayList<CheckConstraint>> lesCheckConstraints = new HashMap();
     private final Map<String, View> views = new CaseInsensitiveMap<View>();
     private final Map<String, Table> remoteTables = new CaseInsensitiveMap<Table>(); // key: schema.tableName
     private final Map<String, Table> locals = new CombinedMap(tables, views);
@@ -66,9 +66,6 @@ public class Database {
         this.databaseName = name;
         this.catalog = new Catalog(catalog);
         this.schema = new Schema(schema);
-        this.lesColumns = new HashMap();
-        this.lesForeignKeys = new HashMap();
-        this.lesCheckConstraints = new HashMap();
     }
 
     public String getName() {
@@ -83,7 +80,7 @@ public class Database {
         return lesForeignKeys;
     }
 
-    public Map<String, Map<String, String>> getLesCheckConstraints() {
+    public Map<String, ArrayList<CheckConstraint>> getLesCheckConstraints() {
         return lesCheckConstraints;
     }
 
@@ -421,19 +418,46 @@ public class Database {
         }
     }
 
-    public void initMeta(Config config)
+    public void initMeta(Config config, Database db)
     {
 
       for (Map.Entry<String, Table> entry : tables.entrySet())
       {
+
           lesColumns.put(entry.getKey(), entry.getValue().getColumns());
           lesForeignKeys.put(entry.getKey(), entry.getValue().getForeignKeys());
-          lesCheckConstraints.put(entry.getKey(), entry.getValue().getCheckConstraints());
+          lesCheckConstraints.put(entry.getKey(), CheckConstraint.parseAll(entry.getValue().getCheckConstraints(),db));
+
+        System.out.println("after check init");
+      }
+    }
+
+    public boolean columnExists(String columnName)
+    {
+      for (Map.Entry<String, List<TableColumn>> entry : getLesColumns().entrySet())
+      {
+        if(entry.getValue().toString().contains(columnName))
+          return true;
+
+      }
+      return false;
+    }
+
+    public TableColumn findColumn (String columnName)
+    {
+      int i;
+      TableColumn res = new TableColumn();
+
+      for (Map.Entry<String, List<TableColumn>> entry : getLesColumns().entrySet())
+      {
+        for(i = 0; i < entry.getValue().size();i++)
+        {
+          if(entry.getValue().get(i).getName() == columnName)
+            res = entry.getValue().get(i);
+        }
       }
 
-      System.out.println(lesColumns.toString());
-      System.out.println("lesForeignKeys = "+lesForeignKeys+"\n");
-      System.out.println("lesCheckConstraints= "+lesCheckConstraints+"\n");
+      return res;
 
     }
 }
