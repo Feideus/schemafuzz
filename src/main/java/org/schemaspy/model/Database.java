@@ -426,38 +426,53 @@ public class Database {
 
           lesColumns.put(entry.getKey(), entry.getValue().getColumns());
           lesForeignKeys.put(entry.getKey(), entry.getValue().getForeignKeys());
-          lesCheckConstraints.put(entry.getKey(), CheckConstraint.parseAll(entry.getValue().getCheckConstraints(),db));
+          lesCheckConstraints.put(entry.getKey(), CheckConstraint.parseAll(entry.getKey(),entry.getValue().getCheckConstraints(),db));
 
-        System.out.println("after check init");
       }
     }
 
-    public boolean columnExists(String columnName)
+    public boolean columnExists(String columnName,Table parentTable)
     {
-      for (Map.Entry<String, List<TableColumn>> entry : getLesColumns().entrySet())
-      {
-        if(entry.getValue().toString().contains(columnName))
-          return true;
+      int i;
 
+      columnName = columnName.replaceAll("\\s+","");
+
+      for(Map.Entry<String,List<TableColumn>> entry : lesColumns.entrySet())
+      {
+        for(i = 0; i< entry.getValue().size();i++)
+        {
+          if(entry.getValue().get(i).getName().equals(columnName))
+          {
+            return true;
+          }
+
+        }
       }
       return false;
     }
 
-    public TableColumn findColumn (String columnName)
+    public TableColumn findColumn (String columnName,Table parentTable)
     {
       int i;
       TableColumn res = new TableColumn();
 
-      for (Map.Entry<String, List<TableColumn>> entry : getLesColumns().entrySet())
-      {
-        for(i = 0; i < entry.getValue().size();i++)
+      columnName = columnName.replaceAll("\\s+","");
+
+      try{
+
+        for(Map.Entry<String,List<TableColumn>> entry : lesColumns.entrySet())
         {
-          if(entry.getValue().get(i).getName() == columnName)
-            res = entry.getValue().get(i);
+          for(i = 0; i< entry.getValue().size();i++)
+          {
+            if(entry.getValue().get(i).getName().equals(columnName))
+              res = entry.getValue().get(i);
+          }
         }
       }
-
-      return res;
-
+      catch(Exception e)
+      {
+        System.out.println("column couldnt be found");
+      }
+          return res;
     }
 }

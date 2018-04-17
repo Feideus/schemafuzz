@@ -174,66 +174,70 @@ public class CheckConstraint {
 		return "CheckConstraint [name=" + name + "\n parentTable=" + parentTable + "\n checkedColumn=" + checkedColumn + "\n targetColumn=" + targetColumn + "\n constantValue=" + constantValue + "\n operation=" + operation + "]\n\n";
 	}
 
- public static CheckConstraint parse (String tableName, String stringCC, Database db)
+ public static CheckConstraint parse (String tableName ,String ccName, String stringCC, Database db)
  {
-      System.out.println("DODKSKDQS");
-      System.out.println("tableName = "+tableName);
 
       CheckConstraint cc = new CheckConstraint();
 
-      cc.name = tableName;
+      cc.name = ccName;
       cc.parentTable = db.getTablesByName().get(tableName);
-
 
       if(stringCC.contains("OR"))
       {
-        System.out.println("coucou OR");
-        cc.orClauses.add(CheckConstraint.parse(tableName,stringCC.substring(stringCC.indexOf("OR")+2),db));
+        cc.orClauses.add(CheckConstraint.parse(cc.parentTable.getName(),ccName,stringCC.substring(stringCC.indexOf("OR")+2),db));
         stringCC = stringCC.substring(0,stringCC.indexOf("OR"));
       }
 
       if(stringCC.contains("AND"))
       {
-        System.out.println("coucou AND");
-        CheckConstraint.parse(tableName,stringCC.substring(stringCC.indexOf("AND")+3),db);
+        CheckConstraint.parse(cc.parentTable.getName(),ccName,stringCC.substring(stringCC.indexOf("AND")+3),db);
         stringCC = stringCC.substring(0,stringCC.indexOf("AND"));
       }
 
-      if(stringCC.contains("<"))
+      if(stringCC.contains("<") && !stringCC.contains(">"))
       {
-        System.out.println("coucou <");
-        if(db.columnExists(stringCC.substring(stringCC.lastIndexOf("("),stringCC.indexOf("<"))))
+        if(db.columnExists(stringCC.substring(stringCC.lastIndexOf("(")+1,stringCC.indexOf("<")),cc.parentTable))
         {
-          cc.checkedColumn =  db.findColumn(stringCC.substring(stringCC.lastIndexOf("("),stringCC.indexOf("<")));
+          cc.checkedColumn =  db.findColumn(stringCC.substring(stringCC.lastIndexOf("(")+1,stringCC.indexOf("<")),cc.parentTable);
         }
 
-        if(db.columnExists(stringCC.substring(stringCC.indexOf("<"),stringCC.indexOf(")"))))
+        if(db.columnExists(stringCC.substring(stringCC.indexOf("<"),stringCC.indexOf(")")),cc.parentTable))
         {
-          cc.targetColumn =  db.findColumn(stringCC.substring(stringCC.lastIndexOf("<"),stringCC.indexOf(")")));
+          cc.targetColumn =  db.findColumn(stringCC.substring(stringCC.indexOf("<"),stringCC.indexOf(")")),cc.parentTable);
         }
+        else
+        {
+          if(stringCC.substring(stringCC.lastIndexOf("<")+1,stringCC.lastIndexOf("<")+2) == "=")
+            cc.constantValue = stringCC.substring(stringCC.lastIndexOf("<")+2,stringCC.indexOf(")"));
           else
-            cc.constantValue = stringCC.substring(stringCC.lastIndexOf("<"),stringCC.indexOf(")"));
+            cc.constantValue = stringCC.substring(stringCC.lastIndexOf("<")+1,stringCC.indexOf(")"));
+        }
 
-              if(stringCC.substring(stringCC.indexOf("<"),stringCC.indexOf("<")+1) == "=")
-              {
-                cc.operation = "<=";
-              }
-              else
-                cc.operation = "<";
+
+        if(stringCC.substring(stringCC.indexOf("<"),stringCC.indexOf("<")+1) == "=")
+        {
+          cc.operation = "<=";
+        }
+        else
+          cc.operation = "<";
       }
-      else if(stringCC.contains(">"))
+      else if(stringCC.contains(">") && !stringCC.contains("<"))
       {
-        System.out.println("coucou >");
-                      if(db.columnExists(stringCC.substring(stringCC.lastIndexOf("("),stringCC.indexOf(">"))))
+                      if(db.columnExists(stringCC.substring(stringCC.lastIndexOf("(")+1,stringCC.indexOf(">")),cc.parentTable))
                       {
-                        cc.checkedColumn =  db.findColumn(stringCC.substring(stringCC.lastIndexOf("("),stringCC.indexOf(">")));
+                        cc.checkedColumn =  db.findColumn(stringCC.substring(stringCC.lastIndexOf("(")+1,stringCC.indexOf(">")),cc.parentTable);
                       }
-                      if(db.columnExists(stringCC.substring(stringCC.indexOf(">"),stringCC.indexOf(")"))))
+                      if(db.columnExists(stringCC.substring(stringCC.indexOf(">"),stringCC.indexOf(")")),cc.parentTable))
                       {
-                        cc.targetColumn =  db.findColumn(stringCC.substring(stringCC.lastIndexOf(">"),stringCC.indexOf(")")));
+                        cc.targetColumn =  db.findColumn(stringCC.substring(stringCC.indexOf(">"),stringCC.indexOf(")")),cc.parentTable);
                       }
                       else
-                        cc.constantValue = stringCC.substring(stringCC.lastIndexOf(">"),stringCC.indexOf(")"));
+                      {
+                        if(stringCC.substring(stringCC.lastIndexOf(">")+1,stringCC.lastIndexOf(">")+2) == "=")
+                          cc.constantValue = stringCC.substring(stringCC.lastIndexOf(">")+2,stringCC.indexOf(")"));
+                        else
+                          cc.constantValue = stringCC.substring(stringCC.lastIndexOf(">")+1,stringCC.indexOf(")"));
+                      }
 
                       if(stringCC.substring(stringCC.indexOf(">"),stringCC.indexOf(">")+1) == "=")
                           cc.operation = ">=";
@@ -242,16 +246,16 @@ public class CheckConstraint {
       }
       else if(stringCC.contains("=") && !stringCC.contains(">") && !stringCC.contains("<"))
       {
-        if(db.columnExists(stringCC.substring(stringCC.lastIndexOf("("),stringCC.indexOf("="))))
+        if(db.columnExists(stringCC.substring(stringCC.lastIndexOf("(")+1,stringCC.indexOf("=")),cc.parentTable))
         {
-          cc.checkedColumn =  db.findColumn(stringCC.substring(stringCC.lastIndexOf("("),stringCC.indexOf("=")));
+          cc.checkedColumn =  db.findColumn(stringCC.substring(stringCC.lastIndexOf("(")+1,stringCC.indexOf("=")),cc.parentTable);
         }
-        if(db.columnExists(stringCC.substring(stringCC.indexOf("="),stringCC.indexOf(")"))))
+        if(db.columnExists(stringCC.substring(stringCC.indexOf("="),stringCC.indexOf(")")),cc.parentTable))
         {
-          cc.targetColumn =  db.findColumn(stringCC.substring(stringCC.lastIndexOf("="),stringCC.indexOf(")")));
+          cc.targetColumn =  db.findColumn(stringCC.substring(stringCC.lastIndexOf("="),stringCC.indexOf(")")),cc.parentTable);
         }
         else
-          cc.constantValue = stringCC.substring(stringCC.lastIndexOf("="),stringCC.indexOf(")"));
+          cc.constantValue = stringCC.substring(stringCC.lastIndexOf("=")+1,stringCC.indexOf(")"));
 
           cc.operation = "=";
       }
@@ -260,11 +264,8 @@ public class CheckConstraint {
 
  }
 
- public static ArrayList<CheckConstraint> parseAll(Map<String,String> stringCCMap, Database db)
+ public static ArrayList<CheckConstraint> parseAll(String tableName, Map<String,String> stringCCMap, Database db)
  {
-   System.out.println(stringCCMap);
-
-   System.out.println("COUCOUDSDSD");
 
    ArrayList<CheckConstraint> res = new ArrayList<CheckConstraint>();
 
@@ -272,8 +273,7 @@ public class CheckConstraint {
    {
      if(entry != null)
      {
-        System.out.println("INICI");
-        res.add(CheckConstraint.parse(entry.getKey(),entry.getValue(),db));
+        res.add(CheckConstraint.parse(tableName, entry.getKey(), entry.getValue(), db));
      }
 
    }
