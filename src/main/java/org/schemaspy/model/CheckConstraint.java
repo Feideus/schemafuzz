@@ -207,10 +207,10 @@ public class CheckConstraint {
         }
         else
         {
-          if(stringCC.substring(stringCC.lastIndexOf("<")+1,stringCC.lastIndexOf("<")+2) == "=")
-            cc.constantValue = stringCC.substring(stringCC.lastIndexOf("<")+2,stringCC.indexOf(")"));
+          if(stringCC.substring(stringCC.indexOf("<")+1,stringCC.indexOf("<")+2).equals("="))
+            cc.constantValue = stringCC.substring(stringCC.indexOf("<")+2,stringCC.indexOf(")"));
           else
-            cc.constantValue = stringCC.substring(stringCC.lastIndexOf("<")+1,stringCC.indexOf(")"));
+            cc.constantValue = stringCC.substring(stringCC.indexOf("<")+1,stringCC.indexOf(")"));
         }
 
 
@@ -233,10 +233,11 @@ public class CheckConstraint {
                       }
                       else
                       {
-                        if(stringCC.substring(stringCC.lastIndexOf(">")+1,stringCC.lastIndexOf(">")+2) == "=")
-                          cc.constantValue = stringCC.substring(stringCC.lastIndexOf(">")+2,stringCC.indexOf(")"));
+                        if(stringCC.substring(stringCC.indexOf(">")+1,stringCC.indexOf(">")+2).equals("="))
+                          cc.constantValue = stringCC.substring(stringCC.indexOf(">")+2,stringCC.indexOf(")"));
+
                         else
-                          cc.constantValue = stringCC.substring(stringCC.lastIndexOf(">")+1,stringCC.indexOf(")"));
+                          cc.constantValue = stringCC.substring(stringCC.indexOf(">")+1,stringCC.indexOf(")"));
                       }
 
                       if(stringCC.substring(stringCC.indexOf(">"),stringCC.indexOf(">")+1) == "=")
@@ -255,7 +256,7 @@ public class CheckConstraint {
           cc.targetColumn =  db.findColumn(stringCC.substring(stringCC.lastIndexOf("="),stringCC.indexOf(")")),cc.parentTable);
         }
         else
-          cc.constantValue = stringCC.substring(stringCC.lastIndexOf("=")+1,stringCC.indexOf(")"));
+          cc.constantValue = stringCC.substring(stringCC.indexOf("=")+1,stringCC.indexOf(")"));
 
           cc.operation = "=";
       }
