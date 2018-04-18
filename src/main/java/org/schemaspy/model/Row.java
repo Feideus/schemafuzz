@@ -36,12 +36,12 @@ public class Row
     private Integer nbKeys;
 
 	public Row() {
-		super();
+    		this.content = new HashMap<String,String>();
 	}
 
 	public Row(HashMap<String,String> content, Integer nbKeys) {
-		super();
-		this.content = content;
+		this.content = new HashMap<String,String>();
+    this.content = content;
 		this.nbKeys = nbKeys;
 	}
 
@@ -65,14 +65,7 @@ public class Row
 
 	@Override
 	public String toString() {
-	  String res= "";
-    for (String name: content.keySet())
-    {
-
-            String key =name.toString();
-            String value = content.get(name).toString();
-            res.concat("Column ="+key+"Value ="+value);
-    }
+	  String res= ""+content.toString()+nbKeys;
     return res;
 	}
 }

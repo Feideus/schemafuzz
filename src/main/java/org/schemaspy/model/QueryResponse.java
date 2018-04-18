@@ -34,7 +34,7 @@ public class QueryResponse
   	*/
   	public QueryResponse()
     {
-  		super();
+      this.rows = new ArrayList<Row>();
   	}
 
   	/**
@@ -42,7 +42,8 @@ public class QueryResponse
   	*/
   	public QueryResponse(ArrayList<Row> rows, Integer nbRows)
     {
-  		this.rows = rows;
+  		this.rows = new ArrayList<Row>();
+      this.rows = rows;
   		this.nbRows = nbRows;
   	}
 

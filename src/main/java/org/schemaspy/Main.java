@@ -35,6 +35,7 @@ import org.springframework.context.ApplicationContext;
 import java.lang.invoke.MethodHandles;
 import java.util.Arrays;
 
+
 @SpringBootApplication
 public class Main implements CommandLineRunner {
 
@@ -49,8 +50,12 @@ public class Main implements CommandLineRunner {
     @Autowired
     private CommandLineArgumentParser commandLineArgumentParser;
 
+
+    private DBFuzzer dbFuzzer;
+
     @Autowired
     private ApplicationContext context;
+
 
     public static void main(String[] args) {
         SpringApplication.run(Main.class, args);
@@ -72,6 +77,8 @@ public class Main implements CommandLineRunner {
         }
 
         runAnalyzer(args);
+        System.out.println("FIN ANALYZE :"+analyzer.getSqlService());
+        runFuzzer(args);
     }
 
     private void runAnalyzer(String... args) {
@@ -98,11 +105,25 @@ public class Main implements CommandLineRunner {
             LOGGER.error(exc.getMessage(), exc);
         }
 
-        exitApplication(rc);
+
     }
 
     private void exitApplication(int returnCode) {
         SpringApplication.exit(context, () -> returnCode);
     }
+
+    private void runFuzzer(String... args)
+    {
+        try
+        {
+          this.dbFuzzer=new DBFuzzer(analyzer);
+          dbFuzzer.fuzz(new Config(args));
+        }
+        catch(Exception e)
+        {
+          LOGGER.error(e.getMessage(),e);
+        }
+    }
+
 
 }

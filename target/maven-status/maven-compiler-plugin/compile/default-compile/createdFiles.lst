@@ -6,7 +6,6 @@ org/schemaspy/model/Schema.class
 org/schemaspy/util/Inflection.class
 org/schemaspy/db/config/ResourceFinder.class
 org/schemaspy/TableOrderer.class
-org/schemaspy/model/NotNullConstraint.class
 org/schemaspy/util/DbSpecificConfig.class
 org/schemaspy/model/InvalidConfigurationException.class
 org/schemaspy/service/DatabaseService$ThreadedTableCreator.class
@@ -31,7 +30,9 @@ org/schemaspy/util/Markdown.class
 org/schemaspy/model/TableColumn$ColumnComparator.class
 org/schemaspy/service/TableService.class
 org/schemaspy/Config$MissingRequiredParameterException.class
+org/schemaspy/util/PasswordReader$Masker.class
 org/schemaspy/model/LogicalTable.class
+org/schemaspy/util/PasswordReader$IOError.class
 org/schemaspy/model/Table.class
 org/schemaspy/db/config/ResourceNotFoundException.class
 org/schemaspy/service/InconsistencyException.class
@@ -61,6 +62,7 @@ org/schemaspy/TableOrderer$1TrimComparator.class
 org/schemaspy/model/DatabaseObject.class
 org/schemaspy/util/ResultSetDumper.class
 org/schemaspy/DbAnalyzer.class
+org/schemaspy/model/ImpliedForeignKeyConstraint.class
 org/schemaspy/model/Table$ByColumnIdComparator.class
 org/schemaspy/model/xml/SchemaMeta.class
 org/schemaspy/model/TableColumn.class
@@ -69,11 +71,16 @@ org/schemaspy/WiringConfiguration.class
 org/schemaspy/model/TableColumn$1.class
 org/schemaspy/model/TableIndex.class
 org/schemaspy/validator/NameValidator.class
+org/schemaspy/cli/PropertyFileDefaultProviderFactory.class
+org/schemaspy/DBFuzzer.class
 org/schemaspy/cli/CommandLineArguments.class
 org/schemaspy/model/QueryResponseParser.class
 org/schemaspy/model/RemoteTable.class
+org/schemaspy/cli/CommandLineArgumentParser.class
+org/schemaspy/util/PasswordReader.class
 org/schemaspy/model/RailsForeignKeyConstraint.class
 org/schemaspy/db/config/PropertiesFinder.class
+org/schemaspy/model/ForeignKey.class
 org/schemaspy/service/DatabaseService$1.class
 org/schemaspy/SchemaAnalyzer.class
 org/schemaspy/model/ForeignKeyConstraint.class

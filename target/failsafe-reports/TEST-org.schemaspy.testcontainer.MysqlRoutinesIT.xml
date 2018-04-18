@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-failsafe-plugin/xsd/failsafe-test-report.xsd" name="org.schemaspy.testcontainer.MysqlRoutinesIT" time="10.592" tests="1" errors="0" skipped="1" failures="0">
+  <properties>
+    <property name="java.runtime.name" value="Java(TM) SE Runtime Environment"/>
+    <property name="sun.boot.library.path" value="/usr/lib/jvm/java-8-oracle/jre/lib/amd64"/>
+    <property name="java.vm.version" value="25.161-b12"/>
+    <property name="java.vm.vendor" value="Oracle Corporation"/>
+    <property name="maven.multiModuleProjectDirectory" value="/home/feideus/Work/mySchemaSpyCopy"/>
+    <property name="java.vendor.url" value="http://java.oracle.com/"/>
+    <property name="path.separator" value=":"/>
+    <property name="guice.disable.misplaced.annotation.check" value="true"/>
+    <property name="java.vm.name" value="Java HotSpot(TM) 64-Bit Server VM"/>
+    <property name="file.encoding.pkg" value="sun.io"/>
+    <property name="user.country" value="US"/>
+    <property name="sun.java.launcher" value="SUN_STANDARD"/>
+    <property name="sun.os.patch.level" value="unknown"/>
+    <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
+    <property name="user.dir" value="/home/feideus/Work/mySchemaSpyCopy"/>
+    <property name="java.runtime.version" value="1.8.0_161-b12"/>
+    <property name="java.awt.graphicsenv" value="sun.awt.X11GraphicsEnvironment"/>
+    <property name="java.endorsed.dirs" value="/usr/lib/jvm/java-8-oracle/jre/lib/endorsed"/>
+    <property name="os.arch" value="amd64"/>
+    <property name="java.io.tmpdir" value="/tmp"/>
+    <property name="line.separator" value="&#10;"/>
+    <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
+    <property name="os.name" value="Linux"/>
+    <property name="classworlds.conf" value="/home/feideus/.m2/wrapper/dists/apache-maven-3.5.2-bin/28qa8v9e2mq69covern8vmdkj0/apache-maven-3.5.2/bin/m2.conf"/>
+    <property name="sun.jnu.encoding" value="UTF-8"/>
+    <property name="java.library.path" value="/usr/java/packages/lib/amd64:/usr/lib64:/lib64:/lib:/usr/lib"/>
+    <property name="maven.conf" value="/home/feideus/.m2/wrapper/dists/apache-maven-3.5.2-bin/28qa8v9e2mq69covern8vmdkj0/apache-maven-3.5.2/conf"/>
+    <property name="java.specification.name" value="Java Platform API Specification"/>
+    <property name="java.class.version" value="52.0"/>
+    <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
+    <property name="os.version" value="4.13.0-38-generic"/>
+    <property name="user.home" value="/home/feideus"/>
+    <property name="user.timezone" value="Europe/Rome"/>
+    <property name="java.awt.printerjob" value="sun.print.PSPrinterJob"/>
+    <property name="java.specification.version" value="1.8"/>
+    <property name="file.encoding" value="UTF-8"/>
+    <property name="user.name" value="feideus"/>
+    <property name="java.class.path" value="/home/feideus/Work/mySchemaSpyCopy/.mvn/wrapper/maven-wrapper.jar"/>
+    <property name="java.vm.specification.version" value="1.8"/>
+    <property name="sun.arch.data.model" value="64"/>
+    <property name="java.home" value="/usr/lib/jvm/java-8-oracle/jre"/>
+    <property name="sun.java.command" value="org.apache.maven.wrapper.MavenWrapperMain -P sonar clean verify"/>
+    <property name="java.specification.vendor" value="Oracle Corporation"/>
+    <property name="user.language" value="en"/>
+    <property name="awt.toolkit" value="sun.awt.X11.XToolkit"/>
+    <property name="java.vm.info" value="mixed mode"/>
+    <property name="java.version" value="1.8.0_161"/>
+    <property name="java.ext.dirs" value="/usr/lib/jvm/java-8-oracle/jre/lib/ext:/usr/java/packages/lib/ext"/>
+    <property name="securerandom.source" value="file:/dev/./urandom"/>
+    <property name="sun.boot.class.path" value="/usr/lib/jvm/java-8-oracle/jre/lib/resources.jar:/usr/lib/jvm/java-8-oracle/jre/lib/rt.jar:/usr/lib/jvm/java-8-oracle/jre/lib/sunrsasign.jar:/usr/lib/jvm/java-8-oracle/jre/lib/jsse.jar:/usr/lib/jvm/java-8-oracle/jre/lib/jce.jar:/usr/lib/jvm/java-8-oracle/jre/lib/charsets.jar:/usr/lib/jvm/java-8-oracle/jre/lib/jfr.jar:/usr/lib/jvm/java-8-oracle/jre/classes"/>
+    <property name="java.vendor" value="Oracle Corporation"/>
+    <property name="maven.home" value="/home/feideus/.m2/wrapper/dists/apache-maven-3.5.2-bin/28qa8v9e2mq69covern8vmdkj0/apache-maven-3.5.2"/>
+    <property name="file.separator" value="/"/>
+    <property name="java.vendor.url.bug" value="http://bugreport.sun.com/bugreport/"/>
+    <property name="sun.cpu.endian" value="little"/>
+    <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
+    <property name="sun.desktop" value="gnome"/>
+    <property name="sun.cpu.isalist" value=""/>
+  </properties>
+  <testcase name="org.schemaspy.testcontainer.MysqlRoutinesIT" classname="org.schemaspy.testcontainer.MysqlRoutinesIT" time="0">
+    <skipped message="Unable to create container[might be docker related]"/>
+    <system-out><![CDATA[15:02:02.293 [main] ERROR org.testcontainers.dockerclient.EnvironmentAndSystemPropertyClientProviderStrategy - ping failed with configuration Environment variables, system properties and defaults. Resolved: 
+    dockerHost=unix:///var/run/docker.sock
+    apiVersion='{UNKNOWN_VERSION}'
+    registryUrl='https://index.docker.io/v1/'
+    registryUsername='feideus'
+    registryPassword='null'
+    registryEmail='null'
+    dockerConfig='DefaultDockerClientConfig[dockerHost=unix:///var/run/docker.sock,registryUsername=feideus,registryPassword=<null>,registryEmail=<null>,registryUrl=https://index.docker.io/v1/,dockerConfig=/home/feideus/.docker,sslConfig=<null>,apiVersion={UNKNOWN_VERSION}]'
+ due to org.rnorth.ducttape.TimeoutException: Timeout waiting for result with exception
+org.rnorth.ducttape.TimeoutException: Timeout waiting for result with exception
+	at org.rnorth.ducttape.unreliables.Unreliables.retryUntilSuccess(Unreliables.java:51)
+	at org.testcontainers.dockerclient.DockerClientProviderStrategy.ping(DockerClientProviderStrategy.java:166)
+	at org.testcontainers.dockerclient.EnvironmentAndSystemPropertyClientProviderStrategy.test(EnvironmentAndSystemPropertyClientProviderStrategy.java:42)
+	at org.testcontainers.dockerclient.DockerClientProviderStrategy.lambda$getFirstValidStrategy$1(DockerClientProviderStrategy.java:104)
+	at java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:267)
+	at java.util.stream.StreamSpliterators$WrappingSpliterator.tryAdvance(StreamSpliterators.java:302)
+	at java.util.stream.Streams$ConcatSpliterator.tryAdvance(Streams.java:731)
+	at java.util.stream.ReferencePipeline.forEachWithCancel(ReferencePipeline.java:126)
+	at java.util.stream.AbstractPipeline.copyIntoWithCancel(AbstractPipeline.java:498)
+	at java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:485)
+	at java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:471)
+	at java.util.stream.FindOps$FindOp.evaluateSequential(FindOps.java:152)
+	at java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.util.stream.ReferencePipeline.findAny(ReferencePipeline.java:469)
+	at org.testcontainers.dockerclient.DockerClientProviderStrategy.getFirstValidStrategy(DockerClientProviderStrategy.java:137)
+	at org.testcontainers.DockerClientFactory.client(DockerClientFactory.java:90)
+	at com.github.npetzall.testcontainers.junit.generic.GenericContainerRule.lambda$assumeDockerIsPresent$0(GenericContainerRule.java:36)
+	at com.github.npetzall.testcontainers.junit.generic.GenericContainerRule.apply(GenericContainerRule.java:72)
+	at org.junit.rules.RunRules.applyAll(RunRules.java:26)
+	at org.junit.rules.RunRules.<init>(RunRules.java:15)
+	at org.junit.runners.ParentRunner.withClassRules(ParentRunner.java:245)
+	at org.junit.runners.ParentRunner.classBlock(ParentRunner.java:194)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:362)
+	at org.springframework.test.context.junit4.SpringJUnit4ClassRunner.run(SpringJUnit4ClassRunner.java:191)
+	at org.apache.maven.surefire.junit4.JUnit4Provider.execute(JUnit4Provider.java:365)
+	at org.apache.maven.surefire.junit4.JUnit4Provider.executeWithRerun(JUnit4Provider.java:272)
+	at org.apache.maven.surefire.junit4.JUnit4Provider.executeTestSet(JUnit4Provider.java:236)
+	at org.apache.maven.surefire.junit4.JUnit4Provider.invoke(JUnit4Provider.java:159)
+	at org.apache.maven.surefire.booter.ForkedBooter.invokeProviderInSameClassLoader(ForkedBooter.java:386)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:323)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:143)
+Caused by: org.testcontainers.shaded.io.netty.channel.AbstractChannel$AnnotatedConnectException: connect(..) failed: No such file or directory: /var/run/docker.sock
+	at org.testcontainers.shaded.io.netty.channel.unix.Errors.throwConnectException(Errors.java:107)
+	at org.testcontainers.shaded.io.netty.channel.unix.Socket.connect(Socket.java:243)
+	at org.testcontainers.shaded.io.netty.channel.epoll.AbstractEpollStreamChannel.doConnect(AbstractEpollStreamChannel.java:752)
+	at org.testcontainers.shaded.io.netty.channel.epoll.EpollDomainSocketChannel.doConnect(EpollDomainSocketChannel.java:87)
+	at org.testcontainers.shaded.io.netty.channel.epoll.AbstractEpollStreamChannel$EpollStreamUnsafe.connect(AbstractEpollStreamChannel.java:815)
+	at org.testcontainers.shaded.io.netty.channel.DefaultChannelPipeline$HeadContext.connect(DefaultChannelPipeline.java:1266)
+	at org.testcontainers.shaded.io.netty.channel.AbstractChannelHandlerContext.invokeConnect(AbstractChannelHandlerContext.java:545)
+	at org.testcontainers.shaded.io.netty.channel.AbstractChannelHandlerContext.connect(AbstractChannelHandlerContext.java:530)
+	at org.testcontainers.shaded.io.netty.channel.CombinedChannelDuplexHandler$DelegatingChannelHandlerContext.connect(CombinedChannelDuplexHandler.java:497)
+	at org.testcontainers.shaded.io.netty.channel.ChannelOutboundHandlerAdapter.connect(ChannelOutboundHandlerAdapter.java:47)
+	at org.testcontainers.shaded.io.netty.channel.CombinedChannelDuplexHandler.connect(CombinedChannelDuplexHandler.java:298)
+	at org.testcontainers.shaded.io.netty.channel.AbstractChannelHandlerContext.invokeConnect(AbstractChannelHandlerContext.java:545)
+	at org.testcontainers.shaded.io.netty.channel.AbstractChannelHandlerContext.connect(AbstractChannelHandlerContext.java:530)
+	at org.testcontainers.shaded.io.netty.channel.AbstractChannelHandlerContext.connect(AbstractChannelHandlerContext.java:512)
+	at org.testcontainers.shaded.io.netty.channel.DefaultChannelPipeline.connect(DefaultChannelPipeline.java:985)
+	at org.testcontainers.shaded.io.netty.channel.AbstractChannel.connect(AbstractChannel.java:255)
+	at org.testcontainers.shaded.io.netty.bootstrap.Bootstrap$3.run(Bootstrap.java:252)
+	at org.testcontainers.shaded.io.netty.util.concurrent.AbstractEventExecutor.safeExecute(AbstractEventExecutor.java:163)
+	at org.testcontainers.shaded.io.netty.util.concurrent.SingleThreadEventExecutor.runAllTasks(SingleThreadEventExecutor.java:403)
+	at org.testcontainers.shaded.io.netty.channel.epoll.EpollEventLoop.run(EpollEventLoop.java:311)
+	at org.testcontainers.shaded.io.netty.util.concurrent.SingleThreadEventExecutor$5.run(SingleThreadEventExecutor.java:858)
+	at org.testcontainers.shaded.io.netty.util.concurrent.DefaultThreadFactory$DefaultRunnableDecorator.run(DefaultThreadFactory.java:138)
+	at java.lang.Thread.run(Thread.java:748)
+Caused by: java.net.ConnectException: connect(..) failed: No such file or directory
+	... 23 common frames omitted
+15:02:02.296 [main] ERROR org.testcontainers.dockerclient.DockerClientProviderStrategy - Could not find a valid Docker environment. Please check configuration. Attempted configurations were:
+15:02:02.297 [main] ERROR org.testcontainers.dockerclient.DockerClientProviderStrategy -     EnvironmentAndSystemPropertyClientProviderStrategy: failed with exception InvalidConfigurationException (ping failed)
+15:02:02.297 [main] ERROR org.testcontainers.dockerclient.DockerClientProviderStrategy -     UnixSocketClientProviderStrategy: failed with exception InvalidConfigurationException (ping failed). Root cause NoSuchFileException (/var/run/docker.sock)
+15:02:02.297 [main] ERROR org.testcontainers.dockerclient.DockerClientProviderStrategy - As no valid configuration was found, execution cannot continue
+]]></system-out>
+  </testcase>
+</testsuite>

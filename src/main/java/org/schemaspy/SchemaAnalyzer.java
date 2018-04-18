@@ -48,6 +48,8 @@ public class SchemaAnalyzer {
 
     private final DatabaseService databaseService;
 
+    private Database db;
+
     private final CommandLineArguments commandLineArguments;
 
     public SchemaAnalyzer(SqlService sqlService, DatabaseService databaseService, CommandLineArguments commandLineArguments) {
@@ -81,7 +83,6 @@ public class SchemaAnalyzer {
             args.remove("-schemata");
 
             List<String> schemas = config.getSchemas();
-            Database db = null;
             String schemaSpec = config.getSchemaSpec();
             Connection connection = this.getConnection(config);
             DatabaseMetaData meta = connection.getMetaData();
@@ -158,7 +159,8 @@ public class SchemaAnalyzer {
             //
             // create our representation of the database
             //
-            Database db = new Database(meta, dbName, catalog, schema, schemaMeta);
+            db = new Database(meta, dbName, catalog, schema, schemaMeta);
+
             databaseService.gatheringSchemaDetails(config, db, progressListener);
 
             long duration = progressListener.startedGraphingSummaries();
@@ -186,17 +188,8 @@ public class SchemaAnalyzer {
 
             //System.out.println("lesColumns"+db.getLesColumns().toString());
             //System.out.println("lesForeignKeys = "+db.getLesForeignKeys().toString()+"\n");
-            System.out.println("lesCheckConstraints= "+db.getLesCheckConstraints().toString()+"\n");
+            //System.out.println("lesCheckConstraints= "+db.getLesCheckConstraints().toString()+"\n");
 
-
-             ///databaseService.injectSelect(config, db, progressListener).toString(); /// AUCUNE SORTIE ICI A DEBUGGER DURGENCE
-            ///System.out.println("La query "+config.getQuery());
-
-            if(config.getQueryRequired() && config.getQuery() != "")
-            {
-              System.out.println("Je rentre dans la query");
-              databaseService.injectUserQuery(config, db, progressListener);
-            }
 
             /// ----------- END OF TEST ZONE
 
@@ -298,4 +291,39 @@ public class SchemaAnalyzer {
             }
         }
     }
+
+
+
+	/**
+	* Returns value of LOGGER
+	* @return
+	*/
+	public static Logger getLOGGER() {
+		return LOGGER;
+	}
+
+	/**
+	* Returns value of sqlService
+	* @return
+	*/
+	public SqlService getSqlService() {
+		return sqlService;
+	}
+
+	/**
+	* Returns value of databaseService
+	* @return
+	*/
+	public DatabaseService getDatabaseService() {
+		return databaseService;
+	}
+
+	/**
+	* Returns value of db
+	* @return
+	*/
+	public Database getDb() {
+		return db;
+	}
+
 }

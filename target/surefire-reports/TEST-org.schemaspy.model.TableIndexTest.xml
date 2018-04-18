@@ -62,8 +62,8 @@
     <property name="sun.cpu.isalist" value=""/>
   </properties>
   <testcase classname="org.schemaspy.model.TableIndexTest" name="nameComparison" time="0"/>
-  <testcase classname="org.schemaspy.model.TableIndexTest" name="stringIdComparison" time="0.001"/>
-  <testcase classname="org.schemaspy.model.TableIndexTest" name="numericIdEquality" time="0"/>
+  <testcase classname="org.schemaspy.model.TableIndexTest" name="stringIdComparison" time="0"/>
+  <testcase classname="org.schemaspy.model.TableIndexTest" name="numericIdEquality" time="0.001"/>
   <testcase classname="org.schemaspy.model.TableIndexTest" name="numericIdComparison" time="0"/>
   <testcase classname="org.schemaspy.model.TableIndexTest" name="primaryKeysSortBeforeNonPrimaryKeys" time="0"/>
   <testcase classname="org.schemaspy.model.TableIndexTest" name="nameEquality" time="0"/>

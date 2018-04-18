@@ -36,6 +36,7 @@ public class QueryResponseParser
 
 
 	public QueryResponseParser() {
+    this.formatedResponse = new QueryResponse();
 	}
 
 	public QueryResponse getFormatedResponse() {
@@ -47,37 +48,39 @@ public class QueryResponseParser
 		this.formatedResponse = formatedResponse;
 	}
 
-  public QueryResponse parse(ResultSet resultOfQuery)
+  public QueryResponse parse(ResultSet resultOfQuery) throws Exception
   {
-
-    QueryResponse queryResponse = new QueryResponse();
     int i = 0;
-
-    if(resultOfQuery != null)
-    {
       try
       {
-        this.resultMeta = resultOfQuery.getMetaData();
-        while(resultOfQuery.next())
+        QueryResponse queryResponse = new QueryResponse();
+        if(!resultOfQuery.isClosed())
         {
-          HashMap<String,String> mapOfTheRow = new HashMap();
+          this.resultMeta = resultOfQuery.getMetaData();
 
-          for(i = 0; i < resultMeta.getColumnCount();i++)
+          while(resultOfQuery.next())
           {
-            mapOfTheRow.put(resultMeta.getColumnName(i), resultOfQuery.getBlob(i).toString());
-          }
+            HashMap<String,String> mapOfTheRow = new HashMap<String,String>();
 
-          Row currentRow = new Row(mapOfTheRow,resultMeta.getColumnCount());
-          queryResponse.addRow(currentRow);
+            for(i = 1; i < resultMeta.getColumnCount();i++)
+            {
+              mapOfTheRow.put(resultMeta.getColumnName(i), resultOfQuery.getString(i));
+            }
+
+            Row currentRow = new Row(mapOfTheRow,resultMeta.getColumnCount());
+            queryResponse.getRows().add(currentRow);
+          }
+          return queryResponse;
         }
+
       }
       catch(SQLException e)
       {
-        LOGGER.debug("Parsing the reponse Threw an error : "+e);
+        e.printStackTrace();
       }
-    }
 
-    return queryResponse;
-  }
+
+      throw new Exception();
+    }
 
 }

@@ -63,8 +63,8 @@
   </properties>
   <testcase classname="org.schemaspy.ConfigTest" name="testLoadJars" time="0"/>
   <testcase classname="org.schemaspy.ConfigTest" name="testLoadProperties" time="0.009"/>
-  <testcase classname="org.schemaspy.ConfigTest" name="determineDdPropertiesWillExtend" time="0.009"/>
+  <testcase classname="org.schemaspy.ConfigTest" name="determineDdPropertiesWillExtend" time="0.01"/>
   <testcase classname="org.schemaspy.ConfigTest" name="determineDbPropertiesNotOnClasspath" time="0.002"/>
-  <testcase classname="org.schemaspy.ConfigTest" name="testConfig" time="0.001"/>
+  <testcase classname="org.schemaspy.ConfigTest" name="testConfig" time="0"/>
   <testcase classname="org.schemaspy.ConfigTest" name="determineDbPropertiesWillInclude" time="0.002"/>
 </testsuite>

@@ -26,7 +26,12 @@ public class TableService {
 
     private final SqlService sqlService;
 
-    private final CommandLineArguments commandLineArguments;
+    private CommandLineArguments commandLineArguments;
+
+    public TableService(SqlService sqlService) {
+        this.sqlService = Objects.requireNonNull(sqlService);
+
+    }
 
     public TableService(SqlService sqlService, CommandLineArguments commandLineArguments) {
         this.sqlService = Objects.requireNonNull(sqlService);
