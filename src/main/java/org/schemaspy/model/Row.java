@@ -32,6 +32,7 @@ import java.util.*;
 
 public class Row
 {
+    private Table parentTable;
     private HashMap<String,String> content;
     private Integer nbKeys;
 
@@ -39,17 +40,23 @@ public class Row
     		this.content = new HashMap<String,String>();
 	}
 
-	public Row(HashMap<String,String> content, Integer nbKeys) {
+	public Row(Table parentTable, HashMap<String,String> content, Integer nbKeys) {
+    this.parentTable = parentTable;
 		this.content = new HashMap<String,String>();
     this.content = content;
 		this.nbKeys = nbKeys;
 	}
 
-	public HashMap<String,String> getRow() {
+  public Table getParentTable()
+  {
+    return this.parentTable;
+  }
+
+	public HashMap<String,String> getContent() {
 		return content;
 	}
 
-	public void setRow(HashMap<String,String> content) {
+	public void setContent(HashMap<String,String> content) {
 		this.content = content;
 	}
 
@@ -57,6 +64,11 @@ public class Row
 	public Integer getNbKeys() {
 		return nbKeys;
 	}
+
+  public String getValueOfColumn(String columnName)
+  {
+    return content.get(columnName);
+  }
 
 
 	public void setNbKeys(Integer nbKeys) {

@@ -714,4 +714,16 @@ public class Table implements Comparable<Table> {
             return id1.toString().compareToIgnoreCase(id2.toString());
         }
     }
+
+    public String findTableColumnType(String columnName)
+    {
+      return columns.get(columnName).getTypeName();
+    }
+
+    public TableColumn findTableColumn(String tableColumnName)
+    {
+      return columns.get(tableColumnName);
+    }
+
+
 }

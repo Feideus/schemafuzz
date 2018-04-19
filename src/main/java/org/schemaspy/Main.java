@@ -77,7 +77,6 @@ public class Main implements CommandLineRunner {
         }
 
         runAnalyzer(args);
-        System.out.println("FIN ANALYZE :"+analyzer.getSqlService());
         runFuzzer(args);
     }
 

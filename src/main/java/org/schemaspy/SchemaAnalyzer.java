@@ -186,7 +186,7 @@ public class SchemaAnalyzer {
             ///-------------- TEST ZONE
             LOGGER.info("Done initializing Meta");
 
-            //System.out.println("lesColumns"+db.getLesColumns().toString());
+            System.out.println("lesColumns"+db.getLesColumns().toString());
             //System.out.println("lesForeignKeys = "+db.getLesForeignKeys().toString()+"\n");
             //System.out.println("lesCheckConstraints= "+db.getLesCheckConstraints().toString()+"\n");
 

@@ -5,6 +5,7 @@ org/schemaspy/service/ColumnInitializationFailure.class
 org/schemaspy/model/Schema.class
 org/schemaspy/util/Inflection.class
 org/schemaspy/db/config/ResourceFinder.class
+org/schemaspy/model/Mutation.class
 org/schemaspy/TableOrderer.class
 org/schemaspy/util/DbSpecificConfig.class
 org/schemaspy/model/InvalidConfigurationException.class
@@ -29,6 +30,7 @@ org/schemaspy/model/xml/TableColumnMeta.class
 org/schemaspy/util/Markdown.class
 org/schemaspy/model/TableColumn$ColumnComparator.class
 org/schemaspy/service/TableService.class
+org/schemaspy/model/SingleChange.class
 org/schemaspy/Config$MissingRequiredParameterException.class
 org/schemaspy/util/PasswordReader$Masker.class
 org/schemaspy/model/LogicalTable.class

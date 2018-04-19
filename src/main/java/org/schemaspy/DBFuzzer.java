@@ -30,8 +30,6 @@ public class DBFuzzer{
 
     private SchemaAnalyzer analyzer;
 
-
-
     public DBFuzzer(SchemaAnalyzer analyzer)
     {
       this.sqlService = Objects.requireNonNull(analyzer.getSqlService());
@@ -39,45 +37,50 @@ public class DBFuzzer{
       this.analyzer = analyzer;
     }
 
+
+
+
+
     public boolean fuzz (Config config)
     {
-        boolean returnStatus = false;
+        boolean returnStatus = true;
 
         LOGGER.info("Starting Database Fuzzing");
         Row randomRow = pickRandomRow();
-        LOGGER.info(randomRow.toString());
+        Mutation firstMutation = new Mutation(randomRow);
+        firstMutation.initPotential_changes(firstMutation.discoverMutationPossibilities(analyzer.getDb()));
+        LOGGER.info(firstMutation.getPotential_changes().toString());
+        try
+        {
+          firstMutation.inject(firstMutation.getPotential_changes().get(0),analyzer);
+        }
+        catch(Exception e)
+        {
+            LOGGER.error(e.toString());
+            returnStatus = false;
+        }
 
       return returnStatus;
     }
 
+
+    //extract Random row from the db specified in sqlService
     public Row pickRandomRow()
     {
 
-      String theQuery = "SELECT * FROM "+pickRandomTable().getName()+" ORDER BY RANDOM() LIMIT 1";
-      System.out.println(theQuery);
+      Table randomTable = pickRandomTable();
+
+      String theQuery = "SELECT * FROM "+randomTable.getName()+" ORDER BY RANDOM() LIMIT 1";
       QueryResponseParser qrp = new QueryResponseParser();
       ResultSet rs = null;
       Row res = null ;
       PreparedStatement stmt;
 
-      try
-      {
+        try
+        {
              stmt = sqlService.prepareStatement(theQuery);
-             System.out.println("AVANT TEST");
-             if(sqlService.getConnection().isClosed() || stmt.isClosed() )
-             {
-               System.out.println("CLOSED");
-             }
-
              rs = stmt.executeQuery();
-
-             if(rs.isClosed())
-             {
-               System.out.println("RESULT SET CLOSED");
-             }
-
-             res = qrp.parse(rs).getRows().get(0);
-
+             res = qrp.parse(rs,randomTable).getRows().get(0);
         }
         catch (Exception e)
         {
@@ -86,10 +89,6 @@ public class DBFuzzer{
 
         return res;
     }
-
-
-
-
 
     public Table pickRandomTable()
     {

@@ -48,7 +48,7 @@ public class QueryResponseParser
 		this.formatedResponse = formatedResponse;
 	}
 
-  public QueryResponse parse(ResultSet resultOfQuery) throws Exception
+  public QueryResponse parse(ResultSet resultOfQuery,Table parentTable) throws Exception
   {
     int i = 0;
       try
@@ -67,7 +67,7 @@ public class QueryResponseParser
               mapOfTheRow.put(resultMeta.getColumnName(i), resultOfQuery.getString(i));
             }
 
-            Row currentRow = new Row(mapOfTheRow,resultMeta.getColumnCount());
+            Row currentRow = new Row(parentTable,mapOfTheRow,resultMeta.getColumnCount());
             queryResponse.getRows().add(currentRow);
           }
           return queryResponse;
@@ -78,7 +78,6 @@ public class QueryResponseParser
       {
         e.printStackTrace();
       }
-
 
       throw new Exception();
     }
