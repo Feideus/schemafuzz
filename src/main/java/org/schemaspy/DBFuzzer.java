@@ -44,6 +44,7 @@ public class DBFuzzer{
     public boolean fuzz (Config config)
     {
         boolean returnStatus = true;
+        boolean undo = true; // true for update false for undo update
 
         LOGGER.info("Starting Database Fuzzing");
         Row randomRow = pickRandomRow();
@@ -52,7 +53,15 @@ public class DBFuzzer{
         LOGGER.info(firstMutation.getPotential_changes().toString());
         try
         {
-          firstMutation.inject(firstMutation.getPotential_changes().get(0),analyzer);
+          if(!firstMutation.getPotential_changes().isEmpty())
+            firstMutation.inject(firstMutation.getPotential_changes().get(0),analyzer,undo);
+
+            LOGGER.info("mutation was sucessfull");
+
+            undo = false; // trying to mutate back
+            firstMutation.inject(firstMutation.getPotential_changes().get(0),analyzer,undo);
+
+            LOGGER.info("backwards mutation was successfull");
         }
         catch(Exception e)
         {

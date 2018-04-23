@@ -15,6 +15,7 @@ public class Mutation
   private Integer interest_mark;
   private Row initial_state_row;
   private ArrayList<SingleChange> potential_changes = new ArrayList<SingleChange>();
+  private ArrayList<TableColumn> cascadeFK = new ArrayList<TableColumn>(); // a integrer
   private SingleChange chosenChange;
   private Mutation child;
   private Mutation parent;
@@ -167,17 +168,24 @@ public class Mutation
       return oneChange;
   }
 
-  public boolean inject(SingleChange chosenChange,SchemaAnalyzer analyzer) throws Exception
+  public boolean inject(SingleChange chosenChange,SchemaAnalyzer analyzer, boolean undo) throws Exception
   {
-
+    int i;
     this.chosenChange = chosenChange;
 
-    String theQuery = updateQueryBuilder();
+    //trying to iumplement cascade on fk
+    /*cascadeFK = checkCascadeFK(chosenChange,analyzer);
+
+    if(cascadeFK != null)
+    {
+      for( i = 0; i < cascadeFK.size();i++)
+        inject(new SingleChange(cascadeFK.get(i),this,chosenChange.getOldValue(),chosenChange.getNewValue()),analyzer,false);
+    }*/
+    String theQuery = updateQueryBuilder (undo);
     try
     {
              PreparedStatement stmt = analyzer.getSqlService().prepareStatement(theQuery, analyzer.getDb(),null);
              stmt.execute();
-             System.out.println("Mutation succesfull !!");
              return true;
     }
     catch(Exception e)
@@ -186,34 +194,81 @@ public class Mutation
     }
   }
 
-  public String updateQueryBuilder()
+  public String updateQueryBuilder(boolean undo)
   {
     String theQuery ;
 
-    if(chosenChange.getParentTableColumn().getTypeName().equals("varchar"))
-      theQuery = "UPDATE "+initial_state_row.getParentTable().getName()+" SET "+chosenChange.getParentTableColumn().getName()+"='"+chosenChange.getNewValue()+"', ";
+    if(undo)
+    {
+      if(chosenChange.getParentTableColumn().getTypeName().equals("varchar"))
+        theQuery = "UPDATE "+initial_state_row.getParentTable().getName()+" SET "+chosenChange.getParentTableColumn().getName()+"='"+chosenChange.getNewValue()+"', ";
+      else
+        theQuery = "UPDATE "+initial_state_row.getParentTable().getName()+" SET "+chosenChange.getParentTableColumn().getName()+" = "+chosenChange.getNewValue()+", ";
+    }
     else
-      theQuery = "UPDATE "+initial_state_row.getParentTable().getName()+" SET "+chosenChange.getParentTableColumn().getName()+" = "+chosenChange.getNewValue()+", ";
-
+    {
+      if(chosenChange.getParentTableColumn().getTypeName().equals("varchar"))
+        theQuery = "UPDATE "+initial_state_row.getParentTable().getName()+" SET "+chosenChange.getParentTableColumn().getName()+"='"+chosenChange.getOldValue()+"', ";
+      else
+        theQuery = "UPDATE "+initial_state_row.getParentTable().getName()+" SET "+chosenChange.getParentTableColumn().getName()+"="+chosenChange.getOldValue()+", ";
+    }
     for(Map.Entry<String,String> entry : initial_state_row.getContent().entrySet())
     {
       if(!entry.getKey().equals(chosenChange.getParentTableColumn().getName()))
       {
         if(chosenChange.getParentTableColumn().getTypeName().equals("varchar"))
-          theQuery = theQuery+(entry.getKey()+"='"+entry.getValue()+"', ");
+          theQuery = theQuery+(entry.getKey()+" = '"+entry.getValue()+"', ");
         else
-          theQuery = theQuery+(entry.getKey()+"="+entry.getValue()+", ");
+          theQuery = theQuery+(entry.getKey()+" = "+entry.getValue()+", ");
       }
 
     }
 
     theQuery = theQuery.substring(0,theQuery.lastIndexOf(","));
-    theQuery = theQuery+"WHERE ";
-    // PLACE CODE HERE TO HANDLE NO PRIMARY KEY CASE
-    theQuery = theQuery+(" "+initial_state_row.getParentTable().getPrimaryColumns().get(0).getName()+"="+initial_state_row.getValueOfColumn(initial_state_row.getParentTable().getPrimaryColumns().get(0).getName()));
+    theQuery = theQuery+" WHERE ";
+
+    // USING ALL VALUES TO TRIANGULATE THE ROW TO UPDATE (no primary key)
+    if(initial_state_row.getParentTable().getPrimaryColumns().isEmpty())
+    {
+      for(Map.Entry<String,String> entry : initial_state_row.getContent().entrySet())
+      {
+          if(chosenChange.getParentTableColumn().getTypeName().equals("varchar"))
+            theQuery = theQuery+(entry.getKey()+"='"+entry.getValue()+"' AND ");
+          else
+            theQuery = theQuery+(entry.getKey()+"="+entry.getValue()+" AND ");
+      }
+      theQuery = theQuery.substring(0,theQuery.lastIndexOf(" AND "));
+    }
+    else
+      theQuery = theQuery+(" "+initial_state_row.getParentTable().getPrimaryColumns().get(0).getName()+"="+initial_state_row.getValueOfColumn(initial_state_row.getParentTable().getPrimaryColumns().get(0).getName()));
+
 
     System.out.println("build query ! "+theQuery);
     return theQuery;
+  }
+
+
+  //NOT FUNCTIONNAL 
+  public ArrayList<TableColumn> checkCascadeFK(SingleChange chosenChange, SchemaAnalyzer analyzer)
+  {
+    ArrayList<TableColumn> res = new ArrayList<TableColumn>();
+    int i;
+
+    for(Map.Entry<String,Collection<ForeignKeyConstraint>> entry : analyzer.getDb().getLesForeignKeys().entrySet())
+    {
+      Iterator<ForeignKeyConstraint> iter = entry.getValue().iterator();
+      while (iter.hasNext()) {
+        ForeignKeyConstraint elem = iter.next();
+        for(i = 0; i < elem.getParentColumns().size();i++)
+        {
+              if(elem.getParentColumns().get(i).getName().equals(chosenChange.getParentTableColumn().getName()))
+                res.add(elem.getParentColumns().get(i));
+        }
+      }
+    }
+
+    System.out.println("LA PRESENCE DE FOREIGN KEY EST"+ res);
+    return res;
   }
 
 }
