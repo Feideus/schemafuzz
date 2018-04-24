@@ -15,18 +15,18 @@ public class Mutation
   private Integer interest_mark;
   private Row initial_state_row;
   private ArrayList<SingleChange> potential_changes = new ArrayList<SingleChange>();
-  private ArrayList<TableColumn> cascadeFK = new ArrayList<TableColumn>(); // a integrer
+  private ArrayList<SingleChange> cascadeFK = new ArrayList<SingleChange>(); // a integrer
   private SingleChange chosenChange;
   private Mutation child;
   private Mutation parent;
-
+  private boolean cascadingFK;
 	/**
 	* Default Mutation constructor
 	*/
 	public Mutation(Row initial_state_row) {
 		this.id = count.incrementAndGet();
 		this.initial_state_row = initial_state_row;
-
+    this.cascadingFK = false;
 	}
 
 	public Integer getId() {
@@ -65,6 +65,11 @@ public class Mutation
 	public Mutation getChild() {
 		return child;
 	}
+
+public void setChosenChange(SingleChange sc)
+{
+  this.chosenChange = sc;
+}
 
 	/**
 	* Sets new value of child
@@ -171,16 +176,30 @@ public class Mutation
   public boolean inject(SingleChange chosenChange,SchemaAnalyzer analyzer, boolean undo) throws Exception
   {
     int i;
-    this.chosenChange = chosenChange;
 
     //trying to iumplement cascade on fk
-    /*cascadeFK = checkCascadeFK(chosenChange,analyzer);
-
-    if(cascadeFK != null)
+    /*if(cascadeFK.isEmpty())
     {
-      for( i = 0; i < cascadeFK.size();i++)
-        inject(new SingleChange(cascadeFK.get(i),this,chosenChange.getOldValue(),chosenChange.getNewValue()),analyzer,false);
+      System.out.println("Checking FKs");
+      cascadeFK = checkCascadeFK(chosenChange,analyzer);
+    }
+
+    if(!cascadingFK)
+    {
+      cascadingFK = true;
+      if(!cascadeFK.isEmpty())
+      {
+
+        for( i = 0; i < cascadeFK.size();injecti++)
+        {
+          System.out.println("cascading found FKs");
+          inject(cascadeFK.get(i),analyzer,false);
+        }
+          System.out.println("Done cascading found FKs");
+      }
+      cascadingFK = false;
     }*/
+
     String theQuery = updateQueryBuilder (undo);
     try
     {
@@ -191,6 +210,19 @@ public class Mutation
     catch(Exception e)
     {
       throw new Exception(e);
+    }
+  }
+
+  public boolean undo(SingleChange chosenChange, SchemaAnalyzer analyzer)
+  {
+    try
+    {
+      return this.inject(chosenChange, analyzer, true);
+    }
+    catch(Exception e)
+    {
+      System.out.println("Undo failed with error :"+e);
+      return false;
     }
   }
 
@@ -248,11 +280,11 @@ public class Mutation
   }
 
 
-  //NOT FUNCTIONNAL 
-  public ArrayList<TableColumn> checkCascadeFK(SingleChange chosenChange, SchemaAnalyzer analyzer)
+  //NOT FUNCTIONNAL
+  public ArrayList<SingleChange> checkCascadeFK(SingleChange chosenChange, SchemaAnalyzer analyzer)
   {
-    ArrayList<TableColumn> res = new ArrayList<TableColumn>();
-    int i;
+    ArrayList<SingleChange> res = new ArrayList<SingleChange>();
+    int i,j;
 
     for(Map.Entry<String,Collection<ForeignKeyConstraint>> entry : analyzer.getDb().getLesForeignKeys().entrySet())
     {
@@ -262,8 +294,19 @@ public class Mutation
         for(i = 0; i < elem.getParentColumns().size();i++)
         {
               if(elem.getParentColumns().get(i).getName().equals(chosenChange.getParentTableColumn().getName()))
-                res.add(elem.getParentColumns().get(i));
+                res.add(new SingleChange(elem.getParentColumns().get(i),this,chosenChange.getOldValue(),chosenChange.getNewValue()));
+              if(elem.getChildColumns().get(i).getName().equals(chosenChange.getParentTableColumn().getName()))
+                res.add(new SingleChange(elem.getChildColumns().get(i),this,chosenChange.getOldValue(),chosenChange.getNewValue()));
         }
+      }
+    }
+
+    for( i = 0; i < res.size();i++)
+    {
+      for( j = 0; j < res.size();j++)
+      {
+        if(res.get(i).equals(res.get(j)))
+          res.remove(res.get(j));
       }
     }
 

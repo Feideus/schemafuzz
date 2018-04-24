@@ -11,6 +11,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 import org.schemaspy.model.*;
+import org.schemaspy.model.Table;
 import org.schemaspy.service.*;
 import java.sql.DatabaseMetaData;
 import org.schemaspy.service.DatabaseService;
@@ -44,7 +45,9 @@ public class DBFuzzer{
     public boolean fuzz (Config config)
     {
         boolean returnStatus = true;
-        boolean undo = true; // true for update false for undo update
+
+        //adding CASCADE to all foreign key tableColumns.
+        settingTemporaryCascade(); // need to drop and recreate database
 
         LOGGER.info("Starting Database Fuzzing");
         Row randomRow = pickRandomRow();
@@ -54,12 +57,14 @@ public class DBFuzzer{
         try
         {
           if(!firstMutation.getPotential_changes().isEmpty())
-            firstMutation.inject(firstMutation.getPotential_changes().get(0),analyzer,undo);
+          {
+            firstMutation.setChosenChange(firstMutation.getPotential_changes().get(0));
+            firstMutation.inject(firstMutation.getChosenChange(),analyzer,false);
+          }
 
             LOGGER.info("mutation was sucessfull");
 
-            undo = false; // trying to mutate back
-            firstMutation.inject(firstMutation.getPotential_changes().get(0),analyzer,undo);
+            firstMutation.undo(firstMutation.getChosenChange(),analyzer);
 
             LOGGER.info("backwards mutation was successfull");
         }
@@ -114,4 +119,54 @@ public class DBFuzzer{
           throw new RuntimeException("Random table wasn't found"); // should never be reached
     }
 
+    public boolean settingTemporaryCascade()
+    {
+      Iterator i;
+      ForeignKeyConstraint currentFK;
+      String dropSetCascade = null;
+      for(Map.Entry<String,Collection<ForeignKeyConstraint>> entry : analyzer.getDb().getLesForeignKeys().entrySet())
+      {
+              i = entry.getValue().iterator();
+              while(i.hasNext())
+              {
+                currentFK = (ForeignKeyConstraint) i.next();
+                dropSetCascade = "ALTER TABLE "+currentFK.getChildTable().getName()+" DROP CONSTRAINT "+currentFK.getName()+ " CASCADE";
+                try
+                {
+                         PreparedStatement stmt = analyzer.getSqlService().prepareStatement(dropSetCascade, analyzer.getDb(),null);
+                         stmt.execute();
+                         System.out.println("Fk éliminée");
+                }
+                catch(Exception e)
+                {
+                  System.out.println("Dans le catch erreur :"+e);
+                }
+              }
+
+        }
+
+        for(Map.Entry<String,Collection<ForeignKeyConstraint>> entry : analyzer.getDb().getLesForeignKeys().entrySet())
+        {
+                i = entry.getValue().iterator();
+                while(i.hasNext())
+                {
+                  currentFK = (ForeignKeyConstraint) i.next();
+                  dropSetCascade = "ALTER TABLE "+currentFK.getChildTable().getName()+" ADD CONSTRAINT "+currentFK.getName()+" FOREIGN KEY ("+currentFK.getParentColumns().get(0).getName()+" ) REFERENCES "+currentFK.getParentTable().getName()+"("+currentFK.getChildColumns().get(0).getName()+") ON UPDATE CASCADE";
+                  System.out.println(dropSetCascade);
+                  try
+                  {
+                           PreparedStatement stmt = analyzer.getSqlService().prepareStatement(dropSetCascade, analyzer.getDb(),null);
+                           stmt.execute();
+                           System.out.println("querySucess");
+                  }
+                  catch(Exception e)
+                  {
+                    System.out.println("Dans le catch 2 erreur :"+e);
+                  }
+                }
+
+          }
+
+      return true;
+    }
 }
