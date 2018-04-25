@@ -1,27 +1,20 @@
 
 package org.schemaspy;
 
-
-import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-//import java.sql.Connection;
-//import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.*;
 import org.schemaspy.model.*;
 import org.schemaspy.model.Table;
-import org.schemaspy.service.*;
-import java.sql.DatabaseMetaData;
 import org.schemaspy.service.DatabaseService;
 import org.schemaspy.service.SqlService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-
-public class DBFuzzer{
+public class DBFuzzer
+{
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -38,16 +31,12 @@ public class DBFuzzer{
       this.analyzer = analyzer;
     }
 
-
-
-
-
     public boolean fuzz (Config config)
     {
         boolean returnStatus = true;
 
         //adding CASCADE to all foreign key tableColumns.
-        settingTemporaryCascade(); // need to drop and recreate database
+        settingTemporaryCascade(false); // need to drop and recreate database
 
         LOGGER.info("Starting Database Fuzzing");
         Row randomRow = pickRandomRow();
@@ -73,6 +62,8 @@ public class DBFuzzer{
             LOGGER.error(e.toString());
             returnStatus = false;
         }
+
+        removeTemporaryCascade();
 
       return returnStatus;
     }
@@ -119,7 +110,7 @@ public class DBFuzzer{
           throw new RuntimeException("Random table wasn't found"); // should never be reached
     }
 
-    public boolean settingTemporaryCascade()
+    public boolean settingTemporaryCascade(Boolean undo)
     {
       Iterator i;
       ForeignKeyConstraint currentFK;
@@ -135,7 +126,6 @@ public class DBFuzzer{
                 {
                          PreparedStatement stmt = analyzer.getSqlService().prepareStatement(dropSetCascade, analyzer.getDb(),null);
                          stmt.execute();
-                         System.out.println("Fk éliminée");
                 }
                 catch(Exception e)
                 {
@@ -143,7 +133,7 @@ public class DBFuzzer{
                 }
               }
 
-        }
+      }
 
         for(Map.Entry<String,Collection<ForeignKeyConstraint>> entry : analyzer.getDb().getLesForeignKeys().entrySet())
         {
@@ -151,13 +141,16 @@ public class DBFuzzer{
                 while(i.hasNext())
                 {
                   currentFK = (ForeignKeyConstraint) i.next();
-                  dropSetCascade = "ALTER TABLE "+currentFK.getChildTable().getName()+" ADD CONSTRAINT "+currentFK.getName()+" FOREIGN KEY ("+currentFK.getParentColumns().get(0).getName()+" ) REFERENCES "+currentFK.getParentTable().getName()+"("+currentFK.getChildColumns().get(0).getName()+") ON UPDATE CASCADE";
-                  System.out.println(dropSetCascade);
+                  if(!undo)
+                    dropSetCascade = "ALTER TABLE "+currentFK.getChildTable().getName()+" ADD CONSTRAINT "+currentFK.getName()+" FOREIGN KEY ("+currentFK.getParentColumns().get(0).getName()+" ) REFERENCES "+currentFK.getParentTable().getName()+"("+currentFK.getChildColumns().get(0).getName()+") ON UPDATE CASCADE";
+                  else
+                  {
+                    dropSetCascade = "ALTER TABLE "+currentFK.getChildTable().getName()+" ADD CONSTRAINT "+currentFK.getName()+" FOREIGN KEY ("+currentFK.getParentColumns().get(0).getName()+" ) REFERENCES "+currentFK.getParentTable().getName()+"("+currentFK.getChildColumns().get(0).getName()+")";
+                  }
                   try
                   {
                            PreparedStatement stmt = analyzer.getSqlService().prepareStatement(dropSetCascade, analyzer.getDb(),null);
                            stmt.execute();
-                           System.out.println("querySucess");
                   }
                   catch(Exception e)
                   {
@@ -167,6 +160,16 @@ public class DBFuzzer{
 
           }
 
+      if(!undo)
+        LOGGER.info("temporary set all fk constraints to cascade");
+      else
+        LOGGER.info("set all the constraints back to original");
+
       return true;
+    }
+
+    public boolean removeTemporaryCascade()
+    {
+      return settingTemporaryCascade(true);
     }
 }
