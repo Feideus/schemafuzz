@@ -63,8 +63,8 @@
   </properties>
   <testcase classname="org.schemaspy.util.CaseInsensitiveMapTest" name="nullPutIsNotSupported" time="0"/>
   <testcase classname="org.schemaspy.util.CaseInsensitiveMapTest" name="putGetContainsKey" time="0"/>
-  <testcase classname="org.schemaspy.util.CaseInsensitiveMapTest" name="putAll" time="0"/>
-  <testcase classname="org.schemaspy.util.CaseInsensitiveMapTest" name="remove" time="0.001"/>
+  <testcase classname="org.schemaspy.util.CaseInsensitiveMapTest" name="putAll" time="0.001"/>
+  <testcase classname="org.schemaspy.util.CaseInsensitiveMapTest" name="remove" time="0"/>
   <testcase classname="org.schemaspy.util.CaseInsensitiveMapTest" name="nullRemoveNotSupported" time="0"/>
   <testcase classname="org.schemaspy.util.CaseInsensitiveMapTest" name="nullGetIsSupported" time="0"/>
   <testcase classname="org.schemaspy.util.CaseInsensitiveMapTest" name="nullContainsKeyNotSupported" time="0"/>
