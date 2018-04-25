@@ -11,6 +11,8 @@ import org.schemaspy.service.DatabaseService;
 import org.schemaspy.service.SqlService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 
 
 public class DBFuzzer
@@ -64,6 +66,17 @@ public class DBFuzzer
         }
 
         removeTemporaryCascade();
+        try
+        {
+          Process evaluatorProcess = new ProcessBuilder("/bin/bash", "/home/feideus/Work/mySchemaSpyCopy/evaluator.sh").start();
+          getEvaluatorResponse(evaluatorProcess);
+        }
+        catch(Exception e)
+        {
+          System.out.println("error while recovering marking"+e);
+        }
+
+
 
       return returnStatus;
     }
@@ -171,5 +184,24 @@ public class DBFuzzer
     public boolean removeTemporaryCascade()
     {
       return settingTemporaryCascade(true);
+    }
+
+
+    public void getEvaluatorResponse(Process p)
+    {
+        try
+        {
+
+          BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream()));
+          String line;
+          while ((line = r.readLine())!=null) {
+            System.out.println(line);
+          }
+          r.close();
+        }
+        catch(Exception e)
+        {
+          System.out.println("error while reading process output"+e);
+        }
     }
 }
