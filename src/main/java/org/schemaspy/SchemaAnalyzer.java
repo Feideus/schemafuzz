@@ -200,27 +200,6 @@ public class SchemaAnalyzer {
         }
     }
 
-    /*private void writeOrders(File outputDir, List<Table> orderedTables) throws IOException {
-        LineWriter out;
-        out = new LineWriter(new File(outputDir, "insertionOrder.txt"), 16 * 1024, Config.DOT_CHARSET);
-        try {
-            TextFormatter.getInstance().write(orderedTables, false, out);
-        } catch (IOException e) {
-            throw new IOException(e);
-        } finally {
-            out.close();
-        }
-
-        out = new LineWriter(new File(outputDir, "deletionOrder.txt"), 16 * 1024, Config.DOT_CHARSET);
-        try {
-            Collections.reverse(orderedTables);
-            TextFormatter.getInstance().write(orderedTables, false, out);
-        } catch (IOException e) {
-            throw new IOException(e);
-        } finally {
-            out.close();
-        }
-    }*/
 
     private Connection getConnection(Config config) throws IOException {
 

@@ -14,10 +14,11 @@ public class Mutation
   private Integer id;
   private Integer interest_mark;
   private Row initial_state_row;
+  private Row post_change_row;
   private ArrayList<SingleChange> potential_changes = new ArrayList<SingleChange>();
   private ArrayList<SingleChange> cascadeFK = new ArrayList<SingleChange>(); // a integrer
   private SingleChange chosenChange;
-  private Mutation child;
+  private ArrayList<Mutation> child = new ArrayList<Mutation>();
   private Mutation parent;
   private boolean cascadingFK;
 	/**
@@ -33,6 +34,16 @@ public class Mutation
 		return id;
 	}
 
+  public Row getPost_change_row()
+  {
+    return this.post_change_row;
+  }
+
+  public void setPost_change_row(Row postChangeRow)
+  {
+    this.post_change_row = postChangeRow;
+  }
+
   public SingleChange getChosenChange() {
     return chosenChange;
   }
@@ -41,6 +52,16 @@ public class Mutation
 	public Row getInitial_state_row() {
 		return initial_state_row;
 	}
+
+  public int getInterest_mark()
+  {
+      return this.interest_mark;
+  }
+
+  public void setInterest_mark(int mark)
+  {
+    this.interest_mark = mark;
+  }
 
 	/**
 	* Returns value of potential_changes
@@ -62,7 +83,7 @@ public class Mutation
 	* Returns value of child
 	* @return
 	*/
-	public Mutation getChild() {
+	public ArrayList<Mutation> getChild() {
 		return child;
 	}
 
@@ -75,7 +96,7 @@ public void setChosenChange(SingleChange sc)
 	* Sets new value of child
 	* @param
 	*/
-	public void setChild(Mutation child) {
+	public void setChild(ArrayList<Mutation> child) {
 		this.child = child;
 	}
 
@@ -101,6 +122,7 @@ public void setChosenChange(SingleChange sc)
     int i;
     ArrayList<SingleChange> possibilities = new ArrayList<SingleChange>();
 
+    System.out.println("table column : "+initial_state_row.getContent().entrySet());
 
     //TRYING TO DISCOVER RAW POSSIBILITIES
     for(Map.Entry<String,String> content : initial_state_row.getContent().entrySet())
@@ -118,20 +140,21 @@ public void setChosenChange(SingleChange sc)
     //REMOVING POSSIBILITIES THAT DONT MATCH CONSTRAINTS
     for(i = 0; i < possibilities.size(); i++)
     {
-      if(possibilities.get(i).respectsConstraints())
+      if(!possibilities.get(i).respectsConstraints())
         possibilities.remove(possibilities.get(i));
     }
-
+    System.out.println("possibilities"+possibilities);
     return possibilities;
   }
 
   public ArrayList<SingleChange> discoverFieldPossibilities (TableColumn tableColumn, String column_value) throws Exception
   {
+      System.out.println(tableColumn.getTypeName());
       ArrayList<SingleChange> oneChange = new ArrayList<SingleChange>();
       String typeName = tableColumn.getTypeName();
       switch (typeName) {
-            case "serial":
-                          System.out.println("serial");
+            case "int2":
+                          System.out.println("serial ICIIII");
                           oneChange.add(new SingleChange(tableColumn,this,column_value,Integer.toString(Integer.parseInt(column_value)+1)));
                           oneChange.add(new SingleChange(tableColumn,this,column_value,Integer.toString(32767)));
                           oneChange.add(new SingleChange(tableColumn,this,column_value,Integer.toString(1)));
@@ -143,14 +166,13 @@ public void setChosenChange(SingleChange sc)
                           tmp++;
                           oneChange.add(new SingleChange(tableColumn,this,column_value,(Character.toString(tmp)+column_value.substring(1))));
                      break;
-            /*case "varchar":
-                          oneChange.add(new SingleChange(this,column_value,Integer.toString(Integer.parseInt(column_value)+1)));
-                          oneChange.add(new SingleChange(this,column_value,Integer.toString(2147483647)));
-                          oneChange.add(new SingleChange(this,column_value,Integer.toString(1)));
+            case "bool":
+                          if(column_value.equals("f"))
+                            oneChange.add(new SingleChange(tableColumn,this,column_value,"t"));
+                          if(column_value.equals("t"))
+                            oneChange.add(new SingleChange(tableColumn,this,column_value,"f"));
                      break;
-            case 4:  typeName = "April";//OTHER TYPES COMMING IN LATER
-                     break;
-            case 5:  typeName = "May";
+            /*  case 5:  typeName = "May";
                      break;
             case 6:  typeName = "June";
                      break;
@@ -173,38 +195,16 @@ public void setChosenChange(SingleChange sc)
       return oneChange;
   }
 
-  public boolean inject(SingleChange chosenChange,SchemaAnalyzer analyzer, boolean undo) throws Exception
+  public boolean inject(SchemaAnalyzer analyzer, boolean undo) throws Exception
   {
-    int i;
 
-    //trying to iumplement cascade on fk
-    /*if(cascadeFK.isEmpty())
-    {
-      System.out.println("Checking FKs");
-      cascadeFK = checkCascadeFK(chosenChange,analyzer);
-    }
-
-    if(!cascadingFK)
-    {
-      cascadingFK = true;
-      if(!cascadeFK.isEmpty())
-      {
-
-        for( i = 0; i < cascadeFK.size();injecti++)
-        {
-          System.out.println("cascading found FKs");
-          inject(cascadeFK.get(i),analyzer,false);
-        }
-          System.out.println("Done cascading found FKs");
-      }
-      cascadingFK = false;
-    }*/
-
-    String theQuery = updateQueryBuilder (undo);
+    String theQuery = updateQueryBuilder(undo);
     try
     {
              PreparedStatement stmt = analyzer.getSqlService().prepareStatement(theQuery, analyzer.getDb(),null);
              stmt.execute();
+             this.post_change_row = this.initial_state_row;
+             this.post_change_row.setValueOfColumn(chosenChange.getParentTableColumn().getName(), chosenChange.getNewValue());
              return true;
     }
     catch(Exception e)
@@ -213,11 +213,11 @@ public void setChosenChange(SingleChange sc)
     }
   }
 
-  public boolean undo(SingleChange chosenChange, SchemaAnalyzer analyzer)
+  public boolean undo(SchemaAnalyzer analyzer)
   {
     try
     {
-      return this.inject(chosenChange, analyzer, true);
+      return this.inject(analyzer, true);
     }
     catch(Exception e)
     {
@@ -232,26 +232,26 @@ public void setChosenChange(SingleChange sc)
 
     if(undo)
     {
-      if(chosenChange.getParentTableColumn().getTypeName().equals("varchar"))
-        theQuery = "UPDATE "+initial_state_row.getParentTable().getName()+" SET "+chosenChange.getParentTableColumn().getName()+"='"+chosenChange.getNewValue()+"', ";
+      if(chosenChange.getParentTableColumn().getTypeName().equals("varchar") || chosenChange.getParentTableColumn().getTypeName().equals("bool"))
+        theQuery = "UPDATE "+initial_state_row.getParentTable().getName()+" SET "+chosenChange.getParentTableColumn().getName()+"='"+chosenChange.getOldValue()+"', ";
       else
-        theQuery = "UPDATE "+initial_state_row.getParentTable().getName()+" SET "+chosenChange.getParentTableColumn().getName()+" = "+chosenChange.getNewValue()+", ";
+        theQuery = "UPDATE "+initial_state_row.getParentTable().getName()+" SET "+chosenChange.getParentTableColumn().getName()+" = "+chosenChange.getOldValue()+", ";
     }
     else
     {
-      if(chosenChange.getParentTableColumn().getTypeName().equals("varchar"))
-        theQuery = "UPDATE "+initial_state_row.getParentTable().getName()+" SET "+chosenChange.getParentTableColumn().getName()+"='"+chosenChange.getOldValue()+"', ";
+      if(chosenChange.getParentTableColumn().getTypeName().equals("varchar") || chosenChange.getParentTableColumn().getTypeName().equals("bool"))
+        theQuery = "UPDATE "+initial_state_row.getParentTable().getName()+" SET "+chosenChange.getParentTableColumn().getName()+"='"+chosenChange.getNewValue()+"', ";
       else
-        theQuery = "UPDATE "+initial_state_row.getParentTable().getName()+" SET "+chosenChange.getParentTableColumn().getName()+"="+chosenChange.getOldValue()+", ";
+        theQuery = "UPDATE "+initial_state_row.getParentTable().getName()+" SET "+chosenChange.getParentTableColumn().getName()+"="+chosenChange.getNewValue()+", ";
     }
     for(Map.Entry<String,String> entry : initial_state_row.getContent().entrySet())
     {
       if(!entry.getKey().equals(chosenChange.getParentTableColumn().getName()))
       {
-        if(chosenChange.getParentTableColumn().getTypeName().equals("varchar"))
-          theQuery = theQuery+(entry.getKey()+" = '"+entry.getValue()+"', ");
+        if(chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("varchar") || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("bool"))
+          theQuery = theQuery+(entry.getKey()+"='"+entry.getValue()+"', ");
         else
-          theQuery = theQuery+(entry.getKey()+" = "+entry.getValue()+", ");
+          theQuery = theQuery+(entry.getKey()+"="+entry.getValue()+", ");
       }
 
     }
@@ -264,10 +264,20 @@ public void setChosenChange(SingleChange sc)
     {
       for(Map.Entry<String,String> entry : initial_state_row.getContent().entrySet())
       {
-          if(chosenChange.getParentTableColumn().getTypeName().equals("varchar"))
+        if(!entry.getKey().equals(chosenChange.getParentTableColumn().getName()))
+        {
+          if(chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("varchar") || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("bool"))
             theQuery = theQuery+(entry.getKey()+"='"+entry.getValue()+"' AND ");
           else
             theQuery = theQuery+(entry.getKey()+"="+entry.getValue()+" AND ");
+        }
+        else
+        {
+          if(undo)
+            theQuery = theQuery+(entry.getKey()+"='"+chosenChange.getNewValue()+"' AND ");
+          else
+            theQuery = theQuery+(entry.getKey()+"='"+chosenChange.getOldValue()+"' AND ");
+        }
       }
       theQuery = theQuery.substring(0,theQuery.lastIndexOf(" AND "));
     }
@@ -313,5 +323,11 @@ public void setChosenChange(SingleChange sc)
     System.out.println("LA PRESENCE DE FOREIGN KEY EST"+ res);
     return res;
   }
+
+@Override
+public String toString()
+{
+  return "Mutation[ id : "+id+" ChosenChange : "+chosenChange+" ]";
+}
 
 }

@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
-
 public class DBFuzzer
 {
 
@@ -26,8 +25,11 @@ public class DBFuzzer
 
     private SchemaAnalyzer analyzer;
 
+    private ArrayList<Mutation> mutationTree;
+
     public DBFuzzer(SchemaAnalyzer analyzer)
     {
+      this.mutationTree = new ArrayList<Mutation>();
       this.sqlService = Objects.requireNonNull(analyzer.getSqlService());
       this.databaseService = Objects.requireNonNull(analyzer.getDatabaseService());
       this.analyzer = analyzer;
@@ -36,48 +38,63 @@ public class DBFuzzer
     public boolean fuzz (Config config)
     {
         boolean returnStatus = true;
-
+        int mark = 0;
         //adding CASCADE to all foreign key tableColumns.
         settingTemporaryCascade(false); // need to drop and recreate database
 
         LOGGER.info("Starting Database Fuzzing");
+
         Row randomRow = pickRandomRow();
-        Mutation firstMutation = new Mutation(randomRow);
-        firstMutation.initPotential_changes(firstMutation.discoverMutationPossibilities(analyzer.getDb()));
-        LOGGER.info(firstMutation.getPotential_changes().toString());
-        try
+        Mutation currentMutation = new Mutation(randomRow);
+        currentMutation.initPotential_changes(currentMutation.discoverMutationPossibilities(analyzer.getDb()));
+        LOGGER.info(currentMutation.getPotential_changes().toString());
+        currentMutation.setChosenChange(currentMutation.getPotential_changes().get(0));
+        boolean resQuery = false;
+
+        while(mark != -1)
         {
-          if(!firstMutation.getPotential_changes().isEmpty())
+          try
           {
-            firstMutation.setChosenChange(firstMutation.getPotential_changes().get(0));
-            firstMutation.inject(firstMutation.getChosenChange(),analyzer,false);
+            if(currentMutation.getChosenChange() != null)
+            {
+              resQuery = currentMutation.inject(analyzer,false);
+              if(resQuery)
+              {
+                mutationTree.add(currentMutation);
+                LOGGER.info("mutation was sucessfull");
+              }
+              else
+                LOGGER.info("QueryError");
+
+              //currentMutation.undo(analyzer);
+              //LOGGER.info("backwards mutation was successfull");
+            }
+
+          }
+          catch(Exception e)
+          {
+              LOGGER.error(e.toString());
+              returnStatus = false;
           }
 
-            LOGGER.info("mutation was sucessfull");
+          try
+          {
+            Process evaluatorProcess = new ProcessBuilder("/bin/bash", "./evaluator.sh").start();
+            mark = Integer.parseInt(getEvaluatorResponse(evaluatorProcess));
+            currentMutation.setInterest_mark(mark);
+            System.out.println(currentMutation.getInterest_mark());
 
-            firstMutation.undo(firstMutation.getChosenChange(),analyzer);
+          }
+          catch(Exception e)
+          {
+            System.out.println("error while recovering marking"+e);
+          }
+          currentMutation = chooseNextMutation();
+          System.out.println(currentMutation.toString());
+      }
+      System.out.println(mutationTree);
 
-            LOGGER.info("backwards mutation was successfull");
-        }
-        catch(Exception e)
-        {
-            LOGGER.error(e.toString());
-            returnStatus = false;
-        }
-
-        removeTemporaryCascade();
-        try
-        {
-          Process evaluatorProcess = new ProcessBuilder("/bin/bash", "/home/feideus/Work/mySchemaSpyCopy/evaluator.sh").start();
-          getEvaluatorResponse(evaluatorProcess);
-        }
-        catch(Exception e)
-        {
-          System.out.println("error while recovering marking"+e);
-        }
-
-
-
+      removeTemporaryCascade();
       return returnStatus;
     }
 
@@ -85,10 +102,11 @@ public class DBFuzzer
     //extract Random row from the db specified in sqlService
     public Row pickRandomRow()
     {
-
       Table randomTable = pickRandomTable();
 
-      String theQuery = "SELECT * FROM "+randomTable.getName()+" ORDER BY RANDOM() LIMIT 1";
+
+      //String theQuery = "SELECT * FROM "+randomTable.getName()+" ORDER BY RANDOM() LIMIT 1";
+      String theQuery = "SELECT * FROM test_table ORDER BY RANDOM() LIMIT 1";
       QueryResponseParser qrp = new QueryResponseParser();
       ResultSet rs = null;
       Row res = null ;
@@ -98,13 +116,12 @@ public class DBFuzzer
         {
              stmt = sqlService.prepareStatement(theQuery);
              rs = stmt.executeQuery();
-             res = qrp.parse(rs,randomTable).getRows().get(0);
+             res = qrp.parse(rs,analyzer.getDb().getTablesMap().get("test_table")).getRows().get(0); //randomTable should be set there
         }
         catch (Exception e)
         {
           LOGGER.info("This query threw an error"+e);
         }
-
         return res;
     }
 
@@ -172,7 +189,6 @@ public class DBFuzzer
                 }
 
           }
-
       if(!undo)
         LOGGER.info("temporary set all fk constraints to cascade");
       else
@@ -187,15 +203,16 @@ public class DBFuzzer
     }
 
 
-    public void getEvaluatorResponse(Process p)
+    public String getEvaluatorResponse(Process p)
     {
+        String response = "";
         try
         {
 
           BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream()));
           String line;
           while ((line = r.readLine())!=null) {
-            System.out.println(line);
+            response = response+line;
           }
           r.close();
         }
@@ -203,5 +220,54 @@ public class DBFuzzer
         {
           System.out.println("error while reading process output"+e);
         }
+        return response;
+    }
+
+    public Mutation chooseNextMutation()
+    {
+      Mutation nextMut = null;
+      Mutation lastMutation = mutationTree.get(mutationTree.size()-1);
+      int markingDiff = 0;
+      Random rand = new Random();
+
+      if(mutationTree.size() > 1)
+      {
+        System.out.println("test 1 "+lastMutation.getId());
+        markingDiff = mutationTree.get(lastMutation.getId()-1).getInterest_mark()-mutationTree.get(lastMutation.getId()-2).getInterest_mark();
+      }
+
+      if(!mutationTree.isEmpty())
+      {
+
+        if(markingDiff > 0)
+        {
+            lastMutation.initPotential_changes(lastMutation.discoverMutationPossibilities(analyzer.getDb()));
+            int randNumber = rand.nextInt(lastMutation.getPotential_changes().size());
+            if(randNumber <= 0)
+              System.out.println("COUCOU1");
+            nextMut = new Mutation(lastMutation.getPost_change_row());
+            nextMut.setChosenChange(lastMutation.getPotential_changes().get(randNumber));
+        }
+        else if(markingDiff == 0 || markingDiff < 0)
+        {
+
+            int randNumber = rand.nextInt(mutationTree.size());
+            if(randNumber<=0)
+              System.out.println("COUCOU2");
+            int randMutation = rand.nextInt(mutationTree.get(randNumber).getPotential_changes().size());
+            if((randMutation <= 0))
+              System.out.println("COUCOU3");
+            nextMut = new Mutation(mutationTree.get(randNumber).getPost_change_row());
+            nextMut.initPotential_changes(nextMut.discoverMutationPossibilities(analyzer.getDb()));
+            nextMut.setChosenChange(mutationTree.get(randNumber).getPotential_changes().get(randMutation));
+        }
+        else
+        {
+            System.out.println("I mean What Da Heck");
+        }
+
+      }
+
+      return nextMut;
     }
 }

@@ -70,6 +70,10 @@ public class Row
     return content.get(columnName);
   }
 
+  public void setValueOfColumn(String columnName, String newVal)
+  {
+    this.getContent().replace(columnName, newVal);
+  }
 
 	public void setNbKeys(Integer nbKeys) {
 		this.nbKeys = nbKeys;
@@ -77,7 +81,7 @@ public class Row
 
 	@Override
 	public String toString() {
-	  String res= ""+content.toString()+nbKeys;
+	  String res= "table : "+parentTable.toString()+"content :"+content.toString();
     return res;
 	}
 }

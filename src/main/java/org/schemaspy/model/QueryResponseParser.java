@@ -62,7 +62,7 @@ public class QueryResponseParser
           {
             HashMap<String,String> mapOfTheRow = new HashMap<String,String>();
 
-            for(i = 1; i < resultMeta.getColumnCount();i++)
+            for(i = 1; i <= resultMeta.getColumnCount();i++)
             {
               mapOfTheRow.put(resultMeta.getColumnName(i), resultOfQuery.getString(i));
             }
