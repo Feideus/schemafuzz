@@ -51,13 +51,11 @@ public class DBFuzzer
           {
             firstMutation.setChosenChange(firstMutation.getPotential_changes().get(0));
             firstMutation.inject(firstMutation.getChosenChange(),analyzer,false);
+            LOGGER.info("mutation was sucessfull");
+            firstMutation.undo(firstMutation.getChosenChange(),analyzer);
+            LOGGER.info("backwards mutation was successfull");
           }
 
-            LOGGER.info("mutation was sucessfull");
-
-            firstMutation.undo(firstMutation.getChosenChange(),analyzer);
-
-            LOGGER.info("backwards mutation was successfull");
         }
         catch(Exception e)
         {
@@ -68,7 +66,7 @@ public class DBFuzzer
         removeTemporaryCascade();
         try
         {
-          Process evaluatorProcess = new ProcessBuilder("/bin/bash", "/home/feideus/Work/mySchemaSpyCopy/evaluator.sh").start();
+          Process evaluatorProcess = new ProcessBuilder("/bin/bash", "/home/feideus/Work/mySchemafuzz/evaluator.sh").start();
           getEvaluatorResponse(evaluatorProcess);
         }
         catch(Exception e)
@@ -85,10 +83,11 @@ public class DBFuzzer
     //extract Random row from the db specified in sqlService
     public Row pickRandomRow()
     {
-
       Table randomTable = pickRandomTable();
 
-      String theQuery = "SELECT * FROM "+randomTable.getName()+" ORDER BY RANDOM() LIMIT 1";
+
+      //String theQuery = "SELECT * FROM "+randomTable.getName()+" ORDER BY RANDOM() LIMIT 1";
+      String theQuery = "SELECT * FROM test_table ORDER BY RANDOM() LIMIT 1";
       QueryResponseParser qrp = new QueryResponseParser();
       ResultSet rs = null;
       Row res = null ;
@@ -98,13 +97,12 @@ public class DBFuzzer
         {
              stmt = sqlService.prepareStatement(theQuery);
              rs = stmt.executeQuery();
-             res = qrp.parse(rs,randomTable).getRows().get(0);
+             res = qrp.parse(rs,analyzer.getDb().getTablesMap().get("test_table")).getRows().get(0); //randomTable should be set there
         }
         catch (Exception e)
         {
           LOGGER.info("This query threw an error"+e);
         }
-
         return res;
     }
 

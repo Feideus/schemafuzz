@@ -101,6 +101,7 @@ public void setChosenChange(SingleChange sc)
     int i;
     ArrayList<SingleChange> possibilities = new ArrayList<SingleChange>();
 
+    System.out.println("table column : "+initial_state_row.getContent().entrySet());
 
     //TRYING TO DISCOVER RAW POSSIBILITIES
     for(Map.Entry<String,String> content : initial_state_row.getContent().entrySet())
@@ -143,12 +144,13 @@ public void setChosenChange(SingleChange sc)
                           tmp++;
                           oneChange.add(new SingleChange(tableColumn,this,column_value,(Character.toString(tmp)+column_value.substring(1))));
                      break;
-            /*case "varchar":
-                          oneChange.add(new SingleChange(this,column_value,Integer.toString(Integer.parseInt(column_value)+1)));
-                          oneChange.add(new SingleChange(this,column_value,Integer.toString(2147483647)));
-                          oneChange.add(new SingleChange(this,column_value,Integer.toString(1)));
+            case "bool":
+                          if(column_value == "t")
+                            oneChange.add(new SingleChange(tableColumn,this,column_value,"f"));
+                          if(column_value == "f")
+                            oneChange.add(new SingleChange(tableColumn,this,column_value,"t"));
                      break;
-            case 4:  typeName = "April";//OTHER TYPES COMMING IN LATER
+            /*case 4:  typeName = "April";//OTHER TYPES COMMING IN LATER
                      break;
             case 5:  typeName = "May";
                      break;

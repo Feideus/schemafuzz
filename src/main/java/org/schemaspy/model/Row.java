@@ -77,7 +77,7 @@ public class Row
 
 	@Override
 	public String toString() {
-	  String res= ""+content.toString()+nbKeys;
+	  String res= "table : "+parentTable.toString()+"content :"+content.toString();
     return res;
 	}
 }
