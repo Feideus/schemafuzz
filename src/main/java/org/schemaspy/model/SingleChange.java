@@ -29,8 +29,14 @@ public class SingleChange
                         if(Integer.parseInt(newValue) < Math.pow(2,parentTableColumn.getLength()))
                           return true;
                         return false;
+          case "int2":
+                      if(Integer.parseInt(newValue) <= 32767)
+                      {
+                        return true;
+                      }
+                      return false;
           default:
-            return false;
+            return true;
 
     }
   }

@@ -46,24 +46,28 @@ public class DBFuzzer
 
         Row randomRow = pickRandomRow();
         Mutation currentMutation = new Mutation(randomRow);
+        currentMutation.initPotential_changes(currentMutation.discoverMutationPossibilities(analyzer.getDb()));
+        LOGGER.info(currentMutation.getPotential_changes().toString());
+        currentMutation.setChosenChange(currentMutation.getPotential_changes().get(0));
+        boolean resQuery = false;
 
-        //while(evaluation != -1)
-        //{
-
-
-          currentMutation.initPotential_changes(currentMutation.discoverMutationPossibilities(analyzer.getDb()));
-          LOGGER.info(currentMutation.getPotential_changes().toString());
+        while(mark != -1)
+        {
           try
           {
-            if(!currentMutation.getPotential_changes().isEmpty())
+            if(currentMutation.getChosenChange() != null)
             {
-              currentMutation.setChosenChange(currentMutation.getPotential_changes().get(0));
-              currentMutation.inject(analyzer,false);
-              LOGGER.info("mutation was sucessfull");
-              mutationTree.add(currentMutation);
-              System.out.println(mutationTree);
-              currentMutation.undo(analyzer);
-              LOGGER.info("backwards mutation was successfull");
+              resQuery = currentMutation.inject(analyzer,false);
+              if(resQuery)
+              {
+                mutationTree.add(currentMutation);
+                LOGGER.info("mutation was sucessfull");
+              }
+              else
+                LOGGER.info("QueryError");
+
+              //currentMutation.undo(analyzer);
+              //LOGGER.info("backwards mutation was successfull");
             }
 
           }
@@ -80,14 +84,15 @@ public class DBFuzzer
             currentMutation.setInterest_mark(mark);
             System.out.println(currentMutation.getInterest_mark());
 
-            currentMutation = chooseNextMutation();
-            System.out.println(currentMutation.toString());
           }
           catch(Exception e)
           {
             System.out.println("error while recovering marking"+e);
           }
-      //}
+          currentMutation = chooseNextMutation();
+          System.out.println(currentMutation.toString());
+      }
+      System.out.println(mutationTree);
 
       removeTemporaryCascade();
       return returnStatus;
@@ -101,7 +106,7 @@ public class DBFuzzer
 
 
       //String theQuery = "SELECT * FROM "+randomTable.getName()+" ORDER BY RANDOM() LIMIT 1";
-      String theQuery = "SELECT * FROM test_table WHERE (id=1) ORDER BY RANDOM() LIMIT 1";
+      String theQuery = "SELECT * FROM test_table ORDER BY RANDOM() LIMIT 1";
       QueryResponseParser qrp = new QueryResponseParser();
       ResultSet rs = null;
       Row res = null ;
@@ -226,28 +231,34 @@ public class DBFuzzer
       Random rand = new Random();
 
       if(mutationTree.size() > 1)
-        markingDiff = mutationTree.get(lastMutation.getId()).getInterest_mark()-mutationTree.get(lastMutation.getId()-2).getInterest_mark();
-
+      {
+        System.out.println("test 1 "+lastMutation.getId());
+        markingDiff = mutationTree.get(lastMutation.getId()-1).getInterest_mark()-mutationTree.get(lastMutation.getId()-2).getInterest_mark();
+      }
 
       if(!mutationTree.isEmpty())
       {
-        if(markingDiff < 0)
-        {
-          System.out.println("should not happen right now");
-        }
-        else if(markingDiff > 0)
-        {
 
+        if(markingDiff > 0)
+        {
             lastMutation.initPotential_changes(lastMutation.discoverMutationPossibilities(analyzer.getDb()));
             int randNumber = rand.nextInt(lastMutation.getPotential_changes().size());
+            if(randNumber <= 0)
+              System.out.println("COUCOU1");
             nextMut = new Mutation(lastMutation.getPost_change_row());
             nextMut.setChosenChange(lastMutation.getPotential_changes().get(randNumber));
         }
-        else if(markingDiff == 0)
+        else if(markingDiff == 0 || markingDiff < 0)
         {
+
             int randNumber = rand.nextInt(mutationTree.size());
+            if(randNumber<=0)
+              System.out.println("COUCOU2");
             int randMutation = rand.nextInt(mutationTree.get(randNumber).getPotential_changes().size());
+            if((randMutation <= 0))
+              System.out.println("COUCOU3");
             nextMut = new Mutation(mutationTree.get(randNumber).getPost_change_row());
+            nextMut.initPotential_changes(nextMut.discoverMutationPossibilities(analyzer.getDb()));
             nextMut.setChosenChange(mutationTree.get(randNumber).getPotential_changes().get(randMutation));
         }
         else

@@ -7,38 +7,24 @@ RESULT=$( echo $RESULT | cut -d "-" -f 2 )
 RESULT=$( echo $RESULT | cut -d "(" -f1 )
 IFS=' | ' read -ra array <<< "$RESULT"
 
+SCORE=10
 
-ITER=0
-STOP=3
-for i in ${array[@]}
-do
-    if [ $ITER -lt $STOP ]
-    then
-      array2[$ITER]=${array[$ITER]}
-      array[$ITER]=${array[$ITER+3]}
-    fi
-    ((ITER++))
-
-done
-SCORE=10;
-
-
-if [ ${array[1]} = "Moy" ]
+if [ "${array[1]}" = "Moy" ]
 then
   SCORE=$((SCORE+10))
 fi
 
-if [ ${array[2]} = "t" ]
+if [ "${array[2]}" = "t" ]
 then
   SCORE=$((SCORE+10))
 fi
 
-if [ ${array[0]} -eq 32767 ]
+if [[ "${array[0]}" -eq 32767 ]]
 then
   SCORE=$((SCORE+10))
 fi
 
-if [ ${array[0]} -eq 32767 -a ${array[2]} = "t" -a ${array[1]} = "Moy" ]
+if [[ ${array[0]} -eq 32767 && "${array[2]}" = "t" && "${array[1]}" = "Moy" ]]
 then
   SCORE=-1
 fi

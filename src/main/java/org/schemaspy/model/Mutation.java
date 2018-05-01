@@ -140,10 +140,10 @@ public void setChosenChange(SingleChange sc)
     //REMOVING POSSIBILITIES THAT DONT MATCH CONSTRAINTS
     for(i = 0; i < possibilities.size(); i++)
     {
-      if(possibilities.get(i).respectsConstraints())
+      if(!possibilities.get(i).respectsConstraints())
         possibilities.remove(possibilities.get(i));
     }
-
+    System.out.println("possibilities"+possibilities);
     return possibilities;
   }
 
@@ -232,14 +232,14 @@ public void setChosenChange(SingleChange sc)
 
     if(undo)
     {
-      if(chosenChange.getParentTableColumn().getTypeName().equals("varchar"))
+      if(chosenChange.getParentTableColumn().getTypeName().equals("varchar") || chosenChange.getParentTableColumn().getTypeName().equals("bool"))
         theQuery = "UPDATE "+initial_state_row.getParentTable().getName()+" SET "+chosenChange.getParentTableColumn().getName()+"='"+chosenChange.getOldValue()+"', ";
       else
         theQuery = "UPDATE "+initial_state_row.getParentTable().getName()+" SET "+chosenChange.getParentTableColumn().getName()+" = "+chosenChange.getOldValue()+", ";
     }
     else
     {
-      if(chosenChange.getParentTableColumn().getTypeName().equals("varchar"))
+      if(chosenChange.getParentTableColumn().getTypeName().equals("varchar") || chosenChange.getParentTableColumn().getTypeName().equals("bool"))
         theQuery = "UPDATE "+initial_state_row.getParentTable().getName()+" SET "+chosenChange.getParentTableColumn().getName()+"='"+chosenChange.getNewValue()+"', ";
       else
         theQuery = "UPDATE "+initial_state_row.getParentTable().getName()+" SET "+chosenChange.getParentTableColumn().getName()+"="+chosenChange.getNewValue()+", ";
@@ -248,10 +248,10 @@ public void setChosenChange(SingleChange sc)
     {
       if(!entry.getKey().equals(chosenChange.getParentTableColumn().getName()))
       {
-        if(chosenChange.getParentTableColumn().getTypeName().equals("varchar"))
-          theQuery = theQuery+(entry.getKey()+" = '"+entry.getValue()+"', ");
+        if(chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("varchar") || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("bool"))
+          theQuery = theQuery+(entry.getKey()+"='"+entry.getValue()+"', ");
         else
-          theQuery = theQuery+(entry.getKey()+" = "+entry.getValue()+", ");
+          theQuery = theQuery+(entry.getKey()+"="+entry.getValue()+", ");
       }
 
     }
@@ -266,7 +266,7 @@ public void setChosenChange(SingleChange sc)
       {
         if(!entry.getKey().equals(chosenChange.getParentTableColumn().getName()))
         {
-          if(chosenChange.getParentTableColumn().getTypeName().equals("varchar"))
+          if(chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("varchar") || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("bool"))
             theQuery = theQuery+(entry.getKey()+"='"+entry.getValue()+"' AND ");
           else
             theQuery = theQuery+(entry.getKey()+"="+entry.getValue()+" AND ");
