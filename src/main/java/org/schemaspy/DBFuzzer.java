@@ -25,14 +25,15 @@ public class DBFuzzer
 
     private DatabaseService databaseService;
 
-    private ArrayList<Mutation> mutationTree;
+    private Mutation rootMutation;
+    private int nbMutation;
 
     public DBFuzzer(SchemaAnalyzer analyzer)
     {
-      this.mutationTree = new ArrayList<Mutation>();
       this.sqlService = Objects.requireNonNull(analyzer.getSqlService());
       this.databaseService = Objects.requireNonNull(analyzer.getDatabaseService());
       this.analyzer = analyzer;
+      this.nbMutation = 0;
     }
 
     public boolean fuzz (Config config)
@@ -45,10 +46,10 @@ public class DBFuzzer
         LOGGER.info("Starting Database Fuzzing");
 
         Row randomRow = pickRandomRow();
-        Mutation currentMutation = new Mutation(randomRow,nextMutationId());
+        Mutation currentMutation = new Mutation(randomRow,nextId());
         currentMutation.initPotential_changes(currentMutation.discoverMutationPossibilities(analyzer.getDb()));
-        LOGGER.info(currentMutation.getPotential_changes().toString());
         currentMutation.setChosenChange(currentMutation.getPotential_changes().get(0));
+        rootMutation = currentMutation;
         boolean resQuery = false;
 
         while(mark != -1)
@@ -60,7 +61,7 @@ public class DBFuzzer
               resQuery = currentMutation.inject(analyzer,false);
               if(resQuery)
               {
-                mutationTree.add(currentMutation);
+                nbMutation = getLastId(rootMutation);
                 LOGGER.info("mutation was sucessfull");
               }
               else
@@ -82,11 +83,10 @@ public class DBFuzzer
             Process evaluatorProcess = new ProcessBuilder("/bin/bash", "./evaluator.sh").start();
             mark = Integer.parseInt(getEvaluatorResponse(evaluatorProcess));
             currentMutation.setInterest_mark(mark);
-            System.out.println(currentMutation.getInterest_mark());
-
           }
           catch(Exception e)
           {
+            returnStatus = false;
             System.out.println("error while recovering marking"+e);
           }
 
@@ -98,8 +98,7 @@ public class DBFuzzer
           }
           System.out.println(currentMutation.toString());
       }
-      System.out.println(mutationTree);
-
+      printMutationTree(rootMutation);
       removeTemporaryCascade();
       return returnStatus;
     }
@@ -232,37 +231,38 @@ public class DBFuzzer
     public Mutation chooseNextMutation()
     {
       Mutation nextMut = null;
-      Mutation lastMutation = mutationTree.get(mutationTree.size()-1);
-      int markingDiff = 0;
+      Mutation previousMutation = getLastMutation(rootMutation);
+      int markingDiff = previousMutation.getInterest_mark();
       Random rand = new Random();
 
-      if(mutationTree.size() > 1)
+      if(nbMutation > 1)
       {
-        System.out.println("test 1 "+lastMutation.getId());
-        markingDiff = mutationTree.get(lastMutation.getId()-1).getInterest_mark()-mutationTree.get(lastMutation.getId()-2).getInterest_mark();
+        markingDiff = previousMutation.getInterest_mark()-getMutation(rootMutation,getLastId(rootMutation)-1).getInterest_mark();
       }
 
-      if(!mutationTree.isEmpty())
+      if(rootMutation != null)
       {
-
         if(markingDiff > 0)
         {
-            lastMutation.initPotential_changes(lastMutation.discoverMutationPossibilities(analyzer.getDb()));
-            int randNumber = rand.nextInt(lastMutation.getPotential_changes().size());
-            nextMut = new Mutation(lastMutation.getPost_change_row(),nextMutationId());
-            nextMut.setChosenChange(lastMutation.getPotential_changes().get(randNumber));
+            previousMutation.initPotential_changes(previousMutation.discoverMutationPossibilities(analyzer.getDb()));
+            int randNumber = rand.nextInt(previousMutation.getPotential_changes().size());
+            nextMut = new Mutation(previousMutation.getPost_change_row(),nextId());
+            nextMut.setChosenChange(previousMutation.getPotential_changes().get(randNumber));
+
+            previousMutation.addChild(nextMut);
+            nextMut.setParent(previousMutation);
         }
         else if(markingDiff == 0 || markingDiff < 0)
         {
-            int randNumber = rand.nextInt(mutationTree.size());
-            while(mutationTree.get(randNumber).getPotential_changes().size() == 0)
+            int randNumber = rand.nextInt(nbMutation);
+            while(getMutation(rootMutation,randNumber).getPotential_changes().size() == 0)
             {
-              randNumber = rand.nextInt(mutationTree.size());
+              randNumber = rand.nextInt(nbMutation);
             }
-            int randMutation = rand.nextInt(mutationTree.get(randNumber).getPotential_changes().size());
-            nextMut = new Mutation(mutationTree.get(randNumber).getPost_change_row(),nextMutationId());
+            int randMutation = rand.nextInt(getMutation(rootMutation,randNumber).getPotential_changes().size());
+            nextMut = new Mutation(getMutation(rootMutation,randNumber).getPost_change_row(),nextId());
             nextMut.initPotential_changes(nextMut.discoverMutationPossibilities(analyzer.getDb()));
-            nextMut.setChosenChange(mutationTree.get(randNumber).getPotential_changes().get(randMutation));
+            nextMut.setChosenChange(getMutation(rootMutation,randNumber).getPotential_changes().get(randMutation));
         }
         else
         {
@@ -277,25 +277,67 @@ public class DBFuzzer
     public boolean isNewMutation(Mutation newMut)
     {
       boolean res = true;
-      for(int i = 0; i < mutationTree.size(); i++)
+      for(int i = 0; i < nbMutation; i++)
       {
-        if(mutationTree.get(i).compare(newMut))
+        if(getMutation(rootMutation,i).compare(newMut))
           res = false;
       }
 
       return res;
     }
 
-    public int nextMutationId()
+    public int getLastId(Mutation rootMutation)
     {
-      int res = 0;
+      if(rootMutation == null)
+        return 1;
 
-      for(int i = 0; i < mutationTree.size(); i++)
+      int maxId = rootMutation.getId();
+      for(int i = 0; i < rootMutation.getChilds().size();i++)
       {
-        if(mutationTree.get(i).getId() > res )
-          res = mutationTree.get(i).getId();
+        if(rootMutation.getChilds().size()!= 0 && maxId < getLastId(rootMutation.getChilds().get(i)))
+          maxId = getLastId(rootMutation.getChilds().get(i));
+      }
+      return maxId;
+    }
+
+    public Mutation getLastMutation(Mutation mutation)
+    {
+      Mutation res = mutation;
+      for(int i = 0; i < res.getChilds().size();i++)
+      {
+        if(getLastMutation(res.getChilds().get(i)).getId() == getLastId(rootMutation))
+          res = res.getChilds().get(i);
+      }
+      return res;
+    }
+
+    public Mutation getMutation(Mutation mutation ,int id)
+    {
+
+        Mutation res = mutation;
+
+          for(int i = 0; i < res.getChilds().size();i++)
+          {
+            if(getMutation(res.getChilds().get(i), res.getChilds().get(i).getId()).getId() == id)
+              res = res.getChilds().get(i);
+          }
+          return res;
+    }
+
+    public void printMutationTree(Mutation rootMutation)
+    {
+      String res = "";
+
+      for(int i = 0; i < rootMutation.getChilds().size();i++)
+      {
+        res = res+" [ ID : "+rootMutation.getId()+" OV : "+rootMutation.getChosenChange().getOldValue()+" NV : "+rootMutation.getChosenChange().getNewValue()+" ]\n";
       }
 
-      return res+1;
+      System.out.println(res);
+    }
+
+    public int nextId()
+    {
+      return getLastId(rootMutation)+1;
     }
 }

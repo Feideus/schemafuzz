@@ -17,7 +17,7 @@ public class Mutation
   private ArrayList<SingleChange> potential_changes = new ArrayList<SingleChange>();
   private ArrayList<SingleChange> cascadeFK = new ArrayList<SingleChange>(); // a integrer
   private SingleChange chosenChange;
-  private ArrayList<Mutation> child = new ArrayList<Mutation>();
+  private ArrayList<Mutation> childs = new ArrayList<Mutation>();
   private Mutation parent;
   private boolean cascadingFK;
 	/**
@@ -79,24 +79,30 @@ public class Mutation
 	}
 
 	/**
-	* Returns value of child
+	* Returns value of childs
 	* @return
 	*/
-	public ArrayList<Mutation> getChild() {
-		return child;
+	public ArrayList<Mutation> getChilds() {
+		return childs;
 	}
 
-public void setChosenChange(SingleChange sc)
-{
-  this.chosenChange = sc;
-}
+  public void setChosenChange(SingleChange sc)
+  {
+    this.chosenChange = sc;
+  }
+
+  public void addChild(Mutation childMut)
+  {
+      this.childs.add(childMut);
+  }
+
 
 	/**
-	* Sets new value of child
+	* Sets new value of childs
 	* @param
 	*/
-	public void setChild(ArrayList<Mutation> child) {
-		this.child = child;
+	public void setChilds(ArrayList<Mutation> childs) {
+		this.childs = childs;
 	}
 
 	/**
@@ -121,8 +127,6 @@ public void setChosenChange(SingleChange sc)
     int i;
     ArrayList<SingleChange> possibilities = new ArrayList<SingleChange>();
 
-    System.out.println("table column : "+initial_state_row.getContent().entrySet());
-
     //TRYING TO DISCOVER RAW POSSIBILITIES
     for(Map.Entry<String,String> content : initial_state_row.getContent().entrySet())
     {
@@ -142,7 +146,6 @@ public void setChosenChange(SingleChange sc)
       if(!possibilities.get(i).respectsConstraints())
         possibilities.remove(possibilities.get(i));
     }
-    System.out.println("possibilities"+possibilities);
     return possibilities;
   }
 
@@ -158,7 +161,6 @@ public void setChosenChange(SingleChange sc)
                           oneChange.add(new SingleChange(tableColumn,this,column_value,Integer.toString(1)));
                      break;
             case "varchar":
-                          System.out.println("varchar");
                           char tmp = column_value.charAt(0);
                           oneChange.add(new SingleChange(tableColumn,this,column_value,(Character.toString(tmp++)+column_value.substring(1))));
                           oneChange.add(new SingleChange(tableColumn,this,column_value,(Character.toString(tmp--)+column_value.substring(1))));
@@ -322,22 +324,22 @@ public void setChosenChange(SingleChange sc)
     return res;
   }
 
-@Override
-public String toString()
-{
-  return "Mutation[ id : "+id+" ChosenChange : "+chosenChange+" ]";
-}
+  @Override
+  public String toString()
+  {
+    return "Mutation[ id : "+id+" ChosenChange : "+chosenChange+" ]";
+  }
 
-public boolean compare(Mutation mutation)
-{
-  boolean res = false;
-  if(this.getId() == mutation.getId())
-    res=true;
+  public boolean compare(Mutation mutation)
+  {
+    boolean res = false;
+    if(this.getId() == mutation.getId())
+      res=true;
 
-  if(this.initial_state_row.compare(mutation.getInitial_state_row()) && this.chosenChange.compare(mutation.getChosenChange()))
-    res = true;
+    if(this.initial_state_row.compare(mutation.getInitial_state_row()) && this.chosenChange.compare(mutation.getChosenChange()))
+      res = true;
 
-  return res;
-}
+    return res;
+  }
 
 }
