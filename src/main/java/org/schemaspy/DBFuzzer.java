@@ -21,9 +21,9 @@ public class DBFuzzer
 
     public  SqlService sqlService;
 
-    private  DatabaseService databaseService;
-
     private SchemaAnalyzer analyzer;
+
+    private DatabaseService databaseService;
 
     private ArrayList<Mutation> mutationTree;
 
@@ -45,7 +45,7 @@ public class DBFuzzer
         LOGGER.info("Starting Database Fuzzing");
 
         Row randomRow = pickRandomRow();
-        Mutation currentMutation = new Mutation(randomRow);
+        Mutation currentMutation = new Mutation(randomRow,nextMutationId());
         currentMutation.initPotential_changes(currentMutation.discoverMutationPossibilities(analyzer.getDb()));
         LOGGER.info(currentMutation.getPotential_changes().toString());
         currentMutation.setChosenChange(currentMutation.getPotential_changes().get(0));
@@ -89,7 +89,13 @@ public class DBFuzzer
           {
             System.out.println("error while recovering marking"+e);
           }
+
           currentMutation = chooseNextMutation();
+          while(!this.isNewMutation(currentMutation))
+          {
+            System.out.println("this Mutation has already been tried ");
+            currentMutation = chooseNextMutation();
+          }
           System.out.println(currentMutation.toString());
       }
       System.out.println(mutationTree);
@@ -243,21 +249,18 @@ public class DBFuzzer
         {
             lastMutation.initPotential_changes(lastMutation.discoverMutationPossibilities(analyzer.getDb()));
             int randNumber = rand.nextInt(lastMutation.getPotential_changes().size());
-            if(randNumber <= 0)
-              System.out.println("COUCOU1");
-            nextMut = new Mutation(lastMutation.getPost_change_row());
+            nextMut = new Mutation(lastMutation.getPost_change_row(),nextMutationId());
             nextMut.setChosenChange(lastMutation.getPotential_changes().get(randNumber));
         }
         else if(markingDiff == 0 || markingDiff < 0)
         {
-
             int randNumber = rand.nextInt(mutationTree.size());
-            if(randNumber<=0)
-              System.out.println("COUCOU2");
+            while(mutationTree.get(randNumber).getPotential_changes().size() == 0)
+            {
+              randNumber = rand.nextInt(mutationTree.size());
+            }
             int randMutation = rand.nextInt(mutationTree.get(randNumber).getPotential_changes().size());
-            if((randMutation <= 0))
-              System.out.println("COUCOU3");
-            nextMut = new Mutation(mutationTree.get(randNumber).getPost_change_row());
+            nextMut = new Mutation(mutationTree.get(randNumber).getPost_change_row(),nextMutationId());
             nextMut.initPotential_changes(nextMut.discoverMutationPossibilities(analyzer.getDb()));
             nextMut.setChosenChange(mutationTree.get(randNumber).getPotential_changes().get(randMutation));
         }
@@ -269,5 +272,30 @@ public class DBFuzzer
       }
 
       return nextMut;
+    }
+
+    public boolean isNewMutation(Mutation newMut)
+    {
+      boolean res = true;
+      for(int i = 0; i < mutationTree.size(); i++)
+      {
+        if(mutationTree.get(i).compare(newMut))
+          res = false;
+      }
+
+      return res;
+    }
+
+    public int nextMutationId()
+    {
+      int res = 0;
+
+      for(int i = 0; i < mutationTree.size(); i++)
+      {
+        if(mutationTree.get(i).getId() > res )
+          res = mutationTree.get(i).getId();
+      }
+
+      return res+1;
     }
 }

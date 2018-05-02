@@ -10,7 +10,6 @@ import java.sql.PreparedStatement;
 public class Mutation
 {
 
-  private static final AtomicInteger count = new AtomicInteger(0);
   private Integer id;
   private Integer interest_mark;
   private Row initial_state_row;
@@ -24,8 +23,8 @@ public class Mutation
 	/**
 	* Default Mutation constructor
 	*/
-	public Mutation(Row initial_state_row) {
-		this.id = count.incrementAndGet();
+	public Mutation(Row initial_state_row,int id) {
+		this.id = id;
 		this.initial_state_row = initial_state_row;
     this.cascadingFK = false;
 	}
@@ -154,17 +153,16 @@ public void setChosenChange(SingleChange sc)
       String typeName = tableColumn.getTypeName();
       switch (typeName) {
             case "int2":
-                          System.out.println("serial ICIIII");
                           oneChange.add(new SingleChange(tableColumn,this,column_value,Integer.toString(Integer.parseInt(column_value)+1)));
                           oneChange.add(new SingleChange(tableColumn,this,column_value,Integer.toString(32767)));
                           oneChange.add(new SingleChange(tableColumn,this,column_value,Integer.toString(1)));
                      break;
             case "varchar":
                           System.out.println("varchar");
-                          oneChange.add(new SingleChange(tableColumn,this,column_value,"a"));
                           char tmp = column_value.charAt(0);
-                          tmp++;
-                          oneChange.add(new SingleChange(tableColumn,this,column_value,(Character.toString(tmp)+column_value.substring(1))));
+                          oneChange.add(new SingleChange(tableColumn,this,column_value,(Character.toString(tmp++)+column_value.substring(1))));
+                          oneChange.add(new SingleChange(tableColumn,this,column_value,(Character.toString(tmp--)+column_value.substring(1))));
+
                      break;
             case "bool":
                           if(column_value.equals("f"))
@@ -328,6 +326,18 @@ public void setChosenChange(SingleChange sc)
 public String toString()
 {
   return "Mutation[ id : "+id+" ChosenChange : "+chosenChange+" ]";
+}
+
+public boolean compare(Mutation mutation)
+{
+  boolean res = false;
+  if(this.getId() == mutation.getId())
+    res=true;
+
+  if(this.initial_state_row.compare(mutation.getInitial_state_row()) && this.chosenChange.compare(mutation.getChosenChange()))
+    res = true;
+
+  return res;
 }
 
 }

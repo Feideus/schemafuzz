@@ -61,4 +61,16 @@ public class SingleChange
     {
       return parentTableColumn;
     }
+
+    public boolean compare(SingleChange chosenChange)
+    {
+      if(!chosenChange.getParentTableColumn().getTable().getName().equals(this.getParentTableColumn().getTable().getName()))
+        return false;
+      if(!chosenChange.getParentTableColumn().getName().equals(this.getParentTableColumn().getName()))
+        return false;
+      if(chosenChange.getNewValue() != this.getNewValue() || chosenChange.getOldValue() != this.getOldValue())
+        return false;
+
+      return true;
+    }
 }
