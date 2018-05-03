@@ -7,7 +7,7 @@ RESULT=$( echo $RESULT | cut -d "-" -f 2 )
 RESULT=$( echo $RESULT | cut -d "(" -f1 )
 IFS=' | ' read -ra array <<< "$RESULT"
 
-SCORE=10
+SCORE=0
 
 if [ "${array[1]}" = "Moy" ]
 then

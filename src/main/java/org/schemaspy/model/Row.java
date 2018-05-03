@@ -104,4 +104,12 @@ public class Row
     }
       return true;
   }
+
+  public Row clone()
+  {
+    HashMap<String,String> clonedMap = (HashMap<String,String>) this.content.clone();
+    Row res = new Row(this.parentTable,clonedMap,this.content.keySet().size());
+
+    return res;
+  }
 }

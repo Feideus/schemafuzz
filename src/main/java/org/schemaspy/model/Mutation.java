@@ -10,9 +10,10 @@ import java.sql.PreparedStatement;
 public class Mutation
 {
 
-  private Integer id;
+  private final Integer id;
+  private Mutation rootMutation;
   private Integer interest_mark;
-  private Row initial_state_row;
+  private final Row initial_state_row;
   private Row post_change_row;
   private ArrayList<SingleChange> potential_changes = new ArrayList<SingleChange>();
   private ArrayList<SingleChange> cascadeFK = new ArrayList<SingleChange>(); // a integrer
@@ -23,11 +24,20 @@ public class Mutation
 	/**
 	* Default Mutation constructor
 	*/
-	public Mutation(Row initial_state_row,int id) {
+	public Mutation(Row initial_state_row,int id) { // used only for rootMutation
 		this.id = id;
 		this.initial_state_row = initial_state_row;
     this.cascadingFK = false;
+    this.rootMutation = this;
 	}
+
+  public Mutation(Row initial_state_row,int id, Mutation rootMutation, Mutation parentMutation) {
+    this.id = id;
+    this.initial_state_row = initial_state_row;
+    this.cascadingFK = false;
+    this.rootMutation = rootMutation;
+    this.parent = parentMutation;
+  }
 
 	public Integer getId() {
 		return id;
@@ -70,6 +80,17 @@ public class Mutation
 		return potential_changes;
 	}
 
+  /**
+   * @return the rootMutation
+   */
+  public Mutation getRootMutation() {
+  	return rootMutation;
+  }
+
+  public void setRootMutation(Mutation rootMutation)
+  {
+      this.rootMutation = rootMutation;
+  }
 	/**
 	* Sets new value of potential_changes
 	* @param
@@ -151,7 +172,7 @@ public class Mutation
 
   public ArrayList<SingleChange> discoverFieldPossibilities (TableColumn tableColumn, String column_value) throws Exception
   {
-      System.out.println(tableColumn.getTypeName());
+
       ArrayList<SingleChange> oneChange = new ArrayList<SingleChange>();
       String typeName = tableColumn.getTypeName();
       switch (typeName) {
@@ -161,9 +182,20 @@ public class Mutation
                           oneChange.add(new SingleChange(tableColumn,this,column_value,Integer.toString(1)));
                      break;
             case "varchar":
-                          char tmp = column_value.charAt(0);
-                          oneChange.add(new SingleChange(tableColumn,this,column_value,(Character.toString(tmp++)+column_value.substring(1))));
-                          oneChange.add(new SingleChange(tableColumn,this,column_value,(Character.toString(tmp--)+column_value.substring(1))));
+                          if(this.getRootMutation() == null)
+                          {
+                            char tmp = column_value.charAt(0);
+                            oneChange.add(new SingleChange(tableColumn,this,column_value,(Character.toString(tmp++)+column_value.substring(1))));
+                            oneChange.add(new SingleChange(tableColumn,this,column_value,(Character.toString(tmp--)+column_value.substring(1))));
+                          }
+                          else
+                          {
+                            char tmp = (char) this.getRootMutation().getInitial_state_row().getContent().get(tableColumn.getName()).charAt(0);
+                            char nextChar = (char) (tmp+1);
+                            char prevChar = (char) (tmp-1);
+                            oneChange.add(new SingleChange(tableColumn,this,column_value,(Character.toString(nextChar)+column_value.substring(1))));
+                            oneChange.add(new SingleChange(tableColumn,this,column_value,(Character.toString(prevChar)+column_value.substring(1))));
+                          }
 
                      break;
             case "bool":
@@ -203,7 +235,7 @@ public class Mutation
     {
              PreparedStatement stmt = analyzer.getSqlService().prepareStatement(theQuery, analyzer.getDb(),null);
              stmt.execute();
-             this.post_change_row = this.initial_state_row;
+             this.post_change_row = this.initial_state_row.clone();
              this.post_change_row.setValueOfColumn(chosenChange.getParentTableColumn().getName(), chosenChange.getNewValue());
              return true;
     }
@@ -217,6 +249,7 @@ public class Mutation
   {
     try
     {
+      System.out.println("UNDOING !");
       return this.inject(analyzer, true);
     }
     catch(Exception e)
@@ -342,4 +375,53 @@ public class Mutation
     return res;
   }
 
+  public boolean undoToMutation(Mutation target, SchemaAnalyzer analyzer) throws Exception
+  {
+    String undoQuery = "UPDATE "+target.getChosenChange().getParentTableColumn().getTable().getName()+" SET ";
+    for(Map.Entry<String,String> entry : target.getInitial_state_row().getContent().entrySet())
+    {
+      if(chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("varchar") || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("bool"))
+        undoQuery = undoQuery+(entry.getKey()+"='"+entry.getValue()+"', ");
+      else
+        undoQuery = undoQuery+(entry.getKey()+"="+entry.getValue()+", ");
+    }
+    undoQuery = undoQuery.substring(0,undoQuery.lastIndexOf(","));
+    undoQuery = undoQuery+" WHERE ";
+
+    for(Map.Entry<String,String> entry : this.getPost_change_row().getContent().entrySet())
+    {
+      if(chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("varchar") || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("bool"))
+        undoQuery = undoQuery+(entry.getKey()+"='"+entry.getValue()+"'AND ");
+      else
+        undoQuery = undoQuery+(entry.getKey()+"="+entry.getValue()+"AND ");
+    }
+    undoQuery = undoQuery.substring(0,undoQuery.lastIndexOf("AND"));
+
+    try
+    {
+            System.out.println("UNDOING TO "+target.toString());
+             PreparedStatement stmt = analyzer.getSqlService().prepareStatement(undoQuery, analyzer.getDb(),null);
+             stmt.execute();
+             this.post_change_row = this.initial_state_row.clone();
+             this.post_change_row.setValueOfColumn(chosenChange.getParentTableColumn().getName(), chosenChange.getNewValue());
+             return true;
+    }
+    catch(Exception e)
+    {
+      throw new Exception(e);
+    }
+  }
+
+
+  public Mutation getMutation(Mutation mutation ,int id)
+  {
+
+        for(int i = 0; i < mutation.getChilds().size();i++)
+        {
+          if(getMutation(mutation.getChilds().get(i), mutation.getChilds().get(i).getId()).getId() == id)
+            return mutation.getChilds().get(i);
+        }
+
+        return null;
+  }
 }

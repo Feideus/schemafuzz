@@ -44,7 +44,7 @@ public class SingleChange
    @Override
    public String toString()
    {
-     return "\nSingleChange {\nparentTableColumn : "+this.parentTableColumn.getName()+"\n oldValue :"+oldValue+"\n newValue :"+newValue+"\n}";
+     return "\n[SG - ParentMutation : "+this.getParentMutation().getId()+"| OV :"+oldValue+" | NV :"+newValue+" ]\n";
    }
 
    public String getOldValue()
@@ -72,5 +72,10 @@ public class SingleChange
         return false;
 
       return true;
+    }
+
+    public Mutation getParentMutation()
+    {
+      return this.parentMutation;
     }
 }

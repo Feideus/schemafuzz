@@ -39,6 +39,7 @@ public class DBFuzzer
     public boolean fuzz (Config config)
     {
         boolean returnStatus = true;
+        boolean resQuery = false;
         int mark = 0;
         //adding CASCADE to all foreign key tableColumns.
         settingTemporaryCascade(false); // need to drop and recreate database
@@ -50,10 +51,10 @@ public class DBFuzzer
         currentMutation.initPotential_changes(currentMutation.discoverMutationPossibilities(analyzer.getDb()));
         currentMutation.setChosenChange(currentMutation.getPotential_changes().get(0));
         rootMutation = currentMutation;
-        boolean resQuery = false;
 
         while(mark != -1)
         {
+          //INJECTION
           try
           {
             if(currentMutation.getChosenChange() != null)
@@ -78,11 +79,14 @@ public class DBFuzzer
               returnStatus = false;
           }
 
+
+          //EVALUATION
           try
           {
             Process evaluatorProcess = new ProcessBuilder("/bin/bash", "./evaluator.sh").start();
             mark = Integer.parseInt(getEvaluatorResponse(evaluatorProcess));
             currentMutation.setInterest_mark(mark);
+            System.out.println(currentMutation.getInterest_mark());
           }
           catch(Exception e)
           {
@@ -90,13 +94,29 @@ public class DBFuzzer
             System.out.println("error while recovering marking"+e);
           }
 
+
+          // CHOOSINGNEXT MUTATION AND SETTING UP FOR NEXT ITERATION
           currentMutation = chooseNextMutation();
           while(!this.isNewMutation(currentMutation))
           {
-            System.out.println("this Mutation has already been tried ");
+            //System.out.println("this Mutation has already been tried ");
             currentMutation = chooseNextMutation();
           }
+
           System.out.println(currentMutation.toString());
+
+            if(!currentMutation.getParent().compare(getLastMutation(rootMutation)))
+            {
+              try
+              {
+                getLastMutation(rootMutation).undoToMutation(currentMutation.getParent(),analyzer);
+              }
+              catch(Exception e)
+              {
+                System.out.println("error while performing an undo update"+e);
+              }
+            }
+          addToTree(currentMutation);
       }
       printMutationTree(rootMutation);
       removeTemporaryCascade();
@@ -246,11 +266,8 @@ public class DBFuzzer
         {
             previousMutation.initPotential_changes(previousMutation.discoverMutationPossibilities(analyzer.getDb()));
             int randNumber = rand.nextInt(previousMutation.getPotential_changes().size());
-            nextMut = new Mutation(previousMutation.getPost_change_row(),nextId());
+            nextMut = new Mutation(previousMutation.getPost_change_row(),nextId(),rootMutation,previousMutation);
             nextMut.setChosenChange(previousMutation.getPotential_changes().get(randNumber));
-
-            previousMutation.addChild(nextMut);
-            nextMut.setParent(previousMutation);
         }
         else if(markingDiff == 0 || markingDiff < 0)
         {
@@ -260,7 +277,7 @@ public class DBFuzzer
               randNumber = rand.nextInt(nbMutation);
             }
             int randMutation = rand.nextInt(getMutation(rootMutation,randNumber).getPotential_changes().size());
-            nextMut = new Mutation(getMutation(rootMutation,randNumber).getPost_change_row(),nextId());
+            nextMut = new Mutation(getMutation(rootMutation,randNumber).getPost_change_row(),nextId(),rootMutation,getMutation(rootMutation,randNumber));
             nextMut.initPotential_changes(nextMut.discoverMutationPossibilities(analyzer.getDb()));
             nextMut.setChosenChange(getMutation(rootMutation,randNumber).getPotential_changes().get(randMutation));
         }
@@ -270,7 +287,6 @@ public class DBFuzzer
         }
 
       }
-
       return nextMut;
     }
 
@@ -289,12 +305,12 @@ public class DBFuzzer
     public int getLastId(Mutation rootMutation)
     {
       if(rootMutation == null)
-        return 1;
+        return 0;
 
       int maxId = rootMutation.getId();
       for(int i = 0; i < rootMutation.getChilds().size();i++)
       {
-        if(rootMutation.getChilds().size()!= 0 && maxId < getLastId(rootMutation.getChilds().get(i)))
+        if(maxId < getLastId(rootMutation.getChilds().get(i)))
           maxId = getLastId(rootMutation.getChilds().get(i));
       }
       return maxId;
@@ -302,42 +318,56 @@ public class DBFuzzer
 
     public Mutation getLastMutation(Mutation mutation)
     {
-      Mutation res = mutation;
-      for(int i = 0; i < res.getChilds().size();i++)
-      {
-        if(getLastMutation(res.getChilds().get(i)).getId() == getLastId(rootMutation))
-          res = res.getChilds().get(i);
-      }
-      return res;
+      return getMutation(rootMutation, getLastId(rootMutation));
     }
 
-    public Mutation getMutation(Mutation mutation ,int id)
+    public Mutation getMutation(Mutation rootMutation, int id)
     {
+    if (rootMutation.getId() == id) {
+        return rootMutation;
+    } else {
+        if(!rootMutation.getChilds().isEmpty())
+        {
 
-        Mutation res = mutation;
-
-          for(int i = 0; i < res.getChilds().size();i++)
-          {
-            if(getMutation(res.getChilds().get(i), res.getChilds().get(i).getId()).getId() == id)
-              res = res.getChilds().get(i);
+          for (Mutation child: rootMutation.getChilds()) {
+                Mutation result = getMutation(child, id);
+              if (result != null) {
+                  return result;
+              }
           }
-          return res;
+      }
+      else
+        return rootMutation;
     }
+    return null;
+}
 
     public void printMutationTree(Mutation rootMutation)
     {
-      String res = "";
 
-      for(int i = 0; i < rootMutation.getChilds().size();i++)
+      Mutation currentMutation = rootMutation;
+
+      if(currentMutation.getChilds().isEmpty() && currentMutation.getChosenChange() != null)
+        System.out.println(currentMutation.getChosenChange().toString());
+
+      for(int i = 0; i < currentMutation.getChilds().size();i++)
       {
-        res = res+" [ ID : "+rootMutation.getId()+" OV : "+rootMutation.getChosenChange().getOldValue()+" NV : "+rootMutation.getChosenChange().getNewValue()+" ]\n";
+        printMutationTree(currentMutation.getChilds().get(i));
       }
 
-      System.out.println(res);
     }
 
     public int nextId()
     {
-      return getLastId(rootMutation)+1;
+      int res = 0;
+      res =  getLastId(rootMutation)+1;
+      return res;
     }
+
+    public void addToTree(Mutation currentMutation)
+    {
+      getLastMutation(rootMutation).addChild(currentMutation);
+    }
+
+
 }
