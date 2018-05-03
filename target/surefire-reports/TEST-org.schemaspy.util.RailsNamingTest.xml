@@ -61,6 +61,6 @@
     <property name="sun.desktop" value="gnome"/>
     <property name="sun.cpu.isalist" value=""/>
   </properties>
-  <testcase classname="org.schemaspy.util.RailsNamingTest" name="testPluralizeMultiWordTable" time="0.001"/>
-  <testcase classname="org.schemaspy.util.RailsNamingTest" name="testPluralize" time="0"/>
+  <testcase classname="org.schemaspy.util.RailsNamingTest" name="testPluralizeMultiWordTable" time="0"/>
+  <testcase classname="org.schemaspy.util.RailsNamingTest" name="testPluralize" time="0.001"/>
 </testsuite>
