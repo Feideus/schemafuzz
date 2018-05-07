@@ -7,12 +7,15 @@ import java.sql.ResultSet;
 import java.util.*;
 import org.schemaspy.model.*;
 import org.schemaspy.model.Table;
+import org.schemaspy.model.GenericTree;
+import org.schemaspy.model.GenericTreeNode;
 import org.schemaspy.service.DatabaseService;
 import org.schemaspy.service.SqlService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+
 
 public class DBFuzzer
 {
@@ -25,15 +28,13 @@ public class DBFuzzer
 
     private DatabaseService databaseService;
 
-    private Mutation rootMutation;
-    private int nbMutation;
+    private GenericTree mutationTree = new GenericTree();
 
     public DBFuzzer(SchemaAnalyzer analyzer)
     {
       this.sqlService = Objects.requireNonNull(analyzer.getSqlService());
       this.databaseService = Objects.requireNonNull(analyzer.getDatabaseService());
       this.analyzer = analyzer;
-      this.nbMutation = 0;
     }
 
     public boolean fuzz (Config config)
@@ -47,10 +48,11 @@ public class DBFuzzer
         LOGGER.info("Starting Database Fuzzing");
 
         Row randomRow = pickRandomRow();
-        Mutation currentMutation = new Mutation(randomRow,nextId());
+        GenericTreeNode currentMutation = new GenericTreeNode(randomRow,nextId());
         currentMutation.initPotential_changes(currentMutation.discoverMutationPossibilities(analyzer.getDb()));
         currentMutation.setChosenChange(currentMutation.getPotential_changes().get(0));
-        rootMutation = currentMutation;
+        mutationTree.setRoot(currentMutation);
+
 
         while(mark != -1)
         {
@@ -62,14 +64,13 @@ public class DBFuzzer
               resQuery = currentMutation.inject(analyzer,false);
               if(resQuery)
               {
-                nbMutation = getLastId(rootMutation);
-                LOGGER.info("mutation was sucessfull");
+                LOGGER.info("GenericTreeNode was sucessfull");
               }
               else
                 LOGGER.info("QueryError");
 
               //currentMutation.undo(analyzer);
-              //LOGGER.info("backwards mutation was successfull");
+              //LOGGER.info("backwards GenericTreeNode was successfull");
             }
 
           }
@@ -86,7 +87,7 @@ public class DBFuzzer
             Process evaluatorProcess = new ProcessBuilder("/bin/bash", "./evaluator.sh").start();
             mark = Integer.parseInt(getEvaluatorResponse(evaluatorProcess));
             currentMutation.setInterest_mark(mark);
-            System.out.println(currentMutation.getInterest_mark());
+            System.out.println("Mutation interest_marking"+mark);
           }
           catch(Exception e)
           {
@@ -95,30 +96,32 @@ public class DBFuzzer
           }
 
 
-          // CHOOSINGNEXT MUTATION AND SETTING UP FOR NEXT ITERATION
+          // CHOOSINGNEXT GenericTreeNode AND SETTING UP FOR NEXT ITERATION
           currentMutation = chooseNextMutation();
+          System.out.println(currentMutation);
           while(!this.isNewMutation(currentMutation))
           {
-            //System.out.println("this Mutation has already been tried ");
+            System.out.println("this GenericTreeNode has already been tried ");
             currentMutation = chooseNextMutation();
           }
 
           System.out.println(currentMutation.toString());
 
-            if(!currentMutation.getParent().compare(getLastMutation(rootMutation)))
+            if(!currentMutation.getParent().compare(mutationTree.getLastMutation()))
             {
               try
               {
-                getLastMutation(rootMutation).undoToMutation(currentMutation.getParent(),analyzer);
+                mutationTree.getLastMutation().undoToMutation(currentMutation.getParent(),analyzer);
               }
               catch(Exception e)
               {
                 System.out.println("error while performing an undo update"+e);
               }
             }
-          addToTree(currentMutation);
+            mutationTree.addToTree(currentMutation);
       }
-      printMutationTree(rootMutation);
+      System.out.println("success");
+      //printMutationTree();
       removeTemporaryCascade();
       return returnStatus;
     }
@@ -248,38 +251,38 @@ public class DBFuzzer
         return response;
     }
 
-    public Mutation chooseNextMutation()
+    public GenericTreeNode chooseNextMutation()
     {
-      Mutation nextMut = null;
-      Mutation previousMutation = getLastMutation(rootMutation);
+      GenericTreeNode nextMut = null;
+      GenericTreeNode previousMutation = mutationTree.getLastMutation();
       int markingDiff = previousMutation.getInterest_mark();
       Random rand = new Random();
 
-      if(nbMutation > 1)
+      if(mutationTree.getNumberOfNodes() > 1)
       {
-        markingDiff = previousMutation.getInterest_mark()-getMutation(rootMutation,getLastId(rootMutation)-1).getInterest_mark();
+        markingDiff = previousMutation.getInterest_mark()-mutationTree.find(mutationTree.getLastId()).getInterest_mark();
       }
 
-      if(rootMutation != null)
+      if(mutationTree.getRoot() != null)
       {
         if(markingDiff > 0)
         {
             previousMutation.initPotential_changes(previousMutation.discoverMutationPossibilities(analyzer.getDb()));
             int randNumber = rand.nextInt(previousMutation.getPotential_changes().size());
-            nextMut = new Mutation(previousMutation.getPost_change_row(),nextId(),rootMutation,previousMutation);
+            nextMut = new GenericTreeNode(previousMutation.getPost_change_row(),nextId(),mutationTree.getRoot(),previousMutation);
             nextMut.setChosenChange(previousMutation.getPotential_changes().get(randNumber));
         }
         else if(markingDiff == 0 || markingDiff < 0)
         {
-            int randNumber = rand.nextInt(nbMutation);
-            while(getMutation(rootMutation,randNumber).getPotential_changes().size() == 0)
+            int randNumber = rand.nextInt(mutationTree.getNumberOfNodes())+1;
+            while(mutationTree.find(randNumber).getPotential_changes().size() == 0)
             {
-              randNumber = rand.nextInt(nbMutation);
+              randNumber = rand.nextInt(mutationTree.getNumberOfNodes())+1;
             }
-            int randMutation = rand.nextInt(getMutation(rootMutation,randNumber).getPotential_changes().size());
-            nextMut = new Mutation(getMutation(rootMutation,randNumber).getPost_change_row(),nextId(),rootMutation,getMutation(rootMutation,randNumber));
+            int randMutation = rand.nextInt(mutationTree.find(randNumber).getPotential_changes().size());
+            nextMut = new GenericTreeNode(mutationTree.find(randNumber).getPost_change_row(),nextId(),mutationTree.getRoot(),mutationTree.find(randNumber));
             nextMut.initPotential_changes(nextMut.discoverMutationPossibilities(analyzer.getDb()));
-            nextMut.setChosenChange(getMutation(rootMutation,randNumber).getPotential_changes().get(randMutation));
+            nextMut.setChosenChange(mutationTree.find(randNumber).getPotential_changes().get(randMutation));
         }
         else
         {
@@ -290,69 +293,29 @@ public class DBFuzzer
       return nextMut;
     }
 
-    public boolean isNewMutation(Mutation newMut)
+    public boolean isNewMutation(GenericTreeNode newMut)
     {
       boolean res = true;
-      for(int i = 0; i < nbMutation; i++)
+      for(int i = 1; i <= mutationTree.getNumberOfNodes(); i++)
       {
-        if(getMutation(rootMutation,i).compare(newMut))
+        if(mutationTree.find(i).compare(newMut))
           res = false;
       }
 
       return res;
     }
 
-    public int getLastId(Mutation rootMutation)
-    {
-      if(rootMutation == null)
-        return 0;
-
-      int maxId = rootMutation.getId();
-      for(int i = 0; i < rootMutation.getChilds().size();i++)
-      {
-        if(maxId < getLastId(rootMutation.getChilds().get(i)))
-          maxId = getLastId(rootMutation.getChilds().get(i));
-      }
-      return maxId;
-    }
-
-    public Mutation getLastMutation(Mutation mutation)
-    {
-      return getMutation(rootMutation, getLastId(rootMutation));
-    }
-
-    public Mutation getMutation(Mutation rootMutation, int id)
-    {
-    if (rootMutation.getId() == id) {
-        return rootMutation;
-    } else {
-        if(!rootMutation.getChilds().isEmpty())
-        {
-
-          for (Mutation child: rootMutation.getChilds()) {
-                Mutation result = getMutation(child, id);
-              if (result != null) {
-                  return result;
-              }
-          }
-      }
-      else
-        return rootMutation;
-    }
-    return null;
-}
-
-    public void printMutationTree(Mutation rootMutation)
+    public void printMutationTree()
     {
 
-      Mutation currentMutation = rootMutation;
+      GenericTreeNode currentMutation = mutationTree.getRoot();
 
-      if(currentMutation.getChilds().isEmpty() && currentMutation.getChosenChange() != null)
+      if(currentMutation.getChildren().isEmpty() && currentMutation.getChosenChange() != null)
         System.out.println(currentMutation.getChosenChange().toString());
 
-      for(int i = 0; i < currentMutation.getChilds().size();i++)
+      for(int i = 0; i < currentMutation.getChildren().size();i++)
       {
-        printMutationTree(currentMutation.getChilds().get(i));
+        printMutationTree();
       }
 
     }
@@ -360,14 +323,9 @@ public class DBFuzzer
     public int nextId()
     {
       int res = 0;
-      res =  getLastId(rootMutation)+1;
+      System.out.println(mutationTree.getLastId());
+      res =  mutationTree.getLastId()+1;
       return res;
     }
-
-    public void addToTree(Mutation currentMutation)
-    {
-      getLastMutation(rootMutation).addChild(currentMutation);
-    }
-
 
 }

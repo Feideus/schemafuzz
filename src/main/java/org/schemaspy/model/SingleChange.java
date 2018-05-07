@@ -4,13 +4,13 @@ package org.schemaspy.model;
 
 public class SingleChange
 {
-  private Mutation parentMutation;
+  private GenericTreeNode parentMutation;
   private TableColumn parentTableColumn;
   private String oldValue;
   private String newValue;
 
 
-	public SingleChange(TableColumn parentColumn ,Mutation parentMutation, String oldValue, String newValue) {
+	public SingleChange(TableColumn parentColumn ,GenericTreeNode parentMutation, String oldValue, String newValue) {
     this.parentTableColumn = parentColumn;
 		this.parentMutation = parentMutation;
 		this.oldValue = oldValue;
@@ -74,7 +74,7 @@ public class SingleChange
       return true;
     }
 
-    public Mutation getParentMutation()
+    public GenericTreeNode getParentMutation()
     {
       return this.parentMutation;
     }
