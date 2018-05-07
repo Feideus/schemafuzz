@@ -87,7 +87,7 @@ public class DBFuzzer
             Process evaluatorProcess = new ProcessBuilder("/bin/bash", "./evaluator.sh").start();
             mark = Integer.parseInt(getEvaluatorResponse(evaluatorProcess));
             currentMutation.setInterest_mark(mark);
-            System.out.println("Mutation interest_marking"+mark);
+            System.out.println("marking : "+mark);
           }
           catch(Exception e)
           {
@@ -98,7 +98,6 @@ public class DBFuzzer
 
           // CHOOSINGNEXT GenericTreeNode AND SETTING UP FOR NEXT ITERATION
           currentMutation = chooseNextMutation();
-          System.out.println(currentMutation);
           while(!this.isNewMutation(currentMutation))
           {
             System.out.println("this GenericTreeNode has already been tried ");
@@ -323,7 +322,6 @@ public class DBFuzzer
     public int nextId()
     {
       int res = 0;
-      System.out.println(mutationTree.getLastId());
       res =  mutationTree.getLastId()+1;
       return res;
     }

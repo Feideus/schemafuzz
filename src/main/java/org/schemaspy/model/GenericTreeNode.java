@@ -25,6 +25,7 @@ public class GenericTreeNode {
     private ArrayList<GenericTreeNode> children = new ArrayList<GenericTreeNode>();
     private GenericTreeNode parent;
     private boolean cascadingFK;
+    private int depth;
     /**
     * Default GenericTreeNode constructor
     */
@@ -35,16 +36,25 @@ public class GenericTreeNode {
     }
 
     public GenericTreeNode(Row initial_state_row,int id, GenericTreeNode rootMutation, GenericTreeNode parentMutation) {
-      System.out.println("Le id = "+id);
       this.id = id;
       this.initial_state_row = initial_state_row;
       this.cascadingFK = false;
       this.rootMutation = rootMutation;
       this.parent = parentMutation;
+      initDepth();
     }
 
     public Integer getId() {
       return id;
+    }
+
+    public void initDepth()
+    {
+      if(this.getParent() == null)
+        this.depth = 0;
+      else
+        this.depth = this.getParent().getDepth()+1;
+
     }
 
     public Row getPost_change_row()
@@ -56,6 +66,12 @@ public class GenericTreeNode {
     {
       this.post_change_row = postChangeRow;
     }
+
+    public int getDepth()
+    {
+      return this.depth;
+    }
+
 
     public SingleChange getChosenChange() {
       return chosenChange;
@@ -301,7 +317,7 @@ public class GenericTreeNode {
         theQuery = theQuery+(" "+initial_state_row.getParentTable().getPrimaryColumns().get(0).getName()+"="+initial_state_row.getValueOfColumn(initial_state_row.getParentTable().getPrimaryColumns().get(0).getName()));
 
 
-      System.out.println("build query ! "+theQuery);
+      //System.out.println("build query ! "+theQuery); uncomment to see built request;
       return theQuery;
     }
 
@@ -355,39 +371,12 @@ public class GenericTreeNode {
 
     public boolean undoToMutation(GenericTreeNode target, SchemaAnalyzer analyzer) throws Exception
     {
-      String undoQuery = "UPDATE "+target.getChosenChange().getParentTableColumn().getTable().getName()+" SET ";
-      for(Map.Entry<String,String> entry : target.getInitial_state_row().getContent().entrySet())
+      ArrayList<GenericTreeNode> pathToMutation = findPathToMutation(target);
+      for(int i = 0; i < pathToMutation.size();i++)
       {
-        if(chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("varchar") || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("bool"))
-          undoQuery = undoQuery+(entry.getKey()+"='"+entry.getValue()+"', ");
-        else
-          undoQuery = undoQuery+(entry.getKey()+"="+entry.getValue()+", ");
+        pathToMutation.get(i).undo(analyzer);
       }
-      undoQuery = undoQuery.substring(0,undoQuery.lastIndexOf(","));
-      undoQuery = undoQuery+" WHERE ";
-
-      for(Map.Entry<String,String> entry : this.getPost_change_row().getContent().entrySet())
-      {
-        if(chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("varchar") || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("bool"))
-          undoQuery = undoQuery+(entry.getKey()+"='"+entry.getValue()+"'AND ");
-        else
-          undoQuery = undoQuery+(entry.getKey()+"="+entry.getValue()+"AND ");
-      }
-      undoQuery = undoQuery.substring(0,undoQuery.lastIndexOf("AND"));
-
-      try
-      {
-              System.out.println("UNDOING TO "+target.toString());
-               PreparedStatement stmt = analyzer.getSqlService().prepareStatement(undoQuery, analyzer.getDb(),null);
-               stmt.execute();
-               this.post_change_row = this.initial_state_row.clone();
-               this.post_change_row.setValueOfColumn(chosenChange.getParentTableColumn().getName(), chosenChange.getNewValue());
-               return true;
-      }
-      catch(Exception e)
-      {
-        throw new Exception(e);
-      }
+      return true;
     }
 
 
@@ -443,20 +432,52 @@ public class GenericTreeNode {
 
 
     public String toString() {
-        String stringRepresentation = getChosenChange().toString() + ":[";
+        return " ID "+this.getId()+" SG "+this.chosenChange;
+    }
 
-        for (GenericTreeNode node : getChildren()) {
-            stringRepresentation += node.getChosenChange().toString() + ", ";
+    public ArrayList<GenericTreeNode> findPathToMutation(GenericTreeNode target)
+    {
+      ArrayList<GenericTreeNode> finalPath = new ArrayList<GenericTreeNode>();
+      ArrayList<GenericTreeNode> thisPath = new ArrayList<GenericTreeNode>();
+      ArrayList<GenericTreeNode> targetPath = new ArrayList<GenericTreeNode>();
+
+      GenericTreeNode tmpTarget = target;
+      GenericTreeNode tmpThis = this;
+      int depthOffset = -1;
+
+
+
+        while(depthOffset != 0)
+        {
+          depthOffset= tmpThis.getDepth()-tmpTarget.getDepth();
+          if(depthOffset > 0)
+          {
+            System.out.println("ICI");
+            thisPath.add(tmpThis);
+            tmpThis = tmpThis.getParent();
+
+          }
+          else if(depthOffset < 0)
+          {
+            targetPath.add(tmpTarget);
+            tmpTarget = tmpTarget.getParent();
+          }
         }
 
-        //Pattern.DOTALL causes ^ and $ to match. Otherwise it won'GenericTreeNode. It's retarded.
-        Pattern pattern = Pattern.compile(", $", Pattern.DOTALL);
-        Matcher matcher = pattern.matcher(stringRepresentation);
+      while(!tmpThis.compare(tmpTarget))
+      {
+        thisPath.add(tmpThis);
+        targetPath.add(tmpTarget);
 
-        stringRepresentation = matcher.replaceFirst("");
-        stringRepresentation += "]";
+        tmpThis = tmpThis.getParent();
+        tmpTarget = tmpTarget.getParent();
+      }
 
-        return stringRepresentation;
+      Collections.reverse(targetPath);
+      finalPath.addAll(thisPath);
+      finalPath.addAll(targetPath);
+      return finalPath;
+
     }
 
 }
