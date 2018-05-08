@@ -432,7 +432,7 @@ public class GenericTreeNode {
 
 
     public String toString() {
-        return " ID "+this.getId()+" SG "+this.chosenChange;
+        return "[ MUT ID "+this.getId()+"parent mutation "+this.parent.getId()+" SG "+this.chosenChange+"]";
     }
 
     public ArrayList<GenericTreeNode> findPathToMutation(GenericTreeNode target)

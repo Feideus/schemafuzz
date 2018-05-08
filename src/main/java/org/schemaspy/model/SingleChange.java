@@ -44,7 +44,7 @@ public class SingleChange
    @Override
    public String toString()
    {
-     return "\n[SG - ParentMutation : "+this.getParentMutation().getId()+"| OV :"+oldValue+" | NV :"+newValue+" ]\n";
+     return "\n[SG - AttachedToMutation : "+this.getParentMutation().getId()+"| OV :"+oldValue+" | NV :"+newValue+" ]\n";
    }
 
    public String getOldValue()

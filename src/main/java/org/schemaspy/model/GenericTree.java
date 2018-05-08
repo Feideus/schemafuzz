@@ -199,7 +199,34 @@ public class GenericTree {
 
     public void addToTree(GenericTreeNode currentMutation)
     {
-      currentMutation.setParent(currentMutation.getChosenChange().getParentMutation());
+      currentMutation.setParent(findFirstMutationWithout(root,currentMutation.getChosenChange()));
       currentMutation.getParent().addChild(currentMutation);
+    }
+
+    public GenericTreeNode findFirstMutationWithout(GenericTreeNode mutation, SingleChange chosenChange)
+    {
+        int i,j;
+        boolean noSonHasChosenChange = true;
+        GenericTreeNode res = null;
+
+        if(mutation.getChildren().isEmpty())
+        {
+          return mutation;
+        }
+
+        for(i = 0; i < mutation.getChildren().size(); i++)
+        {
+          if(mutation.getChildren().get(i).getChosenChange().compare(chosenChange))
+            noSonHasChosenChange = false;
+        }
+
+        if(noSonHasChosenChange)
+          return mutation;
+
+        for(j = 0; j < mutation.getChildren().size(); j++)
+        {
+          res = findFirstMutationWithout(mutation.getChildren().get(j),chosenChange);
+        }
+        return res; // should never be null unless the algorithm is not looking for something precise
     }
 }

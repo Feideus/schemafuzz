@@ -69,8 +69,6 @@ public class DBFuzzer
               else
                 LOGGER.info("QueryError");
 
-              //currentMutation.undo(analyzer);
-              //LOGGER.info("backwards GenericTreeNode was successfull");
             }
 
           }
@@ -103,7 +101,6 @@ public class DBFuzzer
             System.out.println("this GenericTreeNode has already been tried ");
             currentMutation = chooseNextMutation();
           }
-
           System.out.println(currentMutation.toString());
 
             if(!currentMutation.getParent().compare(mutationTree.getLastMutation()))
@@ -279,7 +276,7 @@ public class DBFuzzer
               randNumber = rand.nextInt(mutationTree.getNumberOfNodes())+1;
             }
             int randMutation = rand.nextInt(mutationTree.find(randNumber).getPotential_changes().size());
-            nextMut = new GenericTreeNode(mutationTree.find(randNumber).getPost_change_row(),nextId(),mutationTree.getRoot(),mutationTree.find(randNumber));
+            nextMut = new GenericTreeNode(mutationTree.findFirstMutationWithout(mutationTree.getRoot(),mutationTree.find(randNumber).getChosenChange()).getPost_change_row(),nextId(),mutationTree.getRoot(),mutationTree.findFirstMutationWithout(mutationTree.getRoot(),mutationTree.find(randNumber).getChosenChange()));
             nextMut.initPotential_changes(nextMut.discoverMutationPossibilities(analyzer.getDb()));
             nextMut.setChosenChange(mutationTree.find(randNumber).getPotential_changes().get(randMutation));
         }
