@@ -452,7 +452,6 @@ public class GenericTreeNode {
           depthOffset= tmpThis.getDepth()-tmpTarget.getDepth();
           if(depthOffset > 0)
           {
-            System.out.println("ICI");
             thisPath.add(tmpThis);
             tmpThis = tmpThis.getParent();
 

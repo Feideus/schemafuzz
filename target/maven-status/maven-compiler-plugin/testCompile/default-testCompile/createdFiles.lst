@@ -9,8 +9,8 @@ org/schemaspy/cli/ConfigFileArgumentParserTest.class
 org/dummy/DummyDriverUnsatisfiedConnect.class
 org/schemaspy/integrationtesting/OracleSpacesIT.class
 org/schemaspy/testing/Logger.class
-org/schemaspy/util/RailsNamingTest.class
 org/schemaspy/cli/CommandLineArgumentParserTest.class
+org/schemaspy/util/RailsNamingTest.class
 org/schemaspy/testcontainer/MysqlSpacesIT.class
 org/schemaspy/model/CatalogTest.class
 org/schemaspy/testcontainer/MysqlSpacesNoDotsIT.class
@@ -19,14 +19,14 @@ org/schemaspy/validator/NameValidatorTest.class
 org/schemaspy/integrationtesting/StackTraceLoggingIT.class
 org/dummy/DummyDriver.class
 org/schemaspy/testcontainer/OracleIT.class
-org/schemaspy/testcontainer/InformixIndexIT.class
 org/schemaspy/testcontainer/MysqlKeyWordTableIT.class
+org/schemaspy/testcontainer/InformixIndexIT.class
 org/schemaspy/testcontainer/MysqlHTMLIT.class
 org/schemaspy/model/InvalidConfigurationExceptionTest.class
 org/schemaspy/validator/NameValidatorIT.class
 org/schemaspy/util/ResourceFinderTest.class
-org/schemaspy/util/DbSpecificOptionTest.class
 org/schemaspy/integrationtesting/StackTraceLoggingIT$StackTraceLoggingConfiguration.class
+org/schemaspy/util/DbSpecificOptionTest.class
 org/schemaspy/util/CaseInsensitiveMapTest.class
 org/schemaspy/db/config/PropertiesResolverTest.class
 org/schemaspy/testcontainer/InformixIndexXMLIT.class

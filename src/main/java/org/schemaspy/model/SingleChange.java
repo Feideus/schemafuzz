@@ -4,15 +4,15 @@ package org.schemaspy.model;
 
 public class SingleChange
 {
-  private GenericTreeNode parentMutation;
+  private GenericTreeNode attachedToMutation;
   private TableColumn parentTableColumn;
   private String oldValue;
   private String newValue;
 
 
-	public SingleChange(TableColumn parentColumn ,GenericTreeNode parentMutation, String oldValue, String newValue) {
+	public SingleChange(TableColumn parentColumn ,GenericTreeNode attachedToMutation, String oldValue, String newValue) {
     this.parentTableColumn = parentColumn;
-		this.parentMutation = parentMutation;
+		this.attachedToMutation = attachedToMutation;
 		this.oldValue = oldValue;
 		this.newValue = newValue;
 	}
@@ -41,10 +41,11 @@ public class SingleChange
     }
   }
 
+
    @Override
    public String toString()
    {
-     return "\n[SG - AttachedToMutation : "+this.getParentMutation().getId()+"| OV :"+oldValue+" | NV :"+newValue+" ]\n";
+     return "\n[SG - attachedToMutation : "+this.getattachedToMutation().getId()+"| OV :"+oldValue+" | NV :"+newValue+" ]\n";
    }
 
    public String getOldValue()
@@ -66,16 +67,23 @@ public class SingleChange
     {
       if(!chosenChange.getParentTableColumn().getTable().getName().equals(this.getParentTableColumn().getTable().getName()))
         return false;
+
       if(!chosenChange.getParentTableColumn().getName().equals(this.getParentTableColumn().getName()))
         return false;
-      if(chosenChange.getNewValue() != this.getNewValue() || chosenChange.getOldValue() != this.getOldValue())
+
+      if(!chosenChange.getNewValue().equals(this.getNewValue()) || !chosenChange.getOldValue().equals(this.getOldValue()))
         return false;
 
       return true;
     }
 
-    public GenericTreeNode getParentMutation()
+    public GenericTreeNode getattachedToMutation()
     {
-      return this.parentMutation;
+      return this.attachedToMutation;
+    }
+
+    public void setAttachedToMutation(GenericTreeNode attachedToMutation)
+    {
+      this.attachedToMutation = attachedToMutation;
     }
 }

@@ -101,7 +101,7 @@ public class DBFuzzer
             System.out.println("this GenericTreeNode has already been tried ");
             currentMutation = chooseNextMutation();
           }
-          System.out.println(currentMutation.toString());
+          //System.out.println(currentMutation.toString());
 
             if(!currentMutation.getParent().compare(mutationTree.getLastMutation()))
             {
