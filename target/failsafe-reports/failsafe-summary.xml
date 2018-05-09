@@ -1,0 +1,7 @@
+<failsafe-summary result="255" timeout="false">
+    <completed>30</completed>
+    <errors>2</errors>
+    <failures>0</failures>
+    <skipped>11</skipped>
+    <failureMessage xsi:nil="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/>
+</failsafe-summary>
