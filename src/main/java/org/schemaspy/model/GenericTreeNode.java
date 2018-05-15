@@ -17,6 +17,7 @@ public class GenericTreeNode {
     private final Integer id;
     private GenericTreeNode rootMutation;
     private Integer interest_mark;
+    private Integer weight;
     private final Row initial_state_row;
     private Row post_change_row;
     private ArrayList<SingleChange> potential_changes = new ArrayList<SingleChange>();
@@ -46,6 +47,16 @@ public class GenericTreeNode {
 
     public Integer getId() {
       return id;
+    }
+
+    public Integer getWeight()
+    {
+      return this.weight;
+    }
+
+    public void setWeight(Integer weight)
+    {
+      this.weight = weight;
     }
 
     public void initDepth()
@@ -477,6 +488,25 @@ public class GenericTreeNode {
       finalPath.addAll(targetPath);
       return finalPath;
 
+    }
+
+    public void initWeight() // Modify euristic here when refining the choosing patern
+    {
+      switch (this.interest_mark)
+      {
+        case 0 :
+            this.weight = 1;
+            break;
+        case 10 :
+            this.weight = 5;
+            break;
+        case 20 :
+            this.weight = 25;
+            break;
+        default :
+            this.weight = 1;
+            break;
+      }
     }
 
 }

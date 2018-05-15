@@ -85,14 +85,15 @@ public class DBFuzzer
             Process evaluatorProcess = new ProcessBuilder("/bin/bash", "./evaluator.sh").start();
             mark = Integer.parseInt(getEvaluatorResponse(evaluatorProcess));
             currentMutation.setInterest_mark(mark);
-            System.out.println("marking : "+mark);
+            currentMutation.initWeight();
+            System.out.println("Weight for currentMut "+currentMutation.getWeight());
+            System.out.println("marking here : "+mark);
           }
           catch(Exception e)
           {
             returnStatus = false;
             System.out.println("error while recovering marking"+e);
           }
-
 
           // CHOOSINGNEXT GenericTreeNode AND SETTING UP FOR NEXT ITERATION
           currentMutation = chooseNextMutation();
@@ -101,7 +102,6 @@ public class DBFuzzer
             System.out.println("this GenericTreeNode has already been tried ");
             currentMutation = chooseNextMutation();
           }
-          //System.out.println(currentMutation.toString());
 
             if(!currentMutation.getParent().compare(mutationTree.getLastMutation()))
             {
@@ -270,15 +270,11 @@ public class DBFuzzer
         }
         else if(markingDiff == 0 || markingDiff < 0)
         {
-            int randNumber = rand.nextInt(mutationTree.getNumberOfNodes())+1;
-            while(mutationTree.find(randNumber).getPotential_changes().size() == 0)
-            {
-              randNumber = rand.nextInt(mutationTree.getNumberOfNodes())+1;
-            }
-            int randMutation = rand.nextInt(mutationTree.find(randNumber).getPotential_changes().size());
-            nextMut = new GenericTreeNode(mutationTree.findFirstMutationWithout(mutationTree.getRoot(),mutationTree.find(randNumber).getChosenChange()).getPost_change_row(),nextId(),mutationTree.getRoot(),mutationTree.findFirstMutationWithout(mutationTree.getRoot(),mutationTree.find(randNumber).getChosenChange()));
+            GenericTreeNode randMutation =  mutationTree.pickMutationBasedOnWeight(mutationTree.mutationsBasedOnWeight());
+            int randChange = rand.nextInt(randMutation.getPotential_changes().size());
+            nextMut = new GenericTreeNode(mutationTree.findFirstMutationWithout(mutationTree.getRoot(),randMutation.getChosenChange()).getPost_change_row(),nextId(),mutationTree.getRoot(),mutationTree.findFirstMutationWithout(mutationTree.getRoot(),randMutation.getChosenChange()));
             nextMut.initPotential_changes(nextMut.discoverMutationPossibilities(analyzer.getDb()));
-            nextMut.setChosenChange(mutationTree.find(randNumber).getPotential_changes().get(randMutation));
+            nextMut.setChosenChange(randMutation.getPotential_changes().get(randChange));
         }
         else
         {

@@ -46,32 +46,26 @@ public class GenericTree {
     }
 
     public GenericTreeNode find(Integer id) {
-        GenericTreeNode returnNode = null;
-
-        if(root != null) {
-            returnNode = auxiliaryFind(root, id);
+        if(root == null)
+        {
+          return null;
         }
-
-        return returnNode;
+        return auxiliaryFind(root, id);
     }
 
     private GenericTreeNode auxiliaryFind(GenericTreeNode currentNode, Integer id) {
-        GenericTreeNode returnNode = null;
-        int i = 1;
-
-        if (currentNode.getId().equals(id)) {
-            returnNode = currentNode;
+        if (currentNode.getId().equals(id))
+            return currentNode;
+        if (! currentNode.hasChildren())
+            return null;
+        for (GenericTreeNode child : currentNode.getChildren())
+        {
+          GenericTreeNode returnNode = auxiliaryFind(child, id);
+          if (null != returnNode)
+             return returnNode;
         }
-
-        else if(currentNode.hasChildren()) {
-            i = 0;
-            while(returnNode == null && i < currentNode.getNumberOfChildren()) {
-                returnNode = auxiliaryFind(currentNode.getChildAt(i), id);
-                i++;
-            }
-        }
-
-        return returnNode;
+        System.out.println("null ici ");
+        return null;
     }
 
     public boolean isEmpty() {
@@ -230,5 +224,36 @@ public class GenericTree {
           res = findFirstMutationWithout(mutation.getChildren().get(j),chosenChange);
         }
         return res; // should never be null unless the algorithm is not looking for something precise
+    }
+
+    public ArrayList<GenericTreeNode> mutationsBasedOnWeight()
+    {
+      ArrayList<GenericTreeNode> mutationsBasedOnWeight = new ArrayList<GenericTreeNode>();
+      GenericTreeNode currentMutation;
+
+      System.out.println("nb nodes "+getNumberOfNodes());
+      for(int i = 1; i <= getNumberOfNodes();i++)
+      {
+        currentMutation = find(i);
+        System.out.println("ICI mutation N "+currentMutation.getId());
+        for(int j = 0; j < currentMutation.getWeight();j++)
+        {
+          System.out.println("COOUCOU");
+          System.out.println("added once "+currentMutation.getId());
+          mutationsBasedOnWeight.add(find(i));
+        }
+      }
+      System.out.println("Weight "+mutationsBasedOnWeight);
+      return mutationsBasedOnWeight;
+    }
+
+    public GenericTreeNode pickMutationBasedOnWeight(ArrayList<GenericTreeNode> mutationsBasedOnWeight)
+    {
+      int randNumber = 0;
+      Random rand = new Random();
+      if(mutationsBasedOnWeight.size() > 0)
+        randNumber = rand.nextInt(mutationsBasedOnWeight.size());
+
+      return mutationsBasedOnWeight.get(randNumber);
     }
 }
