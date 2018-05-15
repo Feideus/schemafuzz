@@ -103,6 +103,8 @@ public class DBFuzzer
             currentMutation = chooseNextMutation();
           }
 
+            System.out.println("currentMutation parent "+currentMutation.getParent());
+
             if(!currentMutation.getParent().compare(mutationTree.getLastMutation()))
             {
               try
@@ -266,6 +268,7 @@ public class DBFuzzer
             previousMutation.initPotential_changes(previousMutation.discoverMutationPossibilities(analyzer.getDb()));
             int randNumber = rand.nextInt(previousMutation.getPotential_changes().size());
             nextMut = new GenericTreeNode(previousMutation.getPost_change_row(),nextId(),mutationTree.getRoot(),previousMutation);
+            nextMut.initPotential_changes(nextMut.discoverMutationPossibilities(analyzer.getDb()));
             nextMut.setChosenChange(previousMutation.getPotential_changes().get(randNumber));
         }
         else if(markingDiff == 0 || markingDiff < 0)
@@ -287,14 +290,12 @@ public class DBFuzzer
 
     public boolean isNewMutation(GenericTreeNode newMut)
     {
-      boolean res = true;
       for(int i = 1; i <= mutationTree.getNumberOfNodes(); i++)
       {
-        if(mutationTree.find(i).compare(newMut))
-          res = false;
+        if(mutationTree.find(i).compare(newMut) && !newMut.isSingleChangeOnCurrentPath())
+          return false;
       }
-
-      return res;
+      return true;
     }
 
     public void printMutationTree()

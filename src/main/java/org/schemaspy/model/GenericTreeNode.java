@@ -1,15 +1,21 @@
 
-package org.schemaspy.model;
 
-import org.schemaspy.*;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import com.sun.org.apache.xml.internal.security.keys.storage.implementations.SingleCertificateResolver;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import org.schemaspy.*;
+package org.schemaspy.model;
+
+import java.util.*;
+import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.sql.PreparedStatement;
 
 public class GenericTreeNode {
 
@@ -18,15 +24,16 @@ public class GenericTreeNode {
     private GenericTreeNode rootMutation;
     private Integer interest_mark;
     private Integer weight;
+    private Integer subtree_weight;
     private final Row initial_state_row;
     private Row post_change_row;
-    private ArrayList<SingleChange> potential_changes = new ArrayList<SingleChange>();
-    private ArrayList<SingleChange> cascadeFK = new ArrayList<SingleChange>(); // a integrer
+    private final ArrayList<SingleChange> potential_changes = new ArrayList<SingleChange>();
+    private final ArrayList<SingleChange> cascadeFK = new ArrayList<SingleChange>(); // a integrer
     private SingleChange chosenChange;
-    private ArrayList<GenericTreeNode> children = new ArrayList<GenericTreeNode>();
+    private final ArrayList<GenericTreeNode> children = new ArrayList<GenericTreeNode>();
     private GenericTreeNode parent;
     private boolean cascadingFK;
-    private int depth;
+    private final int depth;
     /**
     * Default GenericTreeNode constructor
     */
@@ -41,8 +48,11 @@ public class GenericTreeNode {
       this.initial_state_row = initial_state_row;
       this.cascadingFK = false;
       this.rootMutation = rootMutation;
-      this.parent = parentMutation;
-      initDepth();
+      this.parent = parentMutation;Error
+      if(this.getParent() == null)
+        this.depth = 0;
+      else
+        this.depth = this.getParent().getDepth()+1;
     }
 
     public Integer getId() {
@@ -57,15 +67,30 @@ public class GenericTreeNode {
     public void setWeight(Integer weight)
     {
       this.weight = weight;
+      parent.subtree_weight += weight;
     }
 
-    public void initDepth()
+    private static final Random r = new Random();
+    /**
+    *
+    */
+    public SingleChange select_weighted_random_change ()
     {
-      if(this.getParent() == null)
-        this.depth = 0;
-      else
-        this.depth = this.getParent().getDepth()+1;
-
+      if (this.potential_changes.isEmpty())
+        throw new Error("This should be impossible to reach");
+      int rnd = r.nextInt(subtree_weight + potential_changes.size());
+      assert (rnd >= 0);
+      if (rnd < potential_changes.size())
+        return potential_changes.remove (rnd);      
+      rnd -= potential_changes.size();
+      for (GenericTreeNode n : children)
+        {
+          int w = n.getChangeWeight();
+          if (rnd < w)
+            return n.select_weighted_random_change();
+          rnd -= w;
+        }
+       throw new Error("This should be impossible to reach");
     }
 
     public Row getPost_change_row()
@@ -133,6 +158,7 @@ public class GenericTreeNode {
     public void setChosenChange(SingleChange sc)
     {
       this.chosenChange = sc;
+      this.chosenChange.setAttachedToMutation(this);
     }
     /**
     * Sets new value of children
@@ -187,22 +213,23 @@ public class GenericTreeNode {
         String typeName = tableColumn.getTypeName();
         switch (typeName) {
               case "int2":
-                            oneChange.add(new SingleChange(tableColumn,this,column_value,Integer.toString(Integer.parseInt(column_value)+1)));
+                            int tmp = Integer.parseInt(rootMutation.getInitial_state_row().getContent().get(tableColumn.getName()));
+                            oneChange.add(new SingleChange(tableColumn,this,column_value,Integer.toString(tmp++)));
                             oneChange.add(new SingleChange(tableColumn,this,column_value,Integer.toString(32767)));
                             oneChange.add(new SingleChange(tableColumn,this,column_value,Integer.toString(1)));
                        break;
               case "varchar":
                             if(this.getRootMutation() == null)
                             {
-                              char tmp = column_value.charAt(0);
-                              oneChange.add(new SingleChange(tableColumn,this,column_value,(Character.toString(tmp++)+column_value.substring(1))));
-                              oneChange.add(new SingleChange(tableColumn,this,column_value,(Character.toString(tmp--)+column_value.substring(1))));
+                              char tmp2 = column_value.charAt(0);
+                              oneChange.add(new SingleChange(tableColumn,this,column_value,(Character.toString(tmp2++)+column_value.substring(1))));
+                              oneChange.add(new SingleChange(tableColumn,this,column_value,(Character.toString(tmp2--)+column_value.substring(1))));
                             }
                             else
                             {
-                              char tmp = (char) this.getRootMutation().getInitial_state_row().getContent().get(tableColumn.getName()).charAt(0);
-                              char nextChar = (char) (tmp+1);
-                              char prevChar = (char) (tmp-1);
+                              char tmp2 = (char) this.getRootMutation().getInitial_state_row().getContent().get(tableColumn.getName()).charAt(0);
+                              char nextChar = (char) (tmp2+1);
+                              char prevChar = (char) (tmp2-1);
                               oneChange.add(new SingleChange(tableColumn,this,column_value,(Character.toString(nextChar)+column_value.substring(1))));
                               oneChange.add(new SingleChange(tableColumn,this,column_value,(Character.toString(prevChar)+column_value.substring(1))));
                             }
@@ -443,7 +470,7 @@ public class GenericTreeNode {
 
 
     public String toString() {
-        return "[ MUT ID "+this.getId()+"parent mutation "+this.parent.getId()+" SG "+this.chosenChange+"]";
+      return "[ MUT ID "+this.getId()+" SG "+this.chosenChange+"]";
     }
 
     public ArrayList<GenericTreeNode> findPathToMutation(GenericTreeNode target)
@@ -486,27 +513,26 @@ public class GenericTreeNode {
       Collections.reverse(targetPath);
       finalPath.addAll(thisPath);
       finalPath.addAll(targetPath);
+
+      System.out.println("final path "+finalPath);
+
       return finalPath;
 
     }
 
     public void initWeight() // Modify euristic here when refining the choosing patern
     {
-      switch (this.interest_mark)
+      setWeight (this.interest_mark); // eventually consider depth?
+    }
+
+    public boolean isSingleChangeOnCurrentPath()
+    {
+      for(GenericTreeNode mutOnPath : this.findPathToMutation(rootMutation))
       {
-        case 0 :
-            this.weight = 1;
-            break;
-        case 10 :
-            this.weight = 5;
-            break;
-        case 20 :
-            this.weight = 25;
-            break;
-        default :
-            this.weight = 1;
-            break;
+        if(mutOnPath.getChosenChange().compare(this.getChosenChange()))
+          return false;
       }
+      return true;
     }
 
 }

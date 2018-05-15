@@ -64,7 +64,6 @@ public class GenericTree {
           if (null != returnNode)
              return returnNode;
         }
-        System.out.println("null ici ");
         return null;
     }
 
@@ -231,19 +230,14 @@ public class GenericTree {
       ArrayList<GenericTreeNode> mutationsBasedOnWeight = new ArrayList<GenericTreeNode>();
       GenericTreeNode currentMutation;
 
-      System.out.println("nb nodes "+getNumberOfNodes());
       for(int i = 1; i <= getNumberOfNodes();i++)
       {
         currentMutation = find(i);
-        System.out.println("ICI mutation N "+currentMutation.getId());
         for(int j = 0; j < currentMutation.getWeight();j++)
         {
-          System.out.println("COOUCOU");
-          System.out.println("added once "+currentMutation.getId());
-          mutationsBasedOnWeight.add(find(i));
+          mutationsBasedOnWeight.add(currentMutation);
         }
       }
-      System.out.println("Weight "+mutationsBasedOnWeight);
       return mutationsBasedOnWeight;
     }
 
@@ -252,8 +246,14 @@ public class GenericTree {
       int randNumber = 0;
       Random rand = new Random();
       if(mutationsBasedOnWeight.size() > 0)
+      {
+        System.out.println(" size "+mutationsBasedOnWeight.size());
         randNumber = rand.nextInt(mutationsBasedOnWeight.size());
+        System.out.println(" size "+mutationsBasedOnWeight.size());
+      }
 
       return mutationsBasedOnWeight.get(randNumber);
     }
+
+
 }
