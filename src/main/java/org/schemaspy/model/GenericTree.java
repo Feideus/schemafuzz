@@ -225,35 +225,18 @@ public class GenericTree {
         return res; // should never be null unless the algorithm is not looking for something precise
     }
 
-    public ArrayList<GenericTreeNode> mutationsBasedOnWeight()
+    public void printTree(int tabs)
     {
-      ArrayList<GenericTreeNode> mutationsBasedOnWeight = new ArrayList<GenericTreeNode>();
-      GenericTreeNode currentMutation;
-
-      for(int i = 1; i <= getNumberOfNodes();i++)
+      for(int i = 1; i <= getNumberOfNodes(); i++)
       {
-        currentMutation = find(i);
-        for(int j = 0; j < currentMutation.getWeight();j++)
+        for(int j = 0; j < tabs ; j++)
         {
-          mutationsBasedOnWeight.add(currentMutation);
+          System.out.println("   ");
         }
+        System.out.println(find(i));
+        if(find(i).getChildren().size() != 0)
+          printTree(find(i).getDepth());
       }
-      return mutationsBasedOnWeight;
     }
-
-    public GenericTreeNode pickMutationBasedOnWeight(ArrayList<GenericTreeNode> mutationsBasedOnWeight)
-    {
-      int randNumber = 0;
-      Random rand = new Random();
-      if(mutationsBasedOnWeight.size() > 0)
-      {
-        System.out.println(" size "+mutationsBasedOnWeight.size());
-        randNumber = rand.nextInt(mutationsBasedOnWeight.size());
-        System.out.println(" size "+mutationsBasedOnWeight.size());
-      }
-
-      return mutationsBasedOnWeight.get(randNumber);
-    }
-
 
 }

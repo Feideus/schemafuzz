@@ -24,7 +24,11 @@ public class GenericTreeNode {
     private GenericTreeNode rootMutation;
     private Integer interest_mark;
     private Integer weight;
+<<<<<<< 286021abc272ba0295d224f298bac82861a7c4e0
     private Integer subtree_weight;
+=======
+    private Integer subTreeWeight;
+>>>>>>> working on the weight picking patern
     private final Row initial_state_row;
     private Row post_change_row;
     private final ArrayList<SingleChange> potential_changes = new ArrayList<SingleChange>();
@@ -41,6 +45,9 @@ public class GenericTreeNode {
       this.id = id;
       this.initial_state_row = initial_state_row;
       this.cascadingFK = false;
+      this.potential_changes = discoverMutationPossibilities();
+      this.weight = 1;
+      this.subTreeWeight = this.getPotential_changes().size();
     }
 
     public GenericTreeNode(Row initial_state_row,int id, GenericTreeNode rootMutation, GenericTreeNode parentMutation) {
@@ -48,11 +55,11 @@ public class GenericTreeNode {
       this.initial_state_row = initial_state_row;
       this.cascadingFK = false;
       this.rootMutation = rootMutation;
-      this.parent = parentMutation;Error
-      if(this.getParent() == null)
-        this.depth = 0;
-      else
-        this.depth = this.getParent().getDepth()+1;
+      this.parent = parentMutation;
+      initDepth();
+      this.potential_changes = discoverMutationPossibilities();
+      this.weight = 1;
+      this.subTreeWeight = this.getPotential_changes().size();
     }
 
     public Integer getId() {
@@ -64,10 +71,15 @@ public class GenericTreeNode {
       return this.weight;
     }
 
+    public void addToSubTreeWeight(int childWeight)
+    {
+      this.subTreeWeight += childWeight;
+    }
+
     public void setWeight(Integer weight)
     {
       this.weight = weight;
-      parent.subtree_weight += weight;
+      propagateWeight();
     }
 
     private static final Random r = new Random();
@@ -81,7 +93,7 @@ public class GenericTreeNode {
       int rnd = r.nextInt(subtree_weight + potential_changes.size());
       assert (rnd >= 0);
       if (rnd < potential_changes.size())
-        return potential_changes.remove (rnd);      
+        return potential_changes.remove (rnd);
       rnd -= potential_changes.size();
       for (GenericTreeNode n : children)
         {
@@ -111,6 +123,11 @@ public class GenericTreeNode {
 
     public SingleChange getChosenChange() {
       return chosenChange;
+    }
+
+    public int getSubTreeWeight()
+    {
+      return this.subTreeWeight;
     }
 
 
@@ -178,7 +195,7 @@ public class GenericTreeNode {
       return children.get(index);
     }
 
-    public ArrayList<SingleChange> discoverMutationPossibilities(Database db)
+    public ArrayList<SingleChange> discoverMutationPossibilities()
     {
 
       int i;
@@ -533,6 +550,52 @@ public class GenericTreeNode {
           return false;
       }
       return true;
+    }
+
+    public SingleChange singleChangeBasedOnWeight()
+    {
+      Random r = new Random();
+      if (this.potential_changes.isEmpty())
+        throw new Error("This should be impossible to reach");
+
+        System.err.println("subtreeweight = "+subTreeWeight);
+
+        int total = 0;
+        for (GenericTreeNode n : children)
+          {
+            total += n.getSubTreeWeight();
+          }
+        if (total != subTreeWeight)
+          System.out.println("keep your objects consistent in the setter functions");
+
+      int rnd = r.nextInt(subTreeWeight + potential_changes.size());
+      if (rnd < potential_changes.size())
+      {
+        this.subTreeWeight -= 1;
+        return potential_changes.remove (rnd);
+      }
+      System.out.println("ici");
+      rnd -= potential_changes.size();
+      System.err.println("rnd = "+rnd);
+      for (GenericTreeNode n : children)
+        {
+          int w = n.getSubTreeWeight();
+          System.out.println("w = "+w);
+          if (rnd < w)
+            return n.singleChangeBasedOnWeight();
+          rnd -= w;
+        }
+      System.out.println("ici2");
+      throw new Error("This should be impossible to reach");
+    }
+
+    public void propagateWeight()
+    {
+      if(this.getParent() != null)
+      {
+        this.getParent().addToSubTreeWeight(this.getWeight());
+        this.getParent().propagateWeight();
+      }
     }
 
 }

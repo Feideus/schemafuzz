@@ -49,7 +49,6 @@ public class DBFuzzer
 
         Row randomRow = pickRandomRow();
         GenericTreeNode currentMutation = new GenericTreeNode(randomRow,nextId());
-        currentMutation.initPotential_changes(currentMutation.discoverMutationPossibilities(analyzer.getDb()));
         currentMutation.setChosenChange(currentMutation.getPotential_changes().get(0));
         mutationTree.setRoot(currentMutation);
 
@@ -85,9 +84,10 @@ public class DBFuzzer
             Process evaluatorProcess = new ProcessBuilder("/bin/bash", "./evaluator.sh").start();
             mark = Integer.parseInt(getEvaluatorResponse(evaluatorProcess));
             currentMutation.setInterest_mark(mark);
-            currentMutation.initWeight();
-            System.out.println("Weight for currentMut "+currentMutation.getWeight());
+            currentMutation.setWeight(mark);
             System.out.println("marking here : "+mark);
+            System.out.println("Weight for currentMut "+currentMutation.getWeight());
+            mutationTree.printTree(0);
           }
           catch(Exception e)
           {
@@ -256,7 +256,8 @@ public class DBFuzzer
       int markingDiff = previousMutation.getInterest_mark();
       Random rand = new Random();
 
-      if(mutationTree.getNumberOfNodes() > 1)
+
+      if(mutationTree.getNumberOfNodes() > 2)
       {
         markingDiff = previousMutation.getInterest_mark()-mutationTree.find(mutationTree.getLastId()).getInterest_mark();
       }
@@ -265,7 +266,6 @@ public class DBFuzzer
       {
         if(markingDiff > 0)
         {
-            previousMutation.initPotential_changes(previousMutation.discoverMutationPossibilities(analyzer.getDb()));
             int randNumber = rand.nextInt(previousMutation.getPotential_changes().size());
             nextMut = new GenericTreeNode(previousMutation.getPost_change_row(),nextId(),mutationTree.getRoot(),previousMutation);
             nextMut.initPotential_changes(nextMut.discoverMutationPossibilities(analyzer.getDb()));
@@ -273,11 +273,11 @@ public class DBFuzzer
         }
         else if(markingDiff == 0 || markingDiff < 0)
         {
-            GenericTreeNode randMutation =  mutationTree.pickMutationBasedOnWeight(mutationTree.mutationsBasedOnWeight());
-            int randChange = rand.nextInt(randMutation.getPotential_changes().size());
-            nextMut = new GenericTreeNode(mutationTree.findFirstMutationWithout(mutationTree.getRoot(),randMutation.getChosenChange()).getPost_change_row(),nextId(),mutationTree.getRoot(),mutationTree.findFirstMutationWithout(mutationTree.getRoot(),randMutation.getChosenChange()));
-            nextMut.initPotential_changes(nextMut.discoverMutationPossibilities(analyzer.getDb()));
-            nextMut.setChosenChange(randMutation.getPotential_changes().get(randChange));
+          System.err.println("Hey");
+            SingleChange tmp = mutationTree.getRoot().singleChangeBasedOnWeight();
+            System.out.println("chosen change = "+tmp);
+            nextMut = new GenericTreeNode(tmp.getattachedToMutation().getPost_change_row(),nextId(),mutationTree.getRoot(),tmp.getattachedToMutation());
+            nextMut.setChosenChange(tmp);
         }
         else
         {
