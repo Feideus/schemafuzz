@@ -1,7 +1,9 @@
-./buildNumber.properties
-./target/classes
-./target/test-classes
-./target/surefire-reports
-./target/generated-sources
-./target/generated-test-sources
+buildNumber.properties
+target/classes
+target/test-classes
+target/surefire-reports
+target/generated-sources
+target/generated-test-sources
+target/schemaspy-6.0.0-rc2.jar
+target/schemaspy-6.0.0-rc2.jar.original
 ./Work_time.ods
