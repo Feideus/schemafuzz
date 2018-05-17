@@ -30,7 +30,7 @@ public class GenericTreeNode {
     private ArrayList<GenericTreeNode> children = new ArrayList<GenericTreeNode>();
     private GenericTreeNode parent;
     private boolean cascadingFK;
-    private final int depth;
+    private int depth;
     /**
     * Default GenericTreeNode constructor
     */
@@ -42,6 +42,7 @@ public class GenericTreeNode {
       this.weight = 1;
       this.subTreeWeight = 0;
       this.depth = 0;
+      this.parent = null;
     }
 
     public GenericTreeNode(Row initial_state_row,int id, GenericTreeNode rootMutation, GenericTreeNode parentMutation) {
@@ -50,15 +51,7 @@ public class GenericTreeNode {
       this.cascadingFK = false;
       this.rootMutation = rootMutation;
       this.parent = parentMutation;
-      int cpt = 0;
-      GenericTreeNode tmp = this;
-      while(tmp.getParent() != null)
-      {
-        cpt++;
-        tmp = this.getParent();
-      }
-
-      this.depth = cpt;
+      initDepth();
       this.potential_changes = discoverMutationPossibilities();
       this.weight = 1;
       this.subTreeWeight = 0;
@@ -74,15 +67,50 @@ public class GenericTreeNode {
       return this.weight;
     }
 
-    public void addToSubTreeWeight(int childWeight)
+    public void initDepth()
     {
-      this.subTreeWeight += childWeight;
+      GenericTreeNode tmp = this;
+      int cpt = 0;
+      while( tmp.getParent() != null)
+      {
+        tmp = tmp.getParent();
+        cpt++;
+      }
+
+      this.depth = cpt;
     }
 
-    public void setWeight(Integer weight)
+    public boolean checkWeightConsistency()
+    {
+      int tmp = 0;
+      for(GenericTreeNode child : this.getChildren())
+      {
+        tmp += child.getWeight();
+      }
+
+      if(tmp != this.getSubTreeWeight() && !this.getChildren().isEmpty())
+      {
+        System.out.println("Weight inconstistent "+this.getWeight()+"   "+this.getSubTreeWeight());
+        System.out.println("Mutation concernee = "+this);
+        return false;
+      }
+
+      return true ;
+    }
+
+    public void updateSubTreeWeight()
+    {
+      int tmp = 0;
+      for(GenericTreeNode child : this.getChildren())
+      {
+        tmp += child.getWeight();
+      }
+      this.subTreeWeight = tmp;
+    }
+
+    public void setWeight(int weight)
     {
       this.weight = weight;
-      propagateWeight();
     }
 
     private static final Random r = new Random();
@@ -91,8 +119,9 @@ public class GenericTreeNode {
     */
     public SingleChange singleChangeBasedOnWeight ()
     {
-      if (this.potential_changes.isEmpty())
-        throw new Error("This should be impossible to reach");
+      checkWeightConsistency();
+      if (this.potential_changes.isEmpty() && (0 == subTreeWeight))
+        System.out.println("ERROR PICKING : no potential_changes AND subtreeweight = 0");
 
       int rnd = r.nextInt(subTreeWeight + potential_changes.size());
       assert (rnd >= 0);
@@ -101,11 +130,14 @@ public class GenericTreeNode {
       rnd -= potential_changes.size();
       for (GenericTreeNode n : children)
         {
-          int w = n.getSubTreeWeight();
+          int w = n.getWeight();
           if (rnd < w)
+          {
             return n.singleChangeBasedOnWeight();
+          }
           rnd -= w;
         }
+       System.out.println("ici2");
        throw new Error("This should be impossible to reach");
     }
 
@@ -431,9 +463,29 @@ public class GenericTreeNode {
     public boolean undoToMutation(GenericTreeNode target, SchemaAnalyzer analyzer) throws Exception
     {
       ArrayList<GenericTreeNode> pathToMutation = findPathToMutation(target);
-      for(int i = 0; i < pathToMutation.size();i++)
+      ArrayList<GenericTreeNode> goingUp;
+      ArrayList<GenericTreeNode> goingDown;
+
+      for(int j = 0; j < pathToMutation.size();j++)
       {
-        pathToMutation.get(i).undo(analyzer);
+        if(j < pathToMutation.size()-1)
+        {
+          if(! pathToMutation.get(j).getParent().compare(pathToMutation.get(j+1)))
+          {
+            goingUp = (ArrayList) pathToMutation.subList(0, j);
+            goingDown = (ArrayList) pathToMutation.subList(j+1, pathToMutation.size()-1);
+          }
+
+        }
+      }
+
+      for(int i = 0; i < goingUp.size();i++)
+      {
+        goingUp.get(i).undo(analyzer);
+      }
+      for(int i = 0; i < goingDown.size();i++)
+      {
+        goingDown.get(i).inject(analyzer,false);
       }
       return true;
     }
@@ -491,7 +543,7 @@ public class GenericTreeNode {
 
 
     public String toString() {
-      return "[ MUT ID "+this.getId()+" SG "+this.chosenChange+"]";
+        return "[ MUT ID "+this.getId()+" Depth = "+this.getDepth()+" SG "+this.chosenChange+"]";
     }
 
     public ArrayList<GenericTreeNode> findPathToMutation(GenericTreeNode target)
@@ -535,7 +587,9 @@ public class GenericTreeNode {
       finalPath.addAll(thisPath);
       finalPath.addAll(targetPath);
 
-      System.out.println("final path "+finalPath);
+      System.out.println("this = "+this);
+      System.out.println("target = "+target);
+      System.out.println("final = "+finalPath);
 
       return finalPath;
 
@@ -595,11 +649,10 @@ public class GenericTreeNode {
 
     public void propagateWeight()
     {
+
+      this.updateSubTreeWeight();
       if(this.getParent() != null)
-      {
-        this.getParent().addToSubTreeWeight(this.getWeight());
         this.getParent().propagateWeight();
-      }
     }
 
 }

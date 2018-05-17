@@ -73,7 +73,7 @@ public class DBFuzzer
           }
           catch(Exception e)
           {
-              LOGGER.error(e.toString());
+              e.printStackTrace();
               returnStatus = false;
           }
 
@@ -85,17 +85,18 @@ public class DBFuzzer
             mark = Integer.parseInt(getEvaluatorResponse(evaluatorProcess));
             currentMutation.setInterest_mark(mark);
             currentMutation.setWeight(mark);
-            System.out.println("marking here : "+mark);
-            System.out.println("Weight for currentMut "+currentMutation.getWeight());
-            mutationTree.printTree(0);
+            currentMutation.propagateWeight();
+            System.out.println("marking : "+mark);
+            System.out.println("Weight : "+currentMutation.getWeight());
           }
           catch(Exception e)
           {
             returnStatus = false;
-            System.out.println("error while recovering marking"+e);
+            e.printStackTrace();
           }
 
-          // CHOOSINGNEXT GenericTreeNode AND SETTING UP FOR NEXT ITERATION
+          // CHOOSINGNEXT GenericTreeNode AND SETTING UP FOR NEXT ITERATION\
+
           currentMutation = chooseNextMutation();
           while(!this.isNewMutation(currentMutation))
           {
@@ -103,7 +104,7 @@ public class DBFuzzer
             currentMutation = chooseNextMutation();
           }
 
-            System.out.println("currentMutation parent "+currentMutation.getParent());
+          System.out.println("chosen mutation"+currentMutation);
 
             if(!currentMutation.getParent().compare(mutationTree.getLastMutation()))
             {
@@ -257,7 +258,7 @@ public class DBFuzzer
       Random rand = new Random();
 
 
-      if(mutationTree.getNumberOfNodes() > 2)
+      if(mutationTree.getNumberOfNodes() > 1)
       {
         markingDiff = previousMutation.getInterest_mark()-mutationTree.find(mutationTree.getLastId()).getInterest_mark();
       }
@@ -272,7 +273,6 @@ public class DBFuzzer
         }
         else if(markingDiff == 0 || markingDiff < 0)
         {
-
             SingleChange tmp = mutationTree.getRoot().singleChangeBasedOnWeight();
             nextMut = new GenericTreeNode(tmp.getattachedToMutation().getPost_change_row(),nextId(),mutationTree.getRoot(),tmp.getattachedToMutation());
             nextMut.setChosenChange(tmp);

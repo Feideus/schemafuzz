@@ -101,6 +101,7 @@ public class Main implements CommandLineRunner {
         } catch (ProcessExecutionException badLaunch) {
             LOGGER.warn(badLaunch.getMessage(), badLaunch);
         } catch (Exception exc) {
+          exc.printStackTrace();
             LOGGER.error(exc.getMessage(), exc);
         }
 
@@ -120,7 +121,9 @@ public class Main implements CommandLineRunner {
         }
         catch(Exception e)
         {
-          LOGGER.error(e.getMessage(),e);
+          System.out.println("erreur");
+          //LOGGER.error(e.getMessage(),e);
+          e.printStackTrace();
         }
     }
 
