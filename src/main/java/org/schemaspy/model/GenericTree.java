@@ -192,9 +192,6 @@ public class GenericTree {
 
     public void addToTree(GenericTreeNode currentMutation)
     {
-      System.out.println(currentMutation);
-      currentMutation.setParent(findFirstMutationWithout(root,currentMutation.getChosenChange()));
-      currentMutation.getChosenChange().setAttachedToMutation(currentMutation);
       currentMutation.getParent().addChild(currentMutation);
     }
 

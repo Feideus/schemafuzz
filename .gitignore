@@ -1,2 +1,7 @@
-
+./buildNumber.properties
+./target/classes
+./target/test-classes
+./target/surefire-reports
+./target/generated-sources
+./target/generated-test-sources
 ./Work_time.ods

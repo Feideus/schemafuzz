@@ -1,6 +1,5 @@
+package org.schemaspy.model;
 
-
-import com.sun.org.apache.xml.internal.security.keys.storage.implementations.SingleCertificateResolver;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.*;
@@ -10,8 +9,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.schemaspy.*;
-package org.schemaspy.model;
-
 import java.util.*;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
@@ -24,17 +21,13 @@ public class GenericTreeNode {
     private GenericTreeNode rootMutation;
     private Integer interest_mark;
     private Integer weight;
-<<<<<<< 286021abc272ba0295d224f298bac82861a7c4e0
-    private Integer subtree_weight;
-=======
     private Integer subTreeWeight;
->>>>>>> working on the weight picking patern
     private final Row initial_state_row;
     private Row post_change_row;
-    private final ArrayList<SingleChange> potential_changes = new ArrayList<SingleChange>();
-    private final ArrayList<SingleChange> cascadeFK = new ArrayList<SingleChange>(); // a integrer
+    private ArrayList<SingleChange> potential_changes = new ArrayList<SingleChange>();
+    private ArrayList<SingleChange> cascadeFK = new ArrayList<SingleChange>(); // a integrer
     private SingleChange chosenChange;
-    private final ArrayList<GenericTreeNode> children = new ArrayList<GenericTreeNode>();
+    private ArrayList<GenericTreeNode> children = new ArrayList<GenericTreeNode>();
     private GenericTreeNode parent;
     private boolean cascadingFK;
     private final int depth;
@@ -47,7 +40,8 @@ public class GenericTreeNode {
       this.cascadingFK = false;
       this.potential_changes = discoverMutationPossibilities();
       this.weight = 1;
-      this.subTreeWeight = this.getPotential_changes().size();
+      this.subTreeWeight = 0;
+      this.depth = 0;
     }
 
     public GenericTreeNode(Row initial_state_row,int id, GenericTreeNode rootMutation, GenericTreeNode parentMutation) {
@@ -56,15 +50,24 @@ public class GenericTreeNode {
       this.cascadingFK = false;
       this.rootMutation = rootMutation;
       this.parent = parentMutation;
-      initDepth();
+      int cpt = 0;
+      GenericTreeNode tmp = this;
+      while(tmp.getParent() != null)
+      {
+        cpt++;
+        tmp = this.getParent();
+      }
+
+      this.depth = cpt;
       this.potential_changes = discoverMutationPossibilities();
       this.weight = 1;
-      this.subTreeWeight = this.getPotential_changes().size();
+      this.subTreeWeight = 0;
     }
 
     public Integer getId() {
       return id;
     }
+
 
     public Integer getWeight()
     {
@@ -86,20 +89,21 @@ public class GenericTreeNode {
     /**
     *
     */
-    public SingleChange select_weighted_random_change ()
+    public SingleChange singleChangeBasedOnWeight ()
     {
       if (this.potential_changes.isEmpty())
         throw new Error("This should be impossible to reach");
-      int rnd = r.nextInt(subtree_weight + potential_changes.size());
+
+      int rnd = r.nextInt(subTreeWeight + potential_changes.size());
       assert (rnd >= 0);
       if (rnd < potential_changes.size())
         return potential_changes.remove (rnd);
       rnd -= potential_changes.size();
       for (GenericTreeNode n : children)
         {
-          int w = n.getChangeWeight();
+          int w = n.getSubTreeWeight();
           if (rnd < w)
-            return n.select_weighted_random_change();
+            return n.singleChangeBasedOnWeight();
           rnd -= w;
         }
        throw new Error("This should be impossible to reach");
@@ -551,43 +555,43 @@ public class GenericTreeNode {
       }
       return true;
     }
-
-    public SingleChange singleChangeBasedOnWeight()
-    {
-      Random r = new Random();
-      if (this.potential_changes.isEmpty())
-        throw new Error("This should be impossible to reach");
-
-        System.err.println("subtreeweight = "+subTreeWeight);
-
-        int total = 0;
-        for (GenericTreeNode n : children)
-          {
-            total += n.getSubTreeWeight();
-          }
-        if (total != subTreeWeight)
-          System.out.println("keep your objects consistent in the setter functions");
-
-      int rnd = r.nextInt(subTreeWeight + potential_changes.size());
-      if (rnd < potential_changes.size())
-      {
-        this.subTreeWeight -= 1;
-        return potential_changes.remove (rnd);
-      }
-      System.out.println("ici");
-      rnd -= potential_changes.size();
-      System.err.println("rnd = "+rnd);
-      for (GenericTreeNode n : children)
-        {
-          int w = n.getSubTreeWeight();
-          System.out.println("w = "+w);
-          if (rnd < w)
-            return n.singleChangeBasedOnWeight();
-          rnd -= w;
-        }
-      System.out.println("ici2");
-      throw new Error("This should be impossible to reach");
-    }
+    //
+    // public SingleChange singleChangeBasedOnWeight()
+    // {
+    //   Random r = new Random();
+    //   if (this.potential_changes.isEmpty())
+    //     throw new Error("This should be impossible to reach");
+    //
+    //     System.err.println("subtreeweight = "+subTreeWeight);
+    //
+    //     int total = 0;
+    //     for (GenericTreeNode n : children)
+    //       {
+    //         total += n.getSubTreeWeight();
+    //       }
+    //     if (total != subTreeWeight)
+    //       System.out.println("keep your objects consistent in the setter functions");
+    //
+    //   int rnd = r.nextInt(subTreeWeight + potential_changes.size());
+    //   if (rnd < potential_changes.size())
+    //   {
+    //     this.subTreeWeight -= 1;
+    //     return potential_changes.remove (rnd);
+    //   }
+    //   System.out.println("ici");
+    //   rnd -= potential_changes.size();
+    //   System.err.println("rnd = "+rnd);
+    //   for (GenericTreeNode n : children)
+    //     {
+    //       int w = n.getSubTreeWeight();
+    //       System.out.println("w = "+w);
+    //       if (rnd < w)
+    //         return n.singleChangeBasedOnWeight();
+    //       rnd -= w;
+    //     }
+    //   System.out.println("ici2");
+    //   throw new Error("This should be impossible to reach");
+    // }
 
     public void propagateWeight()
     {

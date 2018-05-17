@@ -268,14 +268,12 @@ public class DBFuzzer
         {
             int randNumber = rand.nextInt(previousMutation.getPotential_changes().size());
             nextMut = new GenericTreeNode(previousMutation.getPost_change_row(),nextId(),mutationTree.getRoot(),previousMutation);
-            nextMut.initPotential_changes(nextMut.discoverMutationPossibilities(analyzer.getDb()));
             nextMut.setChosenChange(previousMutation.getPotential_changes().get(randNumber));
         }
         else if(markingDiff == 0 || markingDiff < 0)
         {
-          System.err.println("Hey");
+
             SingleChange tmp = mutationTree.getRoot().singleChangeBasedOnWeight();
-            System.out.println("chosen change = "+tmp);
             nextMut = new GenericTreeNode(tmp.getattachedToMutation().getPost_change_row(),nextId(),mutationTree.getRoot(),tmp.getattachedToMutation());
             nextMut.setChosenChange(tmp);
         }
