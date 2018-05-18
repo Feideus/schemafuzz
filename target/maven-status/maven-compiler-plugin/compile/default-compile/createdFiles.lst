@@ -9,8 +9,8 @@ org/schemaspy/TableOrderer.class
 org/schemaspy/util/DbSpecificConfig.class
 org/schemaspy/model/InvalidConfigurationException.class
 org/schemaspy/service/DatabaseService$ThreadedTableCreator.class
-org/schemaspy/model/xml/TableMeta.class
 org/schemaspy/model/ConnectionFailure.class
+org/schemaspy/model/xml/TableMeta.class
 org/schemaspy/service/SqlService.class
 org/schemaspy/service/ViewService.class
 org/schemaspy/cli/ConfigFileArgumentParser.class
@@ -21,8 +21,8 @@ org/schemaspy/service/TableService$1.class
 org/schemaspy/model/ConsoleProgressListener.class
 org/schemaspy/DbDriverLoader.class
 org/schemaspy/db/config/ResolutionInfo.class
-org/schemaspy/model/Catalog.class
 org/schemaspy/db/exceptions/RuntimeIOException.class
+org/schemaspy/model/Catalog.class
 org/schemaspy/model/xml/ForeignKeyMeta.class
 org/schemaspy/util/CaseInsensitiveMap.class
 org/schemaspy/util/LineWriter.class
@@ -48,8 +48,8 @@ org/schemaspy/model/ProcessExecutionException.class
 org/schemaspy/util/DbSpecificOption.class
 org/schemaspy/util/ConnectionURLBuilder.class
 org/schemaspy/model/Routine.class
-org/schemaspy/cli/ConfigFileArgument.class
 org/schemaspy/model/ProgressListener.class
+org/schemaspy/cli/ConfigFileArgument.class
 org/schemaspy/Main.class
 org/schemaspy/model/View.class
 org/schemaspy/Config.class
@@ -61,12 +61,12 @@ org/schemaspy/util/ResourceNotFoundException.class
 org/schemaspy/service/DatabaseService$TableCreator.class
 org/schemaspy/model/QueryResponse.class
 org/schemaspy/TableOrderer$1TrimComparator.class
-org/schemaspy/model/GenericTreeTraversalOrderEnum.class
 org/schemaspy/model/DatabaseObject.class
+org/schemaspy/model/GenericTreeTraversalOrderEnum.class
 org/schemaspy/util/ResultSetDumper.class
 org/schemaspy/DbAnalyzer.class
-org/schemaspy/model/ImpliedForeignKeyConstraint.class
 org/schemaspy/model/Table$ByColumnIdComparator.class
+org/schemaspy/model/ImpliedForeignKeyConstraint.class
 org/schemaspy/model/xml/SchemaMeta.class
 org/schemaspy/model/TableColumn.class
 org/schemaspy/service/DatabaseService.class
@@ -87,6 +87,6 @@ org/schemaspy/db/config/PropertiesFinder.class
 org/schemaspy/model/ForeignKey.class
 org/schemaspy/service/DatabaseService$1.class
 org/schemaspy/SchemaAnalyzer.class
-org/schemaspy/model/ForeignKeyConstraint.class
 org/schemaspy/model/Database.class
+org/schemaspy/model/ForeignKeyConstraint.class
 org/schemaspy/util/ConsolePasswordReader.class

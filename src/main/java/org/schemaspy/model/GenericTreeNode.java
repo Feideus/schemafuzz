@@ -320,6 +320,10 @@ public class GenericTreeNode {
     public boolean inject(SchemaAnalyzer analyzer, boolean undo) throws Exception
     {
 
+      if(undo)
+        System.out.println("INJECT");
+      else
+        System.out.println("UNDOING");
       String theQuery = updateQueryBuilder(undo);
       try
       {
@@ -339,7 +343,6 @@ public class GenericTreeNode {
     {
       try
       {
-        System.out.println("UNDOING !");
         return this.inject(analyzer, true);
       }
       catch(Exception e)
@@ -462,22 +465,8 @@ public class GenericTreeNode {
 
     public boolean undoToMutation(GenericTreeNode target, SchemaAnalyzer analyzer) throws Exception
     {
-      ArrayList<GenericTreeNode> pathToMutation = findPathToMutation(target);
-      ArrayList<GenericTreeNode> goingUp;
-      ArrayList<GenericTreeNode> goingDown;
-
-      for(int j = 0; j < pathToMutation.size();j++)
-      {
-        if(j < pathToMutation.size()-1)
-        {
-          if(! pathToMutation.get(j).getParent().compare(pathToMutation.get(j+1)))
-          {
-            goingUp = (ArrayList) pathToMutation.subList(0, j);
-            goingDown = (ArrayList) pathToMutation.subList(j+1, pathToMutation.size()-1);
-          }
-
-        }
-      }
+      ArrayList<GenericTreeNode> goingUp = findPathToMutation(target).get(0);
+      ArrayList<GenericTreeNode> goingDown = findPathToMutation(target).get(1);;
 
       for(int i = 0; i < goingUp.size();i++)
       {
@@ -546,9 +535,9 @@ public class GenericTreeNode {
         return "[ MUT ID "+this.getId()+" Depth = "+this.getDepth()+" SG "+this.chosenChange+"]";
     }
 
-    public ArrayList<GenericTreeNode> findPathToMutation(GenericTreeNode target)
+    public ArrayList<ArrayList<GenericTreeNode>> findPathToMutation(GenericTreeNode target)
     {
-      ArrayList<GenericTreeNode> finalPath = new ArrayList<GenericTreeNode>();
+      ArrayList<ArrayList<GenericTreeNode>> finalPath = new ArrayList<ArrayList<GenericTreeNode>>();
       ArrayList<GenericTreeNode> thisPath = new ArrayList<GenericTreeNode>();
       ArrayList<GenericTreeNode> targetPath = new ArrayList<GenericTreeNode>();
 
@@ -584,8 +573,8 @@ public class GenericTreeNode {
       }
 
       Collections.reverse(targetPath);
-      finalPath.addAll(thisPath);
-      finalPath.addAll(targetPath);
+      finalPath.add(thisPath);
+      finalPath.add(targetPath);
 
       System.out.println("this = "+this);
       System.out.println("target = "+target);
@@ -602,7 +591,11 @@ public class GenericTreeNode {
 
     public boolean isSingleChangeOnCurrentPath()
     {
-      for(GenericTreeNode mutOnPath : this.findPathToMutation(rootMutation))
+      ArrayList<GenericTreeNode> finalPath = new ArrayList<GenericTreeNode>();
+      finalPath.addAll(this.findPathToMutation(rootMutation).get(0));
+      finalPath.addAll(this.findPathToMutation(rootMutation).get(1));
+
+      for(GenericTreeNode mutOnPath : finalPath)
       {
         if(mutOnPath.getChosenChange().compare(this.getChosenChange()))
           return false;
