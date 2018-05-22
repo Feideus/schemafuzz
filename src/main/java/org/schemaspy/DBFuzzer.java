@@ -9,8 +9,6 @@ import org.schemaspy.model.*;
 import org.schemaspy.model.Table;
 import org.schemaspy.model.GenericTree;
 import org.schemaspy.model.GenericTreeNode;
-import org.schemaspy.service.DatabaseService;
-import org.schemaspy.service.SqlService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.BufferedReader;
@@ -22,103 +20,146 @@ public class DBFuzzer
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-    public  SqlService sqlService;
-
-    private SchemaAnalyzer analyzer;
-
-    private DatabaseService databaseService;
+    private SchemaAnalyzer analyzer; // Passed from the schemaAnalyser object from the runAnalyzer part. Contains sqlService object used to perform sql Queries
 
     private GenericTree mutationTree = new GenericTree();
 
     public DBFuzzer(SchemaAnalyzer analyzer)
     {
-      this.sqlService = Objects.requireNonNull(analyzer.getSqlService());
-      this.databaseService = Objects.requireNonNull(analyzer.getDatabaseService());
       this.analyzer = analyzer;
+    }
+
+    public boolean processFirstMutation(GenericTreeNode rootMutation)
+    {
+        boolean resQuery,returnStatus=true;
+        try
+        {
+            if(rootMutation.getChosenChange() != null)
+            {
+                resQuery = rootMutation.inject(analyzer,false);
+                if(resQuery)
+                {
+                    LOGGER.info("GenericTreeNode was sucessfull");
+                }
+                else
+                    LOGGER.info("QueryError");
+            }
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+            returnStatus = false;
+        }
+
+
+        //Evalutation
+        try
+        {
+            int mark;
+            Process evaluatorProcess = new ProcessBuilder("/bin/bash", "./evaluator.sh").start();
+            mark = Integer.parseInt(getEvaluatorResponse(evaluatorProcess));
+            rootMutation.setInterest_mark(mark);
+            rootMutation.setWeight(mark);
+            rootMutation.propagateWeight();
+            System.out.println("marking : "+mark);
+            System.out.println("Weight : "+rootMutation.getWeight());
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+            returnStatus = false;
+        }
+
+        return returnStatus;
     }
 
     public boolean fuzz (Config config)
     {
         boolean returnStatus = true;
-        boolean resQuery = false;
+        boolean resQuery;
         int mark = 0;
         //adding CASCADE to all foreign key tableColumns.
         settingTemporaryCascade(false); // need to drop and recreate database
 
         LOGGER.info("Starting Database Fuzzing");
 
+        // Building root Mutation. Could be extended by looking for a relevant first SingleChange as rootMutation
         Row randomRow = pickRandomRow();
         GenericTreeNode currentMutation = new GenericTreeNode(randomRow,nextId());
         currentMutation.setChosenChange(currentMutation.getPotential_changes().get(0));
         mutationTree.setRoot(currentMutation);
+        processFirstMutation(currentMutation);
 
-
+        /*
+        * Main loop. Picks and inject a mutation chosen based on its weight (currently equal to its mark)
+        * After injecting and retrieving the marking for the evaluator,
+        * undoes necessary mutations from the tree to setup for next mutation
+        */
         while(mark != -1)
         {
-          //INJECTION
-          try
-          {
-            if(currentMutation.getChosenChange() != null)
-            {
-              resQuery = currentMutation.inject(analyzer,false);
-              if(resQuery)
-              {
-                LOGGER.info("GenericTreeNode was sucessfull");
-              }
-              else
-                LOGGER.info("QueryError");
-
-            }
-
-          }
-          catch(Exception e)
-          {
-              e.printStackTrace();
-              returnStatus = false;
-          }
-
-
-          //EVALUATION
-          try
-          {
-            Process evaluatorProcess = new ProcessBuilder("/bin/bash", "./evaluator.sh").start();
-            mark = Integer.parseInt(getEvaluatorResponse(evaluatorProcess));
-            currentMutation.setInterest_mark(mark);
-            currentMutation.setWeight(mark);
-            currentMutation.propagateWeight();
-            System.out.println("marking : "+mark);
-            System.out.println("Weight : "+currentMutation.getWeight());
-          }
-          catch(Exception e)
-          {
-            returnStatus = false;
-            e.printStackTrace();
-          }
-
-          // CHOOSINGNEXT GenericTreeNode AND SETTING UP FOR NEXT ITERATION\
-
+          //Choosing next mutation
           currentMutation = chooseNextMutation();
-          while(!this.isNewMutation(currentMutation))
+          while(!this.isNewMutation(currentMutation,mutationTree.getRoot()))
           {
             System.out.println("this GenericTreeNode has already been tried ");
             currentMutation = chooseNextMutation();
           }
 
-          System.out.println("chosen mutation"+currentMutation);
+          System.out.println("chosen mutation "+currentMutation);
 
             if(!currentMutation.getParent().compare(mutationTree.getLastMutation()))
             {
               try
               {
                 mutationTree.getLastMutation().undoToMutation(currentMutation.getParent(),analyzer);
+
               }
               catch(Exception e)
               {
-                System.out.println("error while performing an undo update"+e);
+                e.printStackTrace();
               }
             }
             mutationTree.addToTree(currentMutation);
+            //Injection
+            try
+            {
+                if(currentMutation.getChosenChange() != null)
+                {
+                    resQuery = currentMutation.inject(analyzer,false);
+                    if(resQuery)
+                    {
+                        LOGGER.info("GenericTreeNode was sucessfull");
+                    }
+                    else
+                        LOGGER.info("QueryError");
+                }
+            }
+            catch(Exception e)
+            {
+                e.printStackTrace();
+                returnStatus = false;
+            }
+
+
+            //Evalutation
+            try
+            {
+                // the evaluator sets a mark for representing how interesting the mutation was
+                Process evaluatorProcess = new ProcessBuilder("/bin/bash", "./evaluator.sh").start();
+                mark = Integer.parseInt(getEvaluatorResponse(evaluatorProcess));
+                currentMutation.setInterest_mark(mark);
+                currentMutation.setWeight(mark);
+                currentMutation.propagateWeight(); //update parents weight according to this node new weight
+                System.out.println("marking : "+mark);
+                System.out.println("Weight : "+currentMutation.getWeight());
+            }
+            catch(Exception e)
+            {
+                e.printStackTrace();
+                returnStatus = false;
+            }
       }
+
       System.out.println("success");
       printMutationTree();
       removeTemporaryCascade();
@@ -126,7 +167,7 @@ public class DBFuzzer
     }
 
 
-    //extract Random row from the db specified in sqlService
+    //Extract Random row from the db specified in sqlService
     public Row pickRandomRow()
     {
       Table randomTable = pickRandomTable();
@@ -141,7 +182,7 @@ public class DBFuzzer
 
         try
         {
-             stmt = sqlService.prepareStatement(theQuery);
+             stmt = analyzer.getSqlService().prepareStatement(theQuery);
              rs = stmt.executeQuery();
              res = qrp.parse(rs,analyzer.getDb().getTablesMap().get("test_table")).getRows().get(0); //randomTable should be set there
         }
@@ -166,6 +207,7 @@ public class DBFuzzer
           }
           throw new RuntimeException("Random table wasn't found"); // should never be reached
     }
+
 
     public boolean settingTemporaryCascade(Boolean undo)
     {
@@ -250,6 +292,11 @@ public class DBFuzzer
         return response;
     }
 
+
+    /*
+    * Pick a mutation for next iteration of the main loop.
+    *
+    */
     public GenericTreeNode chooseNextMutation()
     {
       GenericTreeNode nextMut = null;
@@ -258,14 +305,15 @@ public class DBFuzzer
       Random rand = new Random();
 
 
-      if(mutationTree.getNumberOfNodes() > 1)
+      if(mutationTree.getNumberOfNodes() > 1) // first mutation does;n;t have a predecessor
       {
         markingDiff = previousMutation.getInterest_mark()-mutationTree.find(mutationTree.getLastId()).getInterest_mark();
       }
 
+
       if(mutationTree.getRoot() != null)
       {
-        if(markingDiff > 0)
+        if(markingDiff > 0) //
         {
             int randNumber = rand.nextInt(previousMutation.getPotential_changes().size());
             nextMut = new GenericTreeNode(previousMutation.getPost_change_row(),nextId(),mutationTree.getRoot(),previousMutation);
@@ -286,18 +334,33 @@ public class DBFuzzer
       return nextMut;
     }
 
-    public boolean isNewMutation(GenericTreeNode newMut)
+//    public boolean isNewMutation(GenericTreeNode newMut) //iterative shitty implementation.
+//    {
+//      if(newMut.getChosenChange().getNewValue().equals(newMut.getChosenChange().getOldValue()))
+//           return false;
+//
+//      for(int i = 1; i <= mutationTree.getNumberOfNodes(); i++)
+//      {
+//        if(mutationTree.find(i).compare(newMut) || newMut.isSingleChangeOnCurrentPath())
+//          return false;
+//      }
+//
+//      return true;
+//    }
+
+    public boolean isNewMutation(GenericTreeNode newMut,GenericTreeNode rootMutation)
     {
-      if(newMut.getChosenChange().getNewValue().equals(newMut.getChosenChange().getOldValue()))
-           return false;
+        boolean res = true;
 
-      for(int i = 1; i <= mutationTree.getNumberOfNodes(); i++)
-      {
-        if(mutationTree.find(i).compare(newMut) || newMut.isSingleChangeOnCurrentPath())
-          return false;
-      }
+        if(rootMutation.compare(newMut) || newMut.isSingleChangeOnCurrentPath())
+            return false;
 
-      return true;
+        for(GenericTreeNode child : rootMutation.getChildren())
+        {
+          res = isNewMutation(newMut,child);
+        }
+
+        return res;
     }
 
     public void printMutationTree()

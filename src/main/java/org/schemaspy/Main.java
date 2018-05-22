@@ -121,8 +121,6 @@ public class Main implements CommandLineRunner {
         }
         catch(Exception e)
         {
-          System.out.println("erreur");
-          //LOGGER.error(e.getMessage(),e);
           e.printStackTrace();
         }
     }
