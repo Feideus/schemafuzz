@@ -321,9 +321,9 @@ public class GenericTreeNode {
     {
 
       if(undo)
-        System.out.println("INJECT");
-      else
         System.out.println("UNDOING");
+      else
+        System.out.println("INJECT");
       String theQuery = updateQueryBuilder(undo);
       try
       {
@@ -576,10 +576,6 @@ public class GenericTreeNode {
       finalPath.add(thisPath);
       finalPath.add(targetPath);
 
-      System.out.println("this = "+this);
-      System.out.println("target = "+target);
-      System.out.println("final = "+finalPath);
-
       return finalPath;
 
     }
@@ -602,43 +598,7 @@ public class GenericTreeNode {
       }
       return true;
     }
-    //
-    // public SingleChange singleChangeBasedOnWeight()
-    // {
-    //   Random r = new Random();
-    //   if (this.potential_changes.isEmpty())
-    //     throw new Error("This should be impossible to reach");
-    //
-    //     System.err.println("subtreeweight = "+subTreeWeight);
-    //
-    //     int total = 0;
-    //     for (GenericTreeNode n : children)
-    //       {
-    //         total += n.getSubTreeWeight();
-    //       }
-    //     if (total != subTreeWeight)
-    //       System.out.println("keep your objects consistent in the setter functions");
-    //
-    //   int rnd = r.nextInt(subTreeWeight + potential_changes.size());
-    //   if (rnd < potential_changes.size())
-    //   {
-    //     this.subTreeWeight -= 1;
-    //     return potential_changes.remove (rnd);
-    //   }
-    //   System.out.println("ici");
-    //   rnd -= potential_changes.size();
-    //   System.err.println("rnd = "+rnd);
-    //   for (GenericTreeNode n : children)
-    //     {
-    //       int w = n.getSubTreeWeight();
-    //       System.out.println("w = "+w);
-    //       if (rnd < w)
-    //         return n.singleChangeBasedOnWeight();
-    //       rnd -= w;
-    //     }
-    //   System.out.println("ici2");
-    //   throw new Error("This should be impossible to reach");
-    // }
+
 
     public void propagateWeight()
     {

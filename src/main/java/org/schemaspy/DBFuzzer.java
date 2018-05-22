@@ -120,7 +120,7 @@ public class DBFuzzer
             mutationTree.addToTree(currentMutation);
       }
       System.out.println("success");
-      //printMutationTree();
+      printMutationTree();
       removeTemporaryCascade();
       return returnStatus;
     }
@@ -288,27 +288,30 @@ public class DBFuzzer
 
     public boolean isNewMutation(GenericTreeNode newMut)
     {
+      if(newMut.getChosenChange().getNewValue().equals(newMut.getChosenChange().getOldValue()))
+           return false;
+
       for(int i = 1; i <= mutationTree.getNumberOfNodes(); i++)
       {
-        if(mutationTree.find(i).compare(newMut) && !newMut.isSingleChangeOnCurrentPath())
+        if(mutationTree.find(i).compare(newMut) || newMut.isSingleChangeOnCurrentPath())
           return false;
       }
+
       return true;
     }
 
     public void printMutationTree()
     {
-
-      GenericTreeNode currentMutation = mutationTree.getRoot();
-
-      if(currentMutation.getChildren().isEmpty() && currentMutation.getChosenChange() != null)
-        System.out.println(currentMutation.getChosenChange().toString());
-
-      for(int i = 0; i < currentMutation.getChildren().size();i++)
+      String displayer = "";
+      for(int i = 1; i <= mutationTree.getNumberOfNodes();i++)
       {
-        printMutationTree();
+          for(int j = 0; j < mutationTree.find(i).getDepth();j++)
+          {
+              displayer = displayer+"--";
+          }
+          displayer = displayer+mutationTree.find(i).toString()+"\n";
       }
-
+        System.out.println(displayer);
     }
 
     public int nextId()
