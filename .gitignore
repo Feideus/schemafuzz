@@ -9,3 +9,4 @@ target/schemaspy-6.0.0-rc2.jar.original
 ./Work_time.ods
 .idea/
 target/failsafe-reports/
+target/maven-status/maven-compiler-plugin/
