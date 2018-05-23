@@ -46,6 +46,7 @@ public class GenericTreeNode {
         this.weight = 1;
         this.id = id;
         initDepth();
+        initDepth();
         this.initial_state_row = initial_state_row;
         this.potential_changes = discoverMutationPossibilities(rootMutation);
     }
@@ -54,6 +55,15 @@ public class GenericTreeNode {
         return id;
     }
 
+    public void setSubTreeWeight(int subTreeWeight)
+    {
+        this.subTreeWeight = subTreeWeight;
+    }
+
+    public void setPotential_changes(ArrayList<SingleChange> potCh) //used in tests
+    {
+        this.potential_changes = potCh;
+    }
 
     public Integer getWeight() {
         return this.weight;
@@ -184,7 +194,9 @@ public class GenericTreeNode {
 
     public ArrayList<SingleChange> discoverMutationPossibilities(GenericTreeNode rootMutation) {
 
-        int i;
+        if(initial_state_row == null)
+            return null ;
+
         ArrayList<SingleChange> possibilities = new ArrayList<SingleChange>();
 
         //TRYING TO DISCOVER RAW POSSIBILITIES

@@ -17,6 +17,7 @@
 /home/feideus/Work/BFHWork/schemafuzz/src/test/java/org/schemaspy/db/config/PropertiesFinderTest.java
 /home/feideus/Work/BFHWork/schemafuzz/src/test/java/org/dummy/DummyDriverUnsatisfiedCtor.java
 /home/feideus/Work/BFHWork/schemafuzz/src/test/java/org/schemaspy/ConfigTest.java
+/home/feideus/Work/BFHWork/schemafuzz/src/test/java/org/schemaspy/model/GenericTreeNodeTest.java
 /home/feideus/Work/BFHWork/schemafuzz/src/test/java/org/schemaspy/service/DatabaseServiceIT.java
 /home/feideus/Work/BFHWork/schemafuzz/src/test/java/org/schemaspy/db/config/PropertiesResolverTest.java
 /home/feideus/Work/BFHWork/schemafuzz/src/test/java/org/schemaspy/testing/H2MemoryRule.java

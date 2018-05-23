@@ -47,6 +47,7 @@ org/schemaspy/integrationtesting/SchemaMetaIT.class
 org/schemaspy/service/TableServiceTest.class
 org/schemaspy/util/InflectionTest.class
 org/schemaspy/integrationtesting/H2SpacesIT.class
+org/schemaspy/model/GenericTreeNodeTest.class
 org/schemaspy/DbAnalyzerTest.class
 org/schemaspy/testcontainer/MSSQLServerIT.class
 org/schemaspy/testing/LoggingRule.class
