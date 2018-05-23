@@ -1,14 +1,6 @@
 
 package org.schemaspy.model;
 
-import org.schemaspy.*;
-import org.schemaspy.model.SingleChange;
-
-import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import java.util.*;
-
 public class GenericTree {
 
     private GenericTreeNode root;
@@ -36,10 +28,12 @@ public class GenericTree {
     }
 
 
-    private int auxiliaryGetNumberOfNodes(GenericTreeNode node) {
+    private int auxiliaryGetNumberOfNodes(GenericTreeNode node)
+    {
         int numberOfNodes = node.getNumberOfChildren();
 
-        for (GenericTreeNode child : node.getChildren()) {
+        for (GenericTreeNode child : node.getChildren())
+        {
             numberOfNodes += auxiliaryGetNumberOfNodes(child);
         }
 
@@ -47,19 +41,22 @@ public class GenericTree {
     }
 
     //finds a node in the tree recursivly. used as testing and code ease purposes. should not be sued in loop to much.
-    public GenericTreeNode find(Integer id) {
-        if (root == null) {
-            return null;
-        }
+    public GenericTreeNode find(Integer id)
+    {
+        if (root == null)
+           return null;
+
         return auxiliaryFind(root, id);
     }
 
-    private GenericTreeNode auxiliaryFind(GenericTreeNode currentNode, Integer id) {
+    private GenericTreeNode auxiliaryFind(GenericTreeNode currentNode, Integer id)
+    {
         if (currentNode.getId().equals(id))
             return currentNode;
         if (!currentNode.hasChildren())
             return null;
-        for (GenericTreeNode child : currentNode.getChildren()) {
+        for (GenericTreeNode child : currentNode.getChildren())
+        {
             GenericTreeNode returnNode = auxiliaryFind(child, id);
             if (null != returnNode)
                 return returnNode;
@@ -84,25 +81,25 @@ public class GenericTree {
     }
 
     //finds first mutation that hasnt explored the singleChange. not to be used any more as the picking patern.
-    public GenericTreeNode findFirstMutationWithout(GenericTreeNode mutation, SingleChange chosenChange) {
-        int i, j;
+    public GenericTreeNode findFirstMutationWithout(GenericTreeNode mutation, SingleChange chosenChange)
+    {
         boolean noSonHasChosenChange = true;
         GenericTreeNode res = null;
 
-        if (mutation.getChildren().isEmpty()) {
+        if (mutation.getChildren().isEmpty())
             return mutation;
-        }
 
-        for (i = 0; i < mutation.getChildren().size(); i++) {
-            if (mutation.getChildren().get(i).getChosenChange().compare(chosenChange))
+        for(GenericTreeNode child : mutation.getChildren())
+        {
+            if (child.getChosenChange().compare(chosenChange))
                 noSonHasChosenChange = false;
         }
-
         if (noSonHasChosenChange)
             return mutation;
 
-        for (j = 0; j < mutation.getChildren().size(); j++) {
-            res = findFirstMutationWithout(mutation.getChildren().get(j), chosenChange);
+        for(GenericTreeNode child : mutation.getChildren())
+        {
+            res = findFirstMutationWithout(child, chosenChange);
         }
         return res; // should never be null unless the algorithm is not looking for something precise
     }

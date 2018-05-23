@@ -17,12 +17,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 package org.schemaspy.model;
-import java.sql.ResultSet;
-import java.sql.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
-import java.util.*;
+
 
 public class QueryResponse
 {
@@ -43,11 +39,9 @@ public class QueryResponse
   	public QueryResponse(ArrayList<Row> rows, Integer nbRows)
     {
   		this.rows = new ArrayList<Row>();
-      this.rows = rows;
+      	this.rows = rows;
   		this.nbRows = nbRows;
   	}
-
-
 	/**
 	* Returns value of rows
 	* @return
@@ -56,7 +50,7 @@ public class QueryResponse
 		return rows;
 	}
 
-  public void addRow(Row row)
+  	public void addRow(Row row)
   {
     rows.add(row);
   }
@@ -85,7 +79,7 @@ public class QueryResponse
 		this.nbRows = nbRows;
 	}
 
-  public String toString()
+  	public String toString()
   {
     return "Rows = "+rows.toString();
   }

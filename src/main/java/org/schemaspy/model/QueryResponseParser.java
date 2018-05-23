@@ -19,10 +19,8 @@
 package org.schemaspy.model;
 import java.sql.ResultSet;
 import java.sql.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import java.util.*;
-import java.lang.invoke.MethodHandles;
+
 /**
  * Represents a <a href='http://en.wikipedia.org/wiki/Foreign_key'>
  * Foreign Key Constraint</a> that "ties" a child table to a parent table
@@ -32,7 +30,6 @@ public class QueryResponseParser
 {
     private ResultSetMetaData resultMeta;
     private QueryResponse formatedResponse;
-    private final static Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
 
 	public QueryResponseParser() {
@@ -42,7 +39,6 @@ public class QueryResponseParser
 	public QueryResponse getFormatedResponse() {
 		return formatedResponse;
 	}
-
 
 	public void setFormatedResponse(QueryResponse formatedResponse) {
 		this.formatedResponse = formatedResponse;

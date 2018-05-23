@@ -44,14 +44,13 @@ public class Main implements CommandLineRunner {
     @Autowired
     private SchemaAnalyzer analyzer;
 
+    private DBFuzzer dbFuzzer;
+
     @Autowired
     private CommandLineArguments arguments;
 
     @Autowired
     private CommandLineArgumentParser commandLineArgumentParser;
-
-
-    private DBFuzzer dbFuzzer;
 
     @Autowired
     private ApplicationContext context;

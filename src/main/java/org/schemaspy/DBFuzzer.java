@@ -52,7 +52,7 @@ public class DBFuzzer
         }
 
 
-        //Evalutation
+        //Evaluation
         try
         {
             int mark;
@@ -87,9 +87,11 @@ public class DBFuzzer
         Row randomRow = pickRandomRow();
         GenericTreeNode currentMutation = new GenericTreeNode(randomRow,nextId());
         currentMutation.setChosenChange(currentMutation.getPotential_changes().get(0));
+        currentMutation.initPostChangeRow();
         mutationTree.setRoot(currentMutation);
-        processFirstMutation(currentMutation);
 
+        if(!processFirstMutation(currentMutation))
+            return false;
         /*
         * Main loop. Picks and inject a mutation chosen based on its weight (currently equal to its mark)
         * After injecting and retrieving the marking for the evaluator,
@@ -99,7 +101,7 @@ public class DBFuzzer
         {
           //Choosing next mutation
           currentMutation = chooseNextMutation();
-          while(!this.isNewMutation(currentMutation,mutationTree.getRoot()))
+          while(!this.isNewMutation(currentMutation))
           {
             System.out.println("this GenericTreeNode has already been tried ");
             currentMutation = chooseNextMutation();
@@ -299,80 +301,57 @@ public class DBFuzzer
     */
     public GenericTreeNode chooseNextMutation()
     {
-      GenericTreeNode nextMut = null;
-      GenericTreeNode previousMutation = mutationTree.getLastMutation();
-      int markingDiff = previousMutation.getInterest_mark();
-      Random rand = new Random();
+        GenericTreeNode nextMut = null;
+        GenericTreeNode previousMutation = mutationTree.getLastMutation();
+        int markingDiff = previousMutation.getInterest_mark();
+        Random rand = new Random();
 
-
-      if(mutationTree.getNumberOfNodes() > 1) // first mutation does;n;t have a predecessor
-      {
-        markingDiff = previousMutation.getInterest_mark()-mutationTree.find(mutationTree.getLastId()).getInterest_mark();
-      }
-
-
-      if(mutationTree.getRoot() != null)
-      {
-        if(markingDiff > 0) //
+        if (mutationTree.getNumberOfNodes() > 1) // first mutation does;n;t have a predecessor
         {
-            int randNumber = rand.nextInt(previousMutation.getPotential_changes().size());
-            nextMut = new GenericTreeNode(previousMutation.getPost_change_row(),nextId(),mutationTree.getRoot(),previousMutation);
-            nextMut.setChosenChange(previousMutation.getPotential_changes().get(randNumber));
-        }
-        else if(markingDiff == 0 || markingDiff < 0)
-        {
-            SingleChange tmp = mutationTree.getRoot().singleChangeBasedOnWeight();
-            nextMut = new GenericTreeNode(tmp.getattachedToMutation().getPost_change_row(),nextId(),mutationTree.getRoot(),tmp.getattachedToMutation());
-            nextMut.setChosenChange(tmp);
-        }
-        else
-        {
-            System.out.println("I mean What Da Heck");
+            markingDiff = previousMutation.getInterest_mark() - mutationTree.find(mutationTree.getLastId()).getInterest_mark();
         }
 
-      }
-      return nextMut;
+        if (mutationTree.getRoot() != null)
+        {
+            if (markingDiff > 0) //
+            {
+                int randNumber = rand.nextInt(previousMutation.getPotential_changes().size());
+                nextMut = new GenericTreeNode(previousMutation.getPost_change_row(), nextId(), mutationTree.getRoot(), previousMutation);
+                nextMut.setChosenChange(previousMutation.getPotential_changes().get(randNumber));
+                nextMut.initPostChangeRow();
+            }
+            else if (markingDiff == 0 || markingDiff < 0)
+            {
+                SingleChange tmp = mutationTree.getRoot().singleChangeBasedOnWeight();
+                nextMut = new GenericTreeNode(tmp.getattachedToMutation().getPost_change_row(), nextId(), mutationTree.getRoot(), tmp.getattachedToMutation());
+                nextMut.setChosenChange(tmp);
+                nextMut.initPostChangeRow();
+            }
+            else
+                System.out.println("I mean What Da Heck");
+        }
+        return nextMut;
     }
 
-//    public boolean isNewMutation(GenericTreeNode newMut) //iterative shitty implementation.
-//    {
-//      if(newMut.getChosenChange().getNewValue().equals(newMut.getChosenChange().getOldValue()))
-//           return false;
-//
-//      for(int i = 1; i <= mutationTree.getNumberOfNodes(); i++)
-//      {
-//        if(mutationTree.find(i).compare(newMut) || newMut.isSingleChangeOnCurrentPath())
-//          return false;
-//      }
-//
-//      return true;
-//    }
-
-    public boolean isNewMutation(GenericTreeNode newMut,GenericTreeNode rootMutation)
+    public boolean isNewMutation(GenericTreeNode newMut)
     {
-        boolean res = true;
-
-        if(rootMutation.compare(newMut) || newMut.isSingleChangeOnCurrentPath())
+        if(mutationTree.getRoot().compare(newMut) || newMut.isSingleChangeOnCurrentPath(mutationTree.getRoot()))
             return false;
 
-        for(GenericTreeNode child : rootMutation.getChildren())
-        {
-          res = isNewMutation(newMut,child);
-        }
-
-        return res;
+        SingleChange chosenChange = newMut.getChosenChange();
+        return !chosenChange.compareValues();
     }
 
     public void printMutationTree()
     {
-      String displayer = "";
+      String displayer = null ;
       for(int i = 1; i <= mutationTree.getNumberOfNodes();i++)
       {
           for(int j = 0; j < mutationTree.find(i).getDepth();j++)
           {
-              displayer = displayer+"--";
+              displayer = displayer+("--");
           }
-          displayer = displayer+mutationTree.find(i).toString()+"\n";
+          displayer = displayer+(mutationTree.find(i).toString()+"\n");
       }
         System.out.println(displayer);
     }

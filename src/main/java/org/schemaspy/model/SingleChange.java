@@ -10,9 +10,10 @@ public class SingleChange
   private String newValue;
 
 
-	public SingleChange(TableColumn parentColumn ,GenericTreeNode attachedToMutation, String oldValue, String newValue) {
-    this.parentTableColumn = parentColumn;
-		this.attachedToMutation = attachedToMutation;
+	public SingleChange(TableColumn parentColumn ,GenericTreeNode attachedToMutation, String oldValue, String newValue)
+    {
+        this.attachedToMutation = attachedToMutation;
+        this.parentTableColumn = parentColumn;
 		this.oldValue = oldValue;
 		this.newValue = newValue;
 	}
@@ -23,24 +24,20 @@ public class SingleChange
     {
           case "serial":
                         if(Integer.parseInt(newValue) < Math.pow(2,parentTableColumn.getLength()))
-                          return true;
+                            return true;
                         return false;
           case "numeric":
                         if(Integer.parseInt(newValue) < Math.pow(2,parentTableColumn.getLength()))
-                          return true;
+                            return true;
                         return false;
           case "int2":
-                      if(Integer.parseInt(newValue) <= 32767)
-                      {
-                        return true;
-                      }
-                      return false;
+                        if(Integer.parseInt(newValue) <= 32767)
+                            return true;
+                        return false;
           default:
             return true;
-
     }
   }
-
 
    @Override
    public String toString()
@@ -85,5 +82,13 @@ public class SingleChange
     public void setAttachedToMutation(GenericTreeNode attachedToMutation)
     {
       this.attachedToMutation = attachedToMutation;
+    }
+
+    public boolean compareValues()
+    {
+        if(this.getNewValue().equals(this.getOldValue()))
+            return true;
+
+        return false;
     }
 }
