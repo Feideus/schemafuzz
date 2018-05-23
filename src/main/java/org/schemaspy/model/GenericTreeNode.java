@@ -46,7 +46,6 @@ public class GenericTreeNode {
         this.weight = 1;
         this.id = id;
         initDepth();
-        initDepth();
         this.initial_state_row = initial_state_row;
         this.potential_changes = discoverMutationPossibilities(rootMutation);
     }
@@ -226,7 +225,11 @@ public class GenericTreeNode {
     {
 
         ArrayList<SingleChange> oneChange = new ArrayList<SingleChange>();
+
+        System.out.println(tableColumn);
+
         String typeName = tableColumn.getTypeName();
+
 
         switch (typeName) {
             case "int2":

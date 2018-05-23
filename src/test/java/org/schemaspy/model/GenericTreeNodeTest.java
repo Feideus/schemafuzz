@@ -2,12 +2,20 @@ package org.schemaspy.model;
 
 import nl.jqno.equalsverifier.internal.exceptions.AssertionException;
 import org.junit.*;
+import org.schemaspy.Config;
+import org.schemaspy.service.SqlService;
+import org.schemaspy.util.CaseInsensitiveMap;
+import org.springframework.beans.factory.annotation.Autowired;
 
+import java.sql.DatabaseMetaData;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Random;
 
 public class GenericTreeNodeTest {
 
+    @Autowired
+    private SqlService sqlService;
 
 
     @Test
@@ -67,6 +75,63 @@ public class GenericTreeNodeTest {
         gtn3.getPotential_changes().add(sg4);
 
         Assert.assertNotNull(gtn1.singleChangeBasedOnWeight());
+    }
+
+    @Test
+    public void singleChangeAttachedMutatationShouldMatch() // Not very Usefull
+    {
+        GenericTreeNode gtn1 = new GenericTreeNode(null,1,null,null);
+        SingleChange sg1 = new SingleChange(null,null,"1","2");
+
+        gtn1.setChosenChange(sg1);
+
+        Assert.assertEquals("Testing singleChange Attached Mutation consistency",gtn1.getChosenChange().getattachedToMutation().getId(),gtn1.getId());
+
+    }
+
+//    @Test
+//    public void discoverMutationPossibilitiesTest()
+//    {
+//        HashMap<String,String> mapOfTheRow= new HashMap<String,String>();
+//        mapOfTheRow.put("id","1");
+//        mapOfTheRow.put("string","Loy");
+//        mapOfTheRow.put("bool","f");
+//
+//        CaseInsensitiveMap<TableColumn> tableColumns= new CaseInsensitiveMap<TableColumn>();
+//
+//        TableColumn testTableColumn1 = new TableColumn("id","int2");
+//        TableColumn testTableColumn2 = new TableColumn("string","varchar");
+//        TableColumn testTableColumn3 = new TableColumn("bool","bool");
+//
+//        tableColumns.put("",testTableColumn1);
+//        tableColumns.put("",testTableColumn2);
+//        tableColumns.put("",testTableColumn3);
+//
+//        Table testTable = new Table("test_table",tableColumns);
+//        testTable.setColumns(tableColumns);
+//
+//        Row row = new Row(testTable,mapOfTheRow,3);
+//
+//        GenericTreeNode gtn1 = new GenericTreeNode(row,1,null,null);
+//
+//        Assert.assertFalse("No null in a node possibilities",gtn1.getPotential_changes().contains("null"));
+//    }
+
+
+    @Test
+    public void discoverMutationPossibilitiesTest() throws Exception
+    {
+        String[] args = {
+                "-t", "src/test/resources/integrationTesting/dbTypes/h2memory",
+                "-db", "sample_database2",
+                "-s", "DATABASESERVICEIT",
+                "-o", "target/integrationtesting/databaseServiceIT",
+                "-u", "feideus"
+                "-p", "feideus"
+        };
+
+        Config config = new Config(args);
+        DatabaseMetaData databaseMetaData = sqlService.connect(config);
     }
 
 }

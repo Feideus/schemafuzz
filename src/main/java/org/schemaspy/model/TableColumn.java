@@ -56,6 +56,12 @@ public class TableColumn {
     public TableColumn() {
 
     }
+
+    public TableColumn(String tableColumnName, String typeName) //Test purposes
+    {
+        this.name = tableColumnName;
+        this.typeName = typeName;
+    }
     /**
      * Create a column associated with a table.
      *

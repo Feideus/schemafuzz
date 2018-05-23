@@ -76,6 +76,18 @@ public class Table implements Comparable<Table> {
         setComments(comments);
     }
 
+    public Table(String name, CaseInsensitiveMap<TableColumn> tableColumns) // Test Purposes
+    {
+        this.catalog = null;
+        this.schema = null;
+        this.fullName = null;
+        this.container = null;
+        this.db = null;
+        this.name = name;
+        this.columns = tableColumns;
+        System.out.println(columns);
+    }
+
     /**
      * Get the foreign keys associated with this table
      *
