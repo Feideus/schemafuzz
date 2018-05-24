@@ -42,7 +42,7 @@ public class SingleChange
    @Override
    public String toString()
    {
-     return "\n[SG - attachedToMutation : "+this.getattachedToMutation().getId()+"| OV :"+oldValue+" | NV :"+newValue+" ]\n";
+     return "\n[SG - attachedToMutation : "+this.getAttachedToMutation().getId()+"| OV :"+oldValue+" | NV :"+newValue+" ]\n";
    }
 
    public String getOldValue()
@@ -62,6 +62,7 @@ public class SingleChange
 
     public boolean compare(SingleChange chosenChange)
     {
+
       if(!chosenChange.getParentTableColumn().getTable().getName().equals(this.getParentTableColumn().getTable().getName()))
         return false;
 
@@ -74,7 +75,7 @@ public class SingleChange
       return true;
     }
 
-    public GenericTreeNode getattachedToMutation()
+    public GenericTreeNode getAttachedToMutation()
     {
       return this.attachedToMutation;
     }

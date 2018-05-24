@@ -36,7 +36,7 @@ public class DBFuzzer
         {
             if(rootMutation.getChosenChange() != null)
             {
-                resQuery = rootMutation.inject(analyzer,false);
+                resQuery = rootMutation.inject(analyzer.getSqlService(),analyzer.getDb(),false);
                 if(resQuery)
                 {
                     LOGGER.info("GenericTreeNode was sucessfull");
@@ -127,7 +127,7 @@ public class DBFuzzer
             {
                 if(currentMutation.getChosenChange() != null)
                 {
-                    resQuery = currentMutation.inject(analyzer,false);
+                    resQuery = currentMutation.inject(analyzer.getSqlService(),analyzer.getDb(),false);
                     if(resQuery)
                     {
                         LOGGER.info("GenericTreeNode was sucessfull");
@@ -323,7 +323,7 @@ public class DBFuzzer
             else if (markingDiff == 0 || markingDiff < 0)
             {
                 SingleChange tmp = mutationTree.getRoot().singleChangeBasedOnWeight();
-                nextMut = new GenericTreeNode(tmp.getattachedToMutation().getPost_change_row(), nextId(), mutationTree.getRoot(), tmp.getattachedToMutation());
+                nextMut = new GenericTreeNode(tmp.getAttachedToMutation().getPost_change_row(), nextId(), mutationTree.getRoot(), tmp.getAttachedToMutation());
                 nextMut.setChosenChange(tmp);
                 nextMut.initPostChangeRow();
             }

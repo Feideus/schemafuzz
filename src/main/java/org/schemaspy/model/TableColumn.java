@@ -57,10 +57,11 @@ public class TableColumn {
 
     }
 
-    public TableColumn(String tableColumnName, String typeName) //Test purposes
+    public TableColumn(String tableColumnName, String typeName, String parentTableName) //Test purposes
     {
         this.name = tableColumnName;
         this.typeName = typeName;
+        this.table = new Table(parentTableName);
     }
     /**
      * Create a column associated with a table.

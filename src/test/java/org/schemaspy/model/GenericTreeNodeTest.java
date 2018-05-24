@@ -2,20 +2,44 @@ package org.schemaspy.model;
 
 import nl.jqno.equalsverifier.internal.exceptions.AssertionException;
 import org.junit.*;
+import org.junit.rules.ExternalResource;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.schemaspy.Config;
+import org.schemaspy.cli.CommandLineArguments;
+import org.schemaspy.service.DatabaseService;
 import org.schemaspy.service.SqlService;
 import org.schemaspy.util.CaseInsensitiveMap;
 import org.springframework.beans.factory.annotation.Autowired;
-
+import org.junit.Test;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.junit4.SpringRunner;
 import java.sql.DatabaseMetaData;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
 
+
+@RunWith(SpringRunner.class)
+@SpringBootTest
 public class GenericTreeNodeTest {
 
     @Autowired
     private SqlService sqlService;
+    @Autowired
+    private DatabaseService databaseService;
+    private Database database;
+    @Mock
+    private ProgressListener progressListener;
+    @MockBean
+    private CommandLineArguments arguments;
+    @MockBean
+    private CommandLineRunner commandLineRunner;
+
 
 
     @Test
@@ -85,7 +109,7 @@ public class GenericTreeNodeTest {
 
         gtn1.setChosenChange(sg1);
 
-        Assert.assertEquals("Testing singleChange Attached Mutation consistency",gtn1.getChosenChange().getattachedToMutation().getId(),gtn1.getId());
+        Assert.assertEquals("Testing singleChange Attached Mutation consistency",gtn1.getChosenChange().getAttachedToMutation().getId(),gtn1.getId());
 
     }
 
@@ -117,21 +141,149 @@ public class GenericTreeNodeTest {
 //        Assert.assertFalse("No null in a node possibilities",gtn1.getPotential_changes().contains("null"));
 //    }
 
-
     @Test
-    public void discoverMutationPossibilitiesTest() throws Exception
+    public void NoNullMutationPossibilitiesTest() throws Exception
     {
+
         String[] args = {
-                "-t", "src/test/resources/integrationTesting/dbTypes/h2memory",
-                "-db", "sample_database2",
-                "-s", "DATABASESERVICEIT",
+                "-t", "pgsql",
+                "-db","sample_database2",
+                "-hostOptionalPort","127.0.0.1",
                 "-o", "target/integrationtesting/databaseServiceIT",
-                "-u", "feideus"
+                "-dp","postgresql-42.2.2.jar",
+                "-u", "feideus",
                 "-p", "feideus"
         };
 
         Config config = new Config(args);
         DatabaseMetaData databaseMetaData = sqlService.connect(config);
+        String schema = sqlService.getConnection().getSchema();
+        String catalog = sqlService.getConnection().getCatalog();
+        database = new Database(
+                databaseMetaData,
+                "DatabaseServiceIT",
+                catalog,
+                schema,
+                null
+        );
+        databaseService.gatheringSchemaDetails(config, database, progressListener);
+
+        PreparedStatement stmt = sqlService.prepareStatement("SELECT * FROM test_table", database, null);
+        ResultSet rs = stmt.executeQuery();
+        QueryResponseParser parser = new QueryResponseParser();
+
+        QueryResponse response = parser.parse(rs,database.getTablesMap().get("test_table"));
+        GenericTreeNode tmpMutation = new GenericTreeNode(response.getRows().get(0),1);
+        Assert.assertFalse(tmpMutation.discoverMutationPossibilities(tmpMutation).contains("null"));
+
+    }
+
+    @Test
+    public void injectAndUndoConsistencyTest() throws Exception
+    {
+        String[] args = {
+                "-t", "pgsql",
+                "-db","sample_database2",
+                "-hostOptionalPort","127.0.0.1",
+                "-o", "target/integrationtesting/databaseServiceIT",
+                "-dp","postgresql-42.2.2.jar",
+                "-u", "feideus",
+                "-p", "feideus"
+        };
+
+        Config config = new Config(args);
+        DatabaseMetaData databaseMetaData = sqlService.connect(config);
+        String schema = sqlService.getConnection().getSchema();
+        String catalog = sqlService.getConnection().getCatalog();
+        Database database = new Database(
+                databaseMetaData,
+                "DatabaseServiceIT",
+                catalog,
+                schema,
+                null
+        );
+        databaseService.gatheringSchemaDetails(config, database, progressListener);
+
+
+        PreparedStatement stmt = sqlService.prepareStatement("SELECT * FROM test_table", database, null);
+        ResultSet rs = stmt.executeQuery();
+        QueryResponseParser parser = new QueryResponseParser();
+        QueryResponse response = parser.parse(rs,database.getTablesMap().get("test_table"));
+
+        Row row = response.getRows().get(0);
+        GenericTreeNode tmpMutation = new GenericTreeNode(row,1);
+        tmpMutation.setChosenChange(tmpMutation.getPotential_changes().get(0));
+        tmpMutation.initPostChangeRow();
+
+
+        Assert.assertTrue(tmpMutation.inject(sqlService,database,false)); //Test
+
+        rs = stmt.executeQuery();
+        response = parser.parse(rs,database.getTablesMap().get("test_table"));
+
+        Assert.assertTrue(response.getRows().get(0).compare(tmpMutation.getPost_change_row()));
+
+        Assert.assertTrue(tmpMutation.undo(sqlService,database)); //Test
+
+        rs = stmt.executeQuery();
+        response = parser.parse(rs,database.getTablesMap().get("test_table"));
+
+        Assert.assertTrue(response.getRows().get(0).compare(tmpMutation.getInitial_state_row()));
+
+    }
+
+    @Test
+    public void compareTest() throws Exception
+    {
+        String[] args = {
+                "-t", "pgsql",
+                "-db","sample_database2",
+                "-hostOptionalPort","127.0.0.1",
+                "-o", "target/integrationtesting/databaseServiceIT",
+                "-dp","postgresql-42.2.2.jar",
+                "-u", "feideus",
+                "-p", "feideus"
+        };
+
+        Config config = new Config(args);
+        DatabaseMetaData databaseMetaData = sqlService.connect(config);
+        String schema = sqlService.getConnection().getSchema();
+        String catalog = sqlService.getConnection().getCatalog();
+        Database database = new Database(
+                databaseMetaData,
+                "DatabaseServiceIT",
+                catalog,
+                schema,
+                null
+        );
+        databaseService.gatheringSchemaDetails(config, database, progressListener);
+
+
+        PreparedStatement stmt = sqlService.prepareStatement("SELECT * FROM test_table", database, null);
+        ResultSet rs = stmt.executeQuery();
+        QueryResponseParser parser = new QueryResponseParser();
+        QueryResponse response = parser.parse(rs,database.getTablesMap().get("test_table"));
+
+        Row row = response.getRows().get(0);
+        Row row2 = row.clone();
+
+        GenericTreeNode tmpMutation = new GenericTreeNode(row,1);
+        tmpMutation.setChosenChange(tmpMutation.getPotential_changes().get(0));
+
+        GenericTreeNode tmpMutation2 = new GenericTreeNode(row2,2);
+        tmpMutation2.setChosenChange(tmpMutation.getPotential_changes().get(0)); // taking potential change fron mut1 just to be sure
+
+
+        Assert.assertTrue(tmpMutation.compare(tmpMutation2));
+
+        tmpMutation.getInitial_state_row().getContent().replace("id","-20");
+
+        Assert.assertFalse(tmpMutation.compare(tmpMutation2));
+
+        tmpMutation.setChosenChange(tmpMutation.getPotential_changes().get(1));
+
+        Assert.assertFalse(tmpMutation.compare(tmpMutation2));
+
     }
 
 }

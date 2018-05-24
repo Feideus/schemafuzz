@@ -40,11 +40,12 @@ public class Row
     		this.content = new HashMap<String,String>();
 	}
 
-	public Row(Table parentTable, HashMap<String,String> content, Integer nbKeys) {
-    this.parentTable = parentTable;
-		this.content = new HashMap<String,String>();
-    this.content = content;
-		this.nbKeys = nbKeys;
+	public Row(Table parentTable, HashMap<String,String> content, Integer nbKeys)
+    {
+        this.parentTable = parentTable;
+        this.content = new HashMap<String,String>();
+        this.content = content;
+        this.nbKeys = nbKeys;
 	}
 
   public Table getParentTable()
@@ -95,12 +96,9 @@ public class Row
     {
       if(!initial_state_row.getContent().containsKey(entry.getKey()))
         return false;
-      else
-      {
-        if(!initial_state_row.getContent().get(entry.getKey()).equals(entry.getValue()))
-          return false;
-      }
 
+      if(!initial_state_row.getContent().get(entry.getKey()).equals(entry.getValue()))
+          return false;
     }
       return true;
   }

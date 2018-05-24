@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.schemaspy.*;
+import org.schemaspy.service.SqlService;
 
 public class GenericTreeNode {
 
@@ -28,7 +29,7 @@ public class GenericTreeNode {
     /**
      * Default GenericTreeNode constructor
      */
-    public GenericTreeNode(Row initial_state_row, int id) { // used only for rootMutation
+    public GenericTreeNode(Row initial_state_row, int id) { // used only for rootMutation and Tests
         this.cascadingFK = false;
         this.subTreeWeight = 0;
         this.parent = null;
@@ -38,6 +39,18 @@ public class GenericTreeNode {
         this.initial_state_row = initial_state_row;
         this.potential_changes = discoverMutationPossibilities(this);
     }
+
+    public GenericTreeNode(Row initial_state_row,int id, SingleChange sg) { // used only for  Tests
+        this.cascadingFK = false;
+        this.subTreeWeight = 0;
+        this.parent = null;
+        this.weight = 1;
+        this.depth = 0;
+        this.id = id;
+        this.initial_state_row = initial_state_row;
+        this.chosenChange = sg;
+    }
+
 
     public GenericTreeNode(Row initial_state_row, int id, GenericTreeNode rootMutation, GenericTreeNode parentMutation) {
         this.parent = parentMutation;
@@ -226,8 +239,6 @@ public class GenericTreeNode {
 
         ArrayList<SingleChange> oneChange = new ArrayList<SingleChange>();
 
-        System.out.println(tableColumn);
-
         String typeName = tableColumn.getTypeName();
 
 
@@ -282,7 +293,7 @@ public class GenericTreeNode {
         return oneChange;
     }
 
-    public boolean inject(SchemaAnalyzer analyzer, boolean undo)
+    public boolean inject(SqlService sqlService,Database db, boolean undo)
     {
 
         if (undo)
@@ -293,7 +304,7 @@ public class GenericTreeNode {
         String theQuery = updateQueryBuilder(undo);
         try
         {
-            PreparedStatement stmt = analyzer.getSqlService().prepareStatement(theQuery, analyzer.getDb(), null);
+            PreparedStatement stmt = sqlService.prepareStatement(theQuery, db, null);
             stmt.execute();
             return true;
         }
@@ -310,11 +321,11 @@ public class GenericTreeNode {
         this.post_change_row.setValueOfColumn(chosenChange.getParentTableColumn().getName(), chosenChange.getNewValue());
     }
 
-    public boolean undo(SchemaAnalyzer analyzer)
+    public boolean undo(SqlService sqlService,Database db)
     {
         try
         {
-           return this.inject(analyzer, true);
+           return this.inject(sqlService,db, true);
         }
         catch(Exception e)
         {
@@ -423,14 +434,13 @@ public class GenericTreeNode {
 
     public boolean compare(GenericTreeNode genericTreeNode)
     {
-        boolean res = false;
         if (this.getId() == genericTreeNode.getId())
-            res = true;
+            return true;
 
         if (this.initial_state_row.compare(genericTreeNode.getInitial_state_row()) && this.chosenChange.compare(genericTreeNode.getChosenChange()))
-            res = true;
+            return true;
 
-        return res;
+        return false;
     }
 
     public boolean undoToMutation(GenericTreeNode target, SchemaAnalyzer analyzer)
@@ -440,12 +450,12 @@ public class GenericTreeNode {
 
         for(GenericTreeNode node : goingUp )
         {
-            node.undo(analyzer);
+            node.undo(analyzer.getSqlService(),analyzer.getDb());
         }
 
         for(GenericTreeNode node : goingDown )
         {
-            node.inject(analyzer, false);
+            node.inject(analyzer.getSqlService(),analyzer.getDb(), false);
         }
 
         return true;
@@ -469,11 +479,6 @@ public class GenericTreeNode {
 
     public void setChildren(ArrayList<GenericTreeNode> children)
     {
-        for (GenericTreeNode child : children)
-        {
-            child.parent = this;
-        }
-
         this.children = children;
     }
 
