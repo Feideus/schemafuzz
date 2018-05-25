@@ -63,6 +63,10 @@ public class GenericTreeNode {
         this.potential_changes = discoverMutationPossibilities(rootMutation);
     }
 
+    public void setDepth(int depth) {
+        this.depth = depth;
+    }
+
     public Integer getId() {
         return id;
     }
@@ -145,8 +149,6 @@ public class GenericTreeNode {
             }
             rnd -= w;
         }
-
-        System.out.println("ici2");
         throw new Error("This should be impossible to reach");
     }
 
@@ -434,8 +436,15 @@ public class GenericTreeNode {
 
     public boolean compare(GenericTreeNode genericTreeNode)
     {
-        if (this.getId() == genericTreeNode.getId())
+        if(this == null || genericTreeNode == null )
+            return false;
+
+        if(this.getInitial_state_row() == null || genericTreeNode.getInitial_state_row() == null)
+            return false;
+
+        if (this.getId() == genericTreeNode.getId()) {
             return true;
+        }
 
         if (this.initial_state_row.compare(genericTreeNode.getInitial_state_row()) && this.chosenChange.compare(genericTreeNode.getChosenChange()))
             return true;
@@ -518,6 +527,9 @@ public class GenericTreeNode {
                 tmpTarget = tmpTarget.getParent();
             }
         }
+
+        System.out.println(tmpThis);
+        System.out.println(tmpTarget);
 
         while (!tmpThis.compare(tmpTarget))
         {

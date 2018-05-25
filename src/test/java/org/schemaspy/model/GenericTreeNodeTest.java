@@ -113,34 +113,6 @@ public class GenericTreeNodeTest {
 
     }
 
-//    @Test
-//    public void discoverMutationPossibilitiesTest()
-//    {
-//        HashMap<String,String> mapOfTheRow= new HashMap<String,String>();
-//        mapOfTheRow.put("id","1");
-//        mapOfTheRow.put("string","Loy");
-//        mapOfTheRow.put("bool","f");
-//
-//        CaseInsensitiveMap<TableColumn> tableColumns= new CaseInsensitiveMap<TableColumn>();
-//
-//        TableColumn testTableColumn1 = new TableColumn("id","int2");
-//        TableColumn testTableColumn2 = new TableColumn("string","varchar");
-//        TableColumn testTableColumn3 = new TableColumn("bool","bool");
-//
-//        tableColumns.put("",testTableColumn1);
-//        tableColumns.put("",testTableColumn2);
-//        tableColumns.put("",testTableColumn3);
-//
-//        Table testTable = new Table("test_table",tableColumns);
-//        testTable.setColumns(tableColumns);
-//
-//        Row row = new Row(testTable,mapOfTheRow,3);
-//
-//        GenericTreeNode gtn1 = new GenericTreeNode(row,1,null,null);
-//
-//        Assert.assertFalse("No null in a node possibilities",gtn1.getPotential_changes().contains("null"));
-//    }
-
     @Test
     public void NoNullMutationPossibilitiesTest() throws Exception
     {
@@ -285,5 +257,72 @@ public class GenericTreeNodeTest {
         Assert.assertFalse(tmpMutation.compare(tmpMutation2));
 
     }
+
+//    @Test  ?????????NOT FUNCTIONNAL ??????????
+//    public void findPathToMutationTest ()
+//    {
+//        GenericTreeNode rootMutation = new GenericTreeNode(null,0);
+//        rootMutation.setParent(null);
+//        rootMutation.setDepth(0);
+//        GenericTreeNode tmpMutation = new GenericTreeNode(null,1);
+//        tmpMutation.setParent(rootMutation);
+//        rootMutation.setDepth(1);
+//        GenericTreeNode tmpMutation3 = new GenericTreeNode(null,3);
+//        tmpMutation3.setParent(rootMutation);
+//        rootMutation.setDepth(1);
+//        GenericTreeNode tmpMutation2 = new GenericTreeNode(null,2);
+//        tmpMutation2.setParent(tmpMutation);
+//        rootMutation.setDepth(2);
+//        GenericTreeNode tmpMutation4 = new GenericTreeNode(null,4);
+//        tmpMutation4.setParent(tmpMutation3);
+//        rootMutation.setDepth(2);
+//
+//        ArrayList<GenericTreeNode> res1 = new ArrayList<>();
+//        res1.add(tmpMutation2);
+//        res1.add(tmpMutation);
+//
+//        ArrayList<GenericTreeNode> res2 = new ArrayList<>();
+//        res2.add(tmpMutation3);
+//        res2.add(tmpMutation4);
+//
+//        ArrayList<ArrayList<GenericTreeNode>> finalPath = new ArrayList<>();
+//        finalPath.add(res1);
+//        finalPath.add(res2);
+//
+//        Assert.assertTrue(tmpMutation2.findPathToMutation(tmpMutation4).equals(finalPath));
+//
+//    }
+//
+//    @Test
+//    public void isSingleChangeOnPathTest ()
+//    {
+//        TableColumn tmpTableColumn1 = new TableColumn("test_table_column","bool","test_table");
+//        TableColumn tmpTableColumn2 = new TableColumn("test_table_column","bool","test_table");
+//
+//
+//        GenericTreeNode rootMutation = new GenericTreeNode(null,0);
+//        rootMutation.setParent(null);
+//        rootMutation.setChosenChange(new SingleChange(tmpTableColumn1,null,"1","3"));
+//        rootMutation.setDepth(0);
+//
+//
+//        GenericTreeNode tmpMutation = new GenericTreeNode(null,1);
+//        tmpMutation.setParent(rootMutation);
+//        rootMutation.setDepth(1);
+//
+//        GenericTreeNode tmpMutation2 = new GenericTreeNode(null,2);
+//        tmpMutation2.setChosenChange(new SingleChange(tmpTableColumn2,null,"1","2"));
+//        tmpMutation2.setParent(tmpMutation);
+//        rootMutation.setDepth(2);
+//
+//        GenericTreeNode tmpMutationInPath = new GenericTreeNode(null,3);
+//        tmpMutationInPath.setParent(tmpMutation2);
+//        tmpMutationInPath.setChosenChange(new SingleChange(tmpTableColumn1,null,"1","3"));
+//        rootMutation.setDepth(3);
+//
+//        Assert.assertFalse(tmpMutation2.isSingleChangeOnCurrentPath(rootMutation));
+//        Assert.assertTrue(tmpMutationInPath.isSingleChangeOnCurrentPath(rootMutation));
+//
+//    }
 
 }

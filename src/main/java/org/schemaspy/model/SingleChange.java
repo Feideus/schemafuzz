@@ -62,15 +62,17 @@ public class SingleChange
 
     public boolean compare(SingleChange chosenChange)
     {
+        if(chosenChange == null || this == null )
+            return false;
 
-      if(!chosenChange.getParentTableColumn().getTable().getName().equals(this.getParentTableColumn().getTable().getName()))
-        return false;
+        if(!chosenChange.getNewValue().equals(this.getNewValue()) || !chosenChange.getOldValue().equals(this.getOldValue()))
+            return false;
 
-      if(!chosenChange.getParentTableColumn().getName().equals(this.getParentTableColumn().getName()))
-        return false;
+        if(!chosenChange.getParentTableColumn().getTable().getName().equals(this.getParentTableColumn().getTable().getName()))
+          return false;
 
-      if(!chosenChange.getNewValue().equals(this.getNewValue()) || !chosenChange.getOldValue().equals(this.getOldValue()))
-        return false;
+        if(!chosenChange.getParentTableColumn().getName().equals(this.getParentTableColumn().getName()))
+          return false;
 
       return true;
     }

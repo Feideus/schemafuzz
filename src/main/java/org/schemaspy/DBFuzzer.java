@@ -97,7 +97,7 @@ public class DBFuzzer
         * After injecting and retrieving the marking for the evaluator,
         * undoes necessary mutations from the tree to setup for next mutation
         */
-        while(mark != -1)
+        while(mark != -2)
         {
           //Choosing next mutation
           currentMutation = chooseNextMutation();
@@ -147,7 +147,7 @@ public class DBFuzzer
             try
             {
                 // the evaluator sets a mark for representing how interesting the mutation was
-                Process evaluatorProcess = new ProcessBuilder("/bin/bash", "./evaluator.sh").start();
+                Process evaluatorProcess = new ProcessBuilder("/bin/bash", "./aLittleBitLessDumbEvaluator.sh").start();
                 mark = Integer.parseInt(getEvaluatorResponse(evaluatorProcess));
                 currentMutation.setInterest_mark(mark);
                 currentMutation.setWeight(mark);
@@ -176,7 +176,7 @@ public class DBFuzzer
 
 
       //String theQuery = "SELECT * FROM "+randomTable.getName()+" ORDER BY RANDOM() LIMIT 1";
-      String theQuery = "SELECT * FROM test_table ORDER BY RANDOM() LIMIT 1";
+      String theQuery = "SELECT * FROM test_table2 ORDER BY RANDOM() LIMIT 1"; // Change test_table2 to test_table here to swap back to line finding
       QueryResponseParser qrp = new QueryResponseParser();
       ResultSet rs = null;
       Row res = null ;
@@ -186,7 +186,7 @@ public class DBFuzzer
         {
              stmt = analyzer.getSqlService().prepareStatement(theQuery);
              rs = stmt.executeQuery();
-             res = qrp.parse(rs,analyzer.getDb().getTablesMap().get("test_table")).getRows().get(0); //randomTable should be set there
+             res = qrp.parse(rs,analyzer.getDb().getTablesMap().get("test_table2")).getRows().get(0); //randomTable should be set there
         }
         catch (Exception e)
         {
