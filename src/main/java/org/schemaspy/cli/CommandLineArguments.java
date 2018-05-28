@@ -116,6 +116,13 @@ public class CommandLineArguments {
     )
     private String query;
 
+    @Parameter(
+            names = {
+                    "-mx", "--maxDepth",
+            }
+    )
+    private String maxDepth;
+
     /* TODO Password handling is more complex, see Config class (prompt for password, fallback to Environment variable, multiple schemas, etc.)
     @Parameter(
             names = {
@@ -200,4 +207,7 @@ public class CommandLineArguments {
     public Integer getPort() {
         return port;
     }
+
+    public String getMaxDepth() { return maxDepth; }
+
 }

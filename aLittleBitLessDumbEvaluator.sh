@@ -7,12 +7,6 @@ RESULT=$( echo $RESULT | cut -d "-" -f 2 )
 RESULT=$( echo $RESULT | cut -d "(" -f1 )
 IFS=' | ' read -ra array <<< "$RESULT"
 
-echo $RESULT
-echo ${array[0]}
-echo ${array[1]}
-echo ${array[2]}
-echo ${array[3]}
-
 SCORE=0
 
 if [[ ${array[0]} = "t" && "${array[1]}" = "t" && "${array[2]}" = "t" && "${array[3]}" = "t" ]]

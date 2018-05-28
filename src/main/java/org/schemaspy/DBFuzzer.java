@@ -77,6 +77,9 @@ public class DBFuzzer
     {
         boolean returnStatus = true;
         boolean resQuery;
+        int TreeDepth = 0;
+        int maxDepth = Integer.parseInt(analyzer.getCommandLineArguments().getMaxDepth());
+        System.out.println(maxDepth);
         int mark = 0;
         //adding CASCADE to all foreign key tableColumns.
         settingTemporaryCascade(false); // need to drop and recreate database
@@ -97,7 +100,7 @@ public class DBFuzzer
         * After injecting and retrieving the marking for the evaluator,
         * undoes necessary mutations from the tree to setup for next mutation
         */
-        while(mark != -2)
+        while(TreeDepth != maxDepth)
         {
           //Choosing next mutation
           currentMutation = chooseNextMutation();
@@ -160,6 +163,7 @@ public class DBFuzzer
                 e.printStackTrace();
                 returnStatus = false;
             }
+            TreeDepth = mutationTree.checkMaxDepth(mutationTree.getRoot());
       }
 
       System.out.println("success");
@@ -363,4 +367,5 @@ public class DBFuzzer
       return res;
     }
 
+    
 }

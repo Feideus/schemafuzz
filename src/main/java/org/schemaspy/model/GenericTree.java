@@ -103,4 +103,21 @@ public class GenericTree {
         }
         return res; // should never be null unless the algorithm is not looking for something precise
     }
+
+    public int checkMaxDepth(GenericTreeNode root)
+    {
+        int res = 0;
+
+        if(root.getChildren().isEmpty())
+            return root.getDepth();
+
+        for(GenericTreeNode child :root.getChildren())
+        {
+            int tmp = checkMaxDepth(child);
+            if(tmp > res)
+                res = tmp;
+        }
+
+        return res;
+    }
 }

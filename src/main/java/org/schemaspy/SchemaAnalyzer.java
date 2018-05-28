@@ -50,6 +50,8 @@ public class SchemaAnalyzer {
 
     private Database db;
 
+
+
     private final CommandLineArguments commandLineArguments;
 
     public SchemaAnalyzer(SqlService sqlService, DatabaseService databaseService, CommandLineArguments commandLineArguments) {
@@ -200,6 +202,9 @@ public class SchemaAnalyzer {
         }
     }
 
+    public CommandLineArguments getCommandLineArguments() {
+        return commandLineArguments;
+    }
 
     private Connection getConnection(Config config) throws IOException {
 
