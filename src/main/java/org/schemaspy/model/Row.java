@@ -33,17 +33,17 @@ import java.util.*;
 public class Row
 {
     private Table parentTable;
-    private HashMap<String,String> content;
+    private HashMap<String,Object> content;
     private Integer nbKeys;
 
 	public Row() {
-    		this.content = new HashMap<String,String>();
+    		this.content = new HashMap<String,Object>();
 	}
 
-	public Row(Table parentTable, HashMap<String,String> content, Integer nbKeys)
+	public Row(Table parentTable, HashMap<String,Object> content, Integer nbKeys)
     {
         this.parentTable = parentTable;
-        this.content = new HashMap<String,String>();
+        this.content = new HashMap<String,Object>();
         this.content = content;
         this.nbKeys = nbKeys;
 	}
@@ -53,11 +53,11 @@ public class Row
     return this.parentTable;
   }
 
-	public HashMap<String,String> getContent() {
+	public HashMap<String,Object> getContent() {
 		return content;
 	}
 
-	public void setContent(HashMap<String,String> content) {
+	public void setContent(HashMap<String,Object> content) {
 		this.content = content;
 	}
 
@@ -66,12 +66,12 @@ public class Row
 		return nbKeys;
 	}
 
-  public String getValueOfColumn(String columnName)
+  public Object getValueOfColumn(String columnName)
   {
     return content.get(columnName);
   }
 
-  public void setValueOfColumn(String columnName, String newVal)
+  public void setValueOfColumn(String columnName, Object newVal)
   {
     this.getContent().replace(columnName, newVal);
   }
@@ -92,7 +92,7 @@ public class Row
     if(content.size() != initial_state_row.getContent().size())
       return false;
 
-    for(Map.Entry<String,String> entry : content.entrySet())
+    for(Map.Entry<String,Object> entry : content.entrySet())
     {
       if(!initial_state_row.getContent().containsKey(entry.getKey()))
         return false;
@@ -105,7 +105,7 @@ public class Row
 
   public Row clone()
   {
-    HashMap<String,String> clonedMap = (HashMap<String,String>) this.content.clone();
+    HashMap<String,Object> clonedMap = (HashMap<String,Object>) this.content.clone();
     Row res = new Row(this.parentTable,clonedMap,this.content.keySet().size());
 
     return res;

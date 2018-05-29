@@ -6,11 +6,11 @@ public class SingleChange
 {
   private GenericTreeNode attachedToMutation;
   private TableColumn parentTableColumn;
-  private String oldValue;
-  private String newValue;
+  private Object oldValue;
+  private Object newValue;
 
 
-	public SingleChange(TableColumn parentColumn ,GenericTreeNode attachedToMutation, String oldValue, String newValue)
+	public SingleChange(TableColumn parentColumn ,GenericTreeNode attachedToMutation, Object oldValue, Object newValue)
     {
         this.attachedToMutation = attachedToMutation;
         this.parentTableColumn = parentColumn;
@@ -23,15 +23,15 @@ public class SingleChange
     switch (parentTableColumn.getTypeName())
     {
           case "serial":
-                        if(Integer.parseInt(newValue) < Math.pow(2,parentTableColumn.getLength()))
+                        if(Integer.parseInt(newValue.toString()) < Math.pow(2,parentTableColumn.getLength()))
                             return true;
                         return false;
           case "numeric":
-                        if(Integer.parseInt(newValue) < Math.pow(2,parentTableColumn.getLength()))
+                        if(Integer.parseInt(newValue.toString()) < Math.pow(2,parentTableColumn.getLength()))
                             return true;
                         return false;
           case "int2":
-                        if(Integer.parseInt(newValue) <= 32767)
+                        if(Integer.parseInt(newValue.toString()) <= 32767)
                             return true;
                         return false;
           default:
@@ -45,12 +45,12 @@ public class SingleChange
      return "\n[SG - attachedToMutation : "+this.getAttachedToMutation().getId()+"| OV :"+oldValue+" | NV :"+newValue+" ]\n";
    }
 
-   public String getOldValue()
+   public Object getOldValue()
     {
       return oldValue;
     }
 
-    public String getNewValue()
+    public Object getNewValue()
     {
       return newValue;
     }

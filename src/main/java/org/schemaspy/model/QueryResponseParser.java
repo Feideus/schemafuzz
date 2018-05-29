@@ -56,10 +56,12 @@ public class QueryResponseParser
 
           while(resultOfQuery.next())
           {
-            HashMap<String,String> mapOfTheRow = new HashMap<String,String>();
+            HashMap<String,Object> mapOfTheRow = new HashMap();
 
             for(i = 1; i <= resultMeta.getColumnCount();i++)
             {
+              if(resultMeta.getColumnTypeName(i).equals("timestamp"))
+                  mapOfTheRow.put(resultMeta.getColumnName(i),resultOfQuery.getTimestamp(i));
               mapOfTheRow.put(resultMeta.getColumnName(i), resultOfQuery.getString(i));
             }
 

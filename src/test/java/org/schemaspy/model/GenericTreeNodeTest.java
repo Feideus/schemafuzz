@@ -102,10 +102,14 @@ public class GenericTreeNodeTest {
     }
 
     @Test
-    public void singleChangeAttachedMutatationShouldMatch() // Not very Usefull
+    public void singleChangeAttachedMutationShouldMatch() // Not very Usefull
     {
         GenericTreeNode gtn1 = new GenericTreeNode(null,1,null,null);
-        SingleChange sg1 = new SingleChange(null,null,"1","2");
+        String s1 = "1";
+        Object so1 = s1;
+        String s2 = "2";
+        Object so2 = s2;
+        SingleChange sg1 = new SingleChange(null,null,so1,so2);
 
         gtn1.setChosenChange(sg1);
 

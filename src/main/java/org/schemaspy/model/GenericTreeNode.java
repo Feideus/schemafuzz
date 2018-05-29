@@ -216,7 +216,7 @@ public class GenericTreeNode {
         ArrayList<SingleChange> possibilities = new ArrayList<SingleChange>();
 
         //TRYING TO DISCOVER RAW POSSIBILITIES
-        for (Map.Entry<String, String> content : initial_state_row.getContent().entrySet())
+        for (Map.Entry<String, Object> content : initial_state_row.getContent().entrySet())
         {
             try
             {
@@ -240,7 +240,7 @@ public class GenericTreeNode {
         return possibilities;
     }
 
-    public ArrayList<SingleChange> discoverFieldPossibilities(TableColumn tableColumn, String column_value,GenericTreeNode rootMutation) throws Exception //listing of the mutation possibilities on the specified row
+    public ArrayList<SingleChange> discoverFieldPossibilities(TableColumn tableColumn, Object column_value,GenericTreeNode rootMutation) throws Exception //listing of the mutation possibilities on the specified row
     {
 
         ArrayList<SingleChange> oneChange = new ArrayList<SingleChange>();
@@ -252,7 +252,7 @@ public class GenericTreeNode {
             case "smallint":
             case "integer":
             case "int2":
-                int tmp = Integer.parseInt(rootMutation.getInitial_state_row().getContent().get(tableColumn.getName()));
+                int tmp = Integer.parseInt(rootMutation.getInitial_state_row().getContent().get(tableColumn.getName()).toString());
                 oneChange.add(new SingleChange(tableColumn, this, column_value, Integer.toString(tmp++)));
                 oneChange.add(new SingleChange(tableColumn, this, column_value, Integer.toString(32767)));
                 oneChange.add(new SingleChange(tableColumn, this, column_value, Integer.toString(1)));
@@ -262,15 +262,15 @@ public class GenericTreeNode {
             case "character varying":
             case "varchar":
                 if (rootMutation == null) {
-                    char tmp2 = column_value.charAt(0);
-                    oneChange.add(new SingleChange(tableColumn, this, column_value, (Character.toString(tmp2++) + column_value.substring(1))));
-                    oneChange.add(new SingleChange(tableColumn, this, column_value, (Character.toString(tmp2--) + column_value.substring(1))));
+                    char tmp2 = column_value.toString().charAt(0);
+                    oneChange.add(new SingleChange(tableColumn, this, column_value, (Character.toString(tmp2++) + column_value.toString().substring(1))));
+                    oneChange.add(new SingleChange(tableColumn, this, column_value, (Character.toString(tmp2--) + column_value.toString().substring(1))));
                 } else {
-                    char tmp2 = (char) rootMutation.getInitial_state_row().getContent().get(tableColumn.getName()).charAt(0);
+                    char tmp2 = (char) rootMutation.getInitial_state_row().getContent().get(tableColumn.getName()).toString().charAt(0);
                     char nextChar = (char) (tmp2 + 1);
                     char prevChar = (char) (tmp2 - 1);
-                    oneChange.add(new SingleChange(tableColumn, this, column_value, (Character.toString(nextChar) + column_value.substring(1))));
-                    oneChange.add(new SingleChange(tableColumn, this, column_value, (Character.toString(prevChar) + column_value.substring(1))));
+                    oneChange.add(new SingleChange(tableColumn, this, column_value, (Character.toString(nextChar) + column_value.toString().substring(1))));
+                    oneChange.add(new SingleChange(tableColumn, this, column_value, (Character.toString(prevChar) + column_value.toString().substring(1))));
                 }
 
                 break;
@@ -281,7 +281,7 @@ public class GenericTreeNode {
                     oneChange.add(new SingleChange(tableColumn, this, column_value, "f"));
                 break;
 
-            case "timestamp":
+            /*case "timestamp":
                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
                 Calendar cal = Calendar.getInstance();
 
@@ -300,7 +300,7 @@ public class GenericTreeNode {
 
                 break;
 
-              /*case 6:  typeName = "June";
+              case 6:  typeName = "June";
                        break;
               case 7:  typeName = "July";
                        break;
@@ -369,59 +369,63 @@ public class GenericTreeNode {
 
         if (undo)
         {
-            if (chosenChange.getParentTableColumn().getTypeName().equals("varchar") || chosenChange.getParentTableColumn().getTypeName().equals("bool"))
-                theQuery = "UPDATE " + initial_state_row.getParentTable().getName() + " SET " + chosenChange.getParentTableColumn().getName() + "='" + chosenChange.getOldValue() + "', ";
+            if (chosenChange.getParentTableColumn().getTypeName().equals("varchar")
+                    || chosenChange.getParentTableColumn().getTypeName().equals("bool")
+                    || chosenChange.getParentTableColumn().getTypeName().equals("timestamp"))
+                theQuery = "UPDATE " + initial_state_row.getParentTable().getName() + " SET " + chosenChange.getParentTableColumn().getName() + "='" + chosenChange.getOldValue().toString() + "', ";
             else
-                theQuery = "UPDATE " + initial_state_row.getParentTable().getName() + " SET " + chosenChange.getParentTableColumn().getName() + " = " + chosenChange.getOldValue() + ", ";
+                theQuery = "UPDATE " + initial_state_row.getParentTable().getName() + " SET " + chosenChange.getParentTableColumn().getName() + " = " + chosenChange.getOldValue().toString() + ", ";
         }
         else
         {
-            if (chosenChange.getParentTableColumn().getTypeName().equals("varchar") || chosenChange.getParentTableColumn().getTypeName().equals("bool"))
-                theQuery = "UPDATE " + initial_state_row.getParentTable().getName() + " SET " + chosenChange.getParentTableColumn().getName() + "='" + chosenChange.getNewValue() + "', ";
+            if (chosenChange.getParentTableColumn().getTypeName().equals("varchar")
+                    || chosenChange.getParentTableColumn().getTypeName().equals("bool")
+                    || chosenChange.getParentTableColumn().getTypeName().equals("timestamp"))
+                theQuery = "UPDATE " + initial_state_row.getParentTable().getName() + " SET " + chosenChange.getParentTableColumn().getName() + "='" + chosenChange.getNewValue().toString() + "', ";
             else
-                theQuery = "UPDATE " + initial_state_row.getParentTable().getName() + " SET " + chosenChange.getParentTableColumn().getName() + "=" + chosenChange.getNewValue() + ", ";
+                theQuery = "UPDATE " + initial_state_row.getParentTable().getName() + " SET " + chosenChange.getParentTableColumn().getName() + "=" + chosenChange.getNewValue().toString() + ", ";
         }
-        for (Map.Entry<String, String> entry : initial_state_row.getContent().entrySet())
+        for (Map.Entry<String, Object> entry : initial_state_row.getContent().entrySet())
         {
             if (!entry.getKey().equals(chosenChange.getParentTableColumn().getName()))
             {
-                if (chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("varchar") || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("bool"))
-                    theQuery = theQuery + (entry.getKey() + "='" + entry.getValue() + "', ");
+                if (chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("varchar") ||
+                        chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("bool") ||
+                        chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("timestamp"))
+                    theQuery = theQuery + (entry.getKey() + "='" + entry.getValue().toString() + "', ");
                 else
-                    theQuery = theQuery + (entry.getKey() + "=" + entry.getValue() + ", ");
+                    theQuery = theQuery + (entry.getKey() + "=" + entry.getValue().toString() + ", ");
             }
         }
 
         theQuery = theQuery.substring(0, theQuery.lastIndexOf(","));
         theQuery = theQuery + " WHERE ";
 
-        // USING ALL VALUES TO TRIANGULATE THE ROW TO UPDATE (no primary key)
-        if (initial_state_row.getParentTable().getPrimaryColumns().isEmpty())
-        {
-            for (Map.Entry<String, String> entry : initial_state_row.getContent().entrySet())
+
+            for (Map.Entry<String, Object> entry : initial_state_row.getContent().entrySet())
             {
                 if (!entry.getKey().equals(chosenChange.getParentTableColumn().getName()))
                 {
-                    if (chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("varchar") || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("bool"))
-                        theQuery = theQuery + (entry.getKey() + "='" + entry.getValue() + "' AND ");
+                    if (chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("varchar") ||
+                            chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("bool") ||
+                            chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("timestamp"))
+                        theQuery = theQuery + (entry.getKey() + "='" + entry.getValue().toString() + "' AND ");
                     else
-                        theQuery = theQuery + (entry.getKey() + "=" + entry.getValue() + " AND ");
+                        theQuery = theQuery + (entry.getKey() + "=" + entry.getValue().toString() + " AND ");
                 }
                 else
                 {
                     if (undo)
-                        theQuery = theQuery + (entry.getKey() + "='" + chosenChange.getNewValue() + "' AND ");
+                        theQuery = theQuery + (entry.getKey() + "='" + chosenChange.getNewValue().toString() + "' AND ");
                     else
-                        theQuery = theQuery + (entry.getKey() + "='" + chosenChange.getOldValue() + "' AND ");
+                        theQuery = theQuery + (entry.getKey() + "='" + chosenChange.getOldValue().toString() + "' AND ");
                 }
             }
             theQuery = theQuery.substring(0, theQuery.lastIndexOf(" AND "));
-        }
-        else
-            theQuery = theQuery + (" " + initial_state_row.getParentTable().getPrimaryColumns().get(0).getName() + "=" + initial_state_row.getValueOfColumn(initial_state_row.getParentTable().getPrimaryColumns().get(0).getName()));
 
 
         System.out.println("build query ! "+theQuery); //uncomment to see built request;
+
         return theQuery;
     }
 
