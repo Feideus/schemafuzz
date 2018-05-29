@@ -79,7 +79,6 @@ public class DBFuzzer
         boolean resQuery;
         int TreeDepth = 0;
         int maxDepth = Integer.parseInt(analyzer.getCommandLineArguments().getMaxDepth());
-        System.out.println(maxDepth);
         int mark = 0;
         //adding CASCADE to all foreign key tableColumns.
         settingTemporaryCascade(false); // need to drop and recreate database
@@ -179,8 +178,8 @@ public class DBFuzzer
       Table randomTable = pickRandomTable();
 
 
-      //String theQuery = "SELECT * FROM "+randomTable.getName()+" ORDER BY RANDOM() LIMIT 1";
-      String theQuery = "SELECT * FROM test_table2 ORDER BY RANDOM() LIMIT 1"; // Change test_table2 to test_table here to swap back to line finding
+      String theQuery = "SELECT * FROM "+randomTable.getName()+" ORDER BY RANDOM() LIMIT 1";
+      //String theQuery = "SELECT * FROM test_table2 ORDER BY RANDOM() LIMIT 1"; // Change test_table2 to test_table here to swap back to line finding
       QueryResponseParser qrp = new QueryResponseParser();
       ResultSet rs = null;
       Row res = null ;
@@ -190,7 +189,7 @@ public class DBFuzzer
         {
              stmt = analyzer.getSqlService().prepareStatement(theQuery);
              rs = stmt.executeQuery();
-             res = qrp.parse(rs,analyzer.getDb().getTablesMap().get("test_table2")).getRows().get(0); //randomTable should be set there
+             res = qrp.parse(rs,analyzer.getDb().getTablesMap().get(randomTable.getName())).getRows().get(0); //randomTable should be set there
         }
         catch (Exception e)
         {
@@ -326,10 +325,23 @@ public class DBFuzzer
             }
             else if (markingDiff == 0 || markingDiff < 0)
             {
-                SingleChange tmp = mutationTree.getRoot().singleChangeBasedOnWeight();
-                nextMut = new GenericTreeNode(tmp.getAttachedToMutation().getPost_change_row(), nextId(), mutationTree.getRoot(), tmp.getAttachedToMutation());
-                nextMut.setChosenChange(tmp);
-                nextMut.initPostChangeRow();
+                Random changeOrDepthen = new Random();
+
+                if(changeOrDepthen.nextInt(2) == 1)
+                {
+                    SingleChange tmp = mutationTree.getRoot().singleChangeBasedOnWeight();
+                    nextMut = new GenericTreeNode(tmp.getAttachedToMutation().getPost_change_row(), nextId(), mutationTree.getRoot(), tmp.getAttachedToMutation());
+                    nextMut.setChosenChange(tmp);
+                    nextMut.initPostChangeRow();
+                }
+                else
+                {
+                    Row nextRow = pickRandomRow();
+                    nextMut = new GenericTreeNode(nextRow,nextId(),mutationTree.getRoot(),previousMutation);
+                    Random nextSingleChangeId = new Random();
+                    nextMut.setChosenChange(nextMut.getPotential_changes().get(nextSingleChangeId.nextInt(nextMut.getPotential_changes().size())));
+                    nextMut.initPostChangeRow();
+                }
             }
             else
                 System.out.println("I mean What Da Heck");

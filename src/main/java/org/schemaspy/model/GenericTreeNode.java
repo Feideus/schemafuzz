@@ -2,6 +2,8 @@ package org.schemaspy.model;
 
 import java.sql.PreparedStatement;
 
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -226,6 +228,8 @@ public class GenericTreeNode {
                 e.printStackTrace();
             }
         }
+        if(possibilities.isEmpty())
+            throw new Error("No raw Mutation could be found for this row");
 
         //REMOVING POSSIBILITIES THAT DONT MATCH CONSTRAINTS
         for(SingleChange singleChange : possibilities)
@@ -242,15 +246,20 @@ public class GenericTreeNode {
         ArrayList<SingleChange> oneChange = new ArrayList<SingleChange>();
 
         String typeName = tableColumn.getTypeName();
-
+        System.out.println("TABLECOLUMN TYPE = "+typeName);
 
         switch (typeName) {
+            case "smallint":
+            case "integer":
             case "int2":
                 int tmp = Integer.parseInt(rootMutation.getInitial_state_row().getContent().get(tableColumn.getName()));
                 oneChange.add(new SingleChange(tableColumn, this, column_value, Integer.toString(tmp++)));
                 oneChange.add(new SingleChange(tableColumn, this, column_value, Integer.toString(32767)));
                 oneChange.add(new SingleChange(tableColumn, this, column_value, Integer.toString(1)));
                 break;
+
+            case "character":
+            case "character varying":
             case "varchar":
                 if (rootMutation == null) {
                     char tmp2 = column_value.charAt(0);
@@ -271,9 +280,27 @@ public class GenericTreeNode {
                 if (column_value.equals("t"))
                     oneChange.add(new SingleChange(tableColumn, this, column_value, "f"));
                 break;
-              /*  case 5:  typeName = "May";
-                       break;
-              case 6:  typeName = "June";
+
+            case "timestamp":
+                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+                Calendar cal = Calendar.getInstance();
+
+                Date parsedDate = dateFormat.parse(column_value);
+                cal.setTime(parsedDate);
+                cal.add(Calendar.DAY_OF_WEEK,1);
+
+                Timestamp tsInc = new java.sql.Timestamp(cal.getTime().getTime());
+                oneChange.add(new SingleChange(tableColumn, this, column_value, tsInc.toString()));
+
+                parsedDate = new Date(Long.MIN_VALUE);
+                cal.setTime(parsedDate);
+
+                Timestamp tsDinausors = new java.sql.Timestamp(cal.getTime().getTime());
+                oneChange.add(new SingleChange(tableColumn, this, column_value, tsDinausors.toString()));
+
+                break;
+
+              /*case 6:  typeName = "June";
                        break;
               case 7:  typeName = "July";
                        break;
@@ -288,7 +315,7 @@ public class GenericTreeNode {
               case 12: typeName = "December";
                        break;*/
             default:
-                throw new Exception("No raw GenericTreeNode possibilities could be found");
+                System.out.println("Unsupported dataType");
         }
 
 
@@ -394,7 +421,7 @@ public class GenericTreeNode {
             theQuery = theQuery + (" " + initial_state_row.getParentTable().getPrimaryColumns().get(0).getName() + "=" + initial_state_row.getValueOfColumn(initial_state_row.getParentTable().getPrimaryColumns().get(0).getName()));
 
 
-        //System.out.println("build query ! "+theQuery); uncomment to see built request;
+        System.out.println("build query ! "+theQuery); //uncomment to see built request;
         return theQuery;
     }
 
@@ -527,9 +554,6 @@ public class GenericTreeNode {
                 tmpTarget = tmpTarget.getParent();
             }
         }
-
-        System.out.println(tmpThis);
-        System.out.println(tmpTarget);
 
         while (!tmpThis.compare(tmpTarget))
         {
