@@ -2,11 +2,14 @@ package org.schemaspy.model;
 
 import java.sql.PreparedStatement;
 
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 import org.schemaspy.*;
 import org.schemaspy.service.SqlService;
@@ -27,6 +30,7 @@ public class GenericTreeNode {
     private GenericTreeNode parent;
     private ArrayList<GenericTreeNode> children = new ArrayList<GenericTreeNode>();
     private SingleChange chosenChange;
+    private boolean isFirstApperance;
 
     /**
      * Default GenericTreeNode constructor
@@ -38,6 +42,7 @@ public class GenericTreeNode {
         this.weight = 1;
         this.depth = 0;
         this.id = id;
+        this.isFirstApperance = true;
         this.initial_state_row = initial_state_row;
         this.potential_changes = discoverMutationPossibilities(this);
     }
@@ -49,20 +54,27 @@ public class GenericTreeNode {
         this.weight = 1;
         this.depth = 0;
         this.id = id;
+        this.isFirstApperance = false;
         this.initial_state_row = initial_state_row;
         this.chosenChange = sg;
     }
 
 
-    public GenericTreeNode(Row initial_state_row, int id, GenericTreeNode rootMutation, GenericTreeNode parentMutation) {
+    public GenericTreeNode(Row initial_state_row, int id, GenericTreeNode rootMutation, GenericTreeNode parentMutation,boolean isFirstApperance) {
         this.parent = parentMutation;
         this.cascadingFK = false;
         this.subTreeWeight = 0;
         this.weight = 1;
         this.id = id;
         initDepth();
+        this.isFirstApperance = isFirstApperance;
         this.initial_state_row = initial_state_row;
         this.potential_changes = discoverMutationPossibilities(rootMutation);
+    }
+
+
+    public boolean getIsFirstApperance() {
+        return isFirstApperance;
     }
 
     public void setDepth(int depth) {
@@ -131,6 +143,9 @@ public class GenericTreeNode {
     public SingleChange singleChangeBasedOnWeight()
     {
         final Random r = new Random();
+
+        if(this.getPotential_changes().isEmpty())
+            System.out.println(this+"EMMMMMMPTY");
 
         checkWeightConsistency();
         if (this.potential_changes.isEmpty() && (0 == subTreeWeight))
@@ -229,14 +244,14 @@ public class GenericTreeNode {
             }
         }
         if(possibilities.isEmpty())
-            throw new Error("No raw Mutation could be found for this row");
+            System.out.println("No raw Mutation could be found for this row"); // TO BE HANDLED. juste create another GenericTreeNode
 
         //REMOVING POSSIBILITIES THAT DONT MATCH CONSTRAINTS
-        for(SingleChange singleChange : possibilities)
-        {
-            if (!singleChange.respectsConstraints())
-                possibilities.remove(singleChange);
-        }
+    //        for(SingleChange singleChange : possibilities)
+    //        {
+    //            if (!singleChange.respectsConstraints())
+    //                possibilities.remove(singleChange);
+    //        }
         return possibilities;
     }
 
@@ -246,13 +261,14 @@ public class GenericTreeNode {
         ArrayList<SingleChange> oneChange = new ArrayList<SingleChange>();
 
         String typeName = tableColumn.getTypeName();
-        System.out.println("TABLECOLUMN TYPE = "+typeName);
+        GenericTreeNode rootForThisMutation = FirstApperanceOf(this);
 
         switch (typeName) {
             case "smallint":
             case "integer":
             case "int2":
-                int tmp = Integer.parseInt(rootMutation.getInitial_state_row().getContent().get(tableColumn.getName()).toString());
+
+                int tmp = Integer.parseInt(rootForThisMutation.getInitial_state_row().getContent().get(tableColumn.getName()).toString());
                 oneChange.add(new SingleChange(tableColumn, this, column_value, Integer.toString(tmp++)));
                 oneChange.add(new SingleChange(tableColumn, this, column_value, Integer.toString(32767)));
                 oneChange.add(new SingleChange(tableColumn, this, column_value, Integer.toString(1)));
@@ -261,17 +277,11 @@ public class GenericTreeNode {
             case "character":
             case "character varying":
             case "varchar":
-                if (rootMutation == null) {
-                    char tmp2 = column_value.toString().charAt(0);
-                    oneChange.add(new SingleChange(tableColumn, this, column_value, (Character.toString(tmp2++) + column_value.toString().substring(1))));
-                    oneChange.add(new SingleChange(tableColumn, this, column_value, (Character.toString(tmp2--) + column_value.toString().substring(1))));
-                } else {
-                    char tmp2 = (char) rootMutation.getInitial_state_row().getContent().get(tableColumn.getName()).toString().charAt(0);
+                    char tmp2 = (char) rootForThisMutation.getInitial_state_row().getContent().get(tableColumn.getName()).toString().charAt(0);
                     char nextChar = (char) (tmp2 + 1);
                     char prevChar = (char) (tmp2 - 1);
-                    oneChange.add(new SingleChange(tableColumn, this, column_value, (Character.toString(nextChar) + column_value.toString().substring(1))));
-                    oneChange.add(new SingleChange(tableColumn, this, column_value, (Character.toString(prevChar) + column_value.toString().substring(1))));
-                }
+                    SingleChange sg = new SingleChange(tableColumn, this, column_value, (Character.toString(nextChar) + column_value.toString().substring(1)));
+                    oneChange.add(new SingleChange(tableColumn, this, column_value, (Character.toString(nextChar) + column_value.toString().substring(1))));oneChange.add(new SingleChange(tableColumn, this, column_value, (Character.toString(prevChar) + column_value.toString().substring(1))));
 
                 break;
             case "bool":
@@ -324,7 +334,6 @@ public class GenericTreeNode {
 
     public boolean inject(SqlService sqlService,Database db, boolean undo)
     {
-
         if (undo)
             System.out.println("UNDOING");
         else
@@ -333,8 +342,9 @@ public class GenericTreeNode {
         String theQuery = updateQueryBuilder(undo);
         try
         {
-            PreparedStatement stmt = sqlService.prepareStatement(theQuery, db, null);
-            stmt.execute();
+            Statement stmt = sqlService.getConnection().createStatement();
+            stmt.execute(theQuery);
+            System.out.println("Query success");
             return true;
         }
         catch (Exception e)
@@ -371,7 +381,8 @@ public class GenericTreeNode {
         {
             if (chosenChange.getParentTableColumn().getTypeName().equals("varchar")
                     || chosenChange.getParentTableColumn().getTypeName().equals("bool")
-                    || chosenChange.getParentTableColumn().getTypeName().equals("timestamp"))
+                    || chosenChange.getParentTableColumn().getTypeName().equals("timestamp")
+                    || chosenChange.getParentTableColumn().getTypeName().equals("date"))
                 theQuery = "UPDATE " + initial_state_row.getParentTable().getName() + " SET " + chosenChange.getParentTableColumn().getName() + "='" + chosenChange.getOldValue().toString() + "', ";
             else
                 theQuery = "UPDATE " + initial_state_row.getParentTable().getName() + " SET " + chosenChange.getParentTableColumn().getName() + " = " + chosenChange.getOldValue().toString() + ", ";
@@ -380,7 +391,8 @@ public class GenericTreeNode {
         {
             if (chosenChange.getParentTableColumn().getTypeName().equals("varchar")
                     || chosenChange.getParentTableColumn().getTypeName().equals("bool")
-                    || chosenChange.getParentTableColumn().getTypeName().equals("timestamp"))
+                    || chosenChange.getParentTableColumn().getTypeName().equals("timestamp")
+                    || chosenChange.getParentTableColumn().getTypeName().equals("date"))
                 theQuery = "UPDATE " + initial_state_row.getParentTable().getName() + " SET " + chosenChange.getParentTableColumn().getName() + "='" + chosenChange.getNewValue().toString() + "', ";
             else
                 theQuery = "UPDATE " + initial_state_row.getParentTable().getName() + " SET " + chosenChange.getParentTableColumn().getName() + "=" + chosenChange.getNewValue().toString() + ", ";
@@ -391,7 +403,8 @@ public class GenericTreeNode {
             {
                 if (chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("varchar") ||
                         chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("bool") ||
-                        chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("timestamp"))
+                        chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("timestamp")
+                        || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("date"))
                     theQuery = theQuery + (entry.getKey() + "='" + entry.getValue().toString() + "', ");
                 else
                     theQuery = theQuery + (entry.getKey() + "=" + entry.getValue().toString() + ", ");
@@ -408,7 +421,8 @@ public class GenericTreeNode {
                 {
                     if (chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("varchar") ||
                             chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("bool") ||
-                            chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("timestamp"))
+                            chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("timestamp")
+                            || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("date"))
                         theQuery = theQuery + (entry.getKey() + "='" + entry.getValue().toString() + "' AND ");
                     else
                         theQuery = theQuery + (entry.getKey() + "=" + entry.getValue().toString() + " AND ");
@@ -602,6 +616,14 @@ public class GenericTreeNode {
 
         if (this.getParent() != null)
             this.getParent().propagateWeight();
+    }
+
+    public GenericTreeNode FirstApperanceOf (GenericTreeNode mutation)
+    {
+        if(mutation.getIsFirstApperance())
+            return mutation;
+
+        return FirstApperanceOf(mutation.getParent());
     }
 
 }

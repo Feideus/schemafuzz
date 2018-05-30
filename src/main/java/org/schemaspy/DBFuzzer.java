@@ -85,9 +85,12 @@ public class DBFuzzer
 
         LOGGER.info("Starting Database Fuzzing");
 
+        GenericTreeNode currentMutation;
         // Building root Mutation. Could be extended by looking for a relevant first SingleChange as rootMutation
-        Row randomRow = pickRandomRow();
-        GenericTreeNode currentMutation = new GenericTreeNode(randomRow,nextId());
+        do {
+            Row randomRow = pickRandomRow();
+            currentMutation = new GenericTreeNode(randomRow, nextId());
+        } while(currentMutation.getPotential_changes().isEmpty());
         currentMutation.setChosenChange(currentMutation.getPotential_changes().get(0));
         currentMutation.initPostChangeRow();
         mutationTree.setRoot(currentMutation);
@@ -319,7 +322,7 @@ public class DBFuzzer
             if (markingDiff > 0) //
             {
                 int randNumber = rand.nextInt(previousMutation.getPotential_changes().size());
-                nextMut = new GenericTreeNode(previousMutation.getPost_change_row(), nextId(), mutationTree.getRoot(), previousMutation);
+                nextMut = new GenericTreeNode(previousMutation.getPost_change_row(), nextId(), mutationTree.getRoot(), previousMutation,false);
                 nextMut.setChosenChange(previousMutation.getPotential_changes().get(randNumber));
                 nextMut.initPostChangeRow();
             }
@@ -330,14 +333,18 @@ public class DBFuzzer
                 if(changeOrDepthen.nextInt(2) == 1)
                 {
                     SingleChange tmp = mutationTree.getRoot().singleChangeBasedOnWeight();
-                    nextMut = new GenericTreeNode(tmp.getAttachedToMutation().getPost_change_row(), nextId(), mutationTree.getRoot(), tmp.getAttachedToMutation());
+                    nextMut = new GenericTreeNode(tmp.getAttachedToMutation().getPost_change_row(), nextId(), mutationTree.getRoot(), tmp.getAttachedToMutation(),false);
                     nextMut.setChosenChange(tmp);
                     nextMut.initPostChangeRow();
                 }
-                else
-                {
-                    Row nextRow = pickRandomRow();
-                    nextMut = new GenericTreeNode(nextRow,nextId(),mutationTree.getRoot(),previousMutation);
+                else {
+                    Row nextRow;
+                    do
+                    {
+                        nextRow = pickRandomRow();
+                        nextMut = new GenericTreeNode(nextRow, nextId(), mutationTree.getRoot(), previousMutation, true);
+                    }while(nextMut.getPotential_changes().isEmpty());
+
                     Random nextSingleChangeId = new Random();
                     nextMut.setChosenChange(nextMut.getPotential_changes().get(nextSingleChangeId.nextInt(nextMut.getPotential_changes().size())));
                     nextMut.initPostChangeRow();

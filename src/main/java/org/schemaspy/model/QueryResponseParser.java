@@ -68,6 +68,7 @@ public class QueryResponseParser
             Row currentRow = new Row(parentTable,mapOfTheRow,resultMeta.getColumnCount());
             queryResponse.getRows().add(currentRow);
           }
+          assert(!queryResponse.getRows().get(0).getContent().containsValue(null));
           return queryResponse;
         }
 

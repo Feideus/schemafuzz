@@ -7,88 +7,88 @@ RESULT=$( echo $RESULT | cut -d "-" -f 2 )
 RESULT=$( echo $RESULT | cut -d "(" -f1 )
 IFS=' | ' read -ra array <<< "$RESULT"
 
-SCORE=0
+SCORE=10
 
-if [[ ${array[0]} = "t" && "${array[1]}" = "t" && "${array[2]}" = "t" && "${array[3]}" = "t" ]]
-then
-  SCORE=$((SCORE+100))
-fi
-
-if [[ ${array[0]} = "t" && "${array[1]}" = "t" && "${array[2]}" = "t" && "${array[3]}" = "f" ]]
-then
-  SCORE=$((SCORE+10))
-fi
-
-if [[ ${array[0]} = "t" && "${array[1]}" = "t" && "${array[2]}" = "f" && "${array[3]}" = "f" ]]
-then
-  SCORE=$((SCORE+25))
-fi
-
-if [[ ${array[0]} = "t" && "${array[1]}" = "f" && "${array[2]}" = "f" && "${array[3]}" = "f" ]]
-then
-  SCORE=$((SCORE+200))
-fi
-
-if [[ ${array[0]} = "f" && "${array[1]}" = "f" && "${array[2]}" = "f" && "${array[3]}" = "f" ]]
-then
-  SCORE=$((SCORE))
-fi
-
-if [[ ${array[0]} = "f" && "${array[1]}" = "f" && "${array[2]}" = "t" && "${array[3]}" = "f" ]]
-then
-  SCORE=$((SCORE+5))
-fi
-
-if [[ ${array[0]} = "f" && "${array[1]}" = "t" && "${array[2]}" = "f" && "${array[3]}" = "f" ]]
-then
-  SCORE=$((SCORE+60))
-fi
-
-if [[ ${array[0]} = "f" && "${array[1]}" = "t" && "${array[2]}" = "f" && "${array[3]}" = "t" ]]
-then
-  SCORE=$((SCORE+60))
-fi
-
-if [[ ${array[0]} = "t" && "${array[1]}" = "t" && "${array[2]}" = "f" && "${array[3]}" = "t" ]]
-then
-  SCORE=$((SCORE+2))
-fi
-
-if [[ ${array[0]} = "t" && "${array[1]}" = "f" && "${array[2]}" = "t" && "${array[3]}" = "t" ]]
-then
-  SCORE=$((SCORE+15))
-fi
-
-if [[ ${array[0]} = "f" && "${array[1]}" = "t" && "${array[2]}" = "t" && "${array[3]}" = "t" ]]
-then
-  SCORE=$((SCORE+40))
-fi
-
-if [[ ${array[0]} = "f" && "${array[1]}" = "t" && "${array[2]}" = "t" && "${array[3]}" = "f" ]]
-then
-  SCORE=$((SCORE+135))
-fi
-
-if [[ ${array[0]} = "t" && "${array[1]}" = "f" && "${array[2]}" = "f" && "${array[3]}" = "t" ]]
-then
-  SCORE=$((SCORE+12))
-fi
-
-if [[ ${array[0]} = "t" && "${array[1]}" = "f" && "${array[2]}" = "f" && "${array[3]}" = "f" ]]
-then
-  SCORE=$((SCORE+1))
-fi
-
-if [[ ${array[0]} = "t" && "${array[1]}" = "f" && "${array[2]}" = "t" && "${array[3]}" = "f" ]]
-then
-  SCORE=$((SCORE+10))
-fi
-
-if [[ ${array[0]} = "f" && "${array[1]}" = "f" && "${array[2]}" = "f" && "${array[3]}" = "t" ]]
-then
-  SCORE=$((SCORE+25))
-fi
-
+#if [[ ${array[0]} = "t" && "${array[1]}" = "t" && "${array[2]}" = "t" && "${array[3]}" = "t" ]]
+#then
+#  SCORE=$((SCORE+100))
+#fi
+#
+#if [[ ${array[0]} = "t" && "${array[1]}" = "t" && "${array[2]}" = "t" && "${array[3]}" = "f" ]]
+#then
+#  SCORE=$((SCORE+10))
+#fi
+#
+#if [[ ${array[0]} = "t" && "${array[1]}" = "t" && "${array[2]}" = "f" && "${array[3]}" = "f" ]]
+#then
+#  SCORE=$((SCORE+25))
+#fi
+#
+#if [[ ${array[0]} = "t" && "${array[1]}" = "f" && "${array[2]}" = "f" && "${array[3]}" = "f" ]]
+#then
+#  SCORE=$((SCORE+200))
+#fi
+#
+#if [[ ${array[0]} = "f" && "${array[1]}" = "f" && "${array[2]}" = "f" && "${array[3]}" = "f" ]]
+#then
+#  SCORE=$((SCORE))
+#fi
+#
+#if [[ ${array[0]} = "f" && "${array[1]}" = "f" && "${array[2]}" = "t" && "${array[3]}" = "f" ]]
+#then
+#  SCORE=$((SCORE+5))
+#fi
+#
+#if [[ ${array[0]} = "f" && "${array[1]}" = "t" && "${array[2]}" = "f" && "${array[3]}" = "f" ]]
+#then
+#  SCORE=$((SCORE+60))
+#fi
+#
+#if [[ ${array[0]} = "f" && "${array[1]}" = "t" && "${array[2]}" = "f" && "${array[3]}" = "t" ]]
+#then
+#  SCORE=$((SCORE+60))
+#fi
+#
+#if [[ ${array[0]} = "t" && "${array[1]}" = "t" && "${array[2]}" = "f" && "${array[3]}" = "t" ]]
+#then
+#  SCORE=$((SCORE+2))
+#fi
+#
+#if [[ ${array[0]} = "t" && "${array[1]}" = "f" && "${array[2]}" = "t" && "${array[3]}" = "t" ]]
+#then
+#  SCORE=$((SCORE+15))
+#fi
+#
+#if [[ ${array[0]} = "f" && "${array[1]}" = "t" && "${array[2]}" = "t" && "${array[3]}" = "t" ]]
+#then
+#  SCORE=$((SCORE+40))
+#fi
+#
+#if [[ ${array[0]} = "f" && "${array[1]}" = "t" && "${array[2]}" = "t" && "${array[3]}" = "f" ]]
+#then
+#  SCORE=$((SCORE+135))
+#fi
+#
+#if [[ ${array[0]} = "t" && "${array[1]}" = "f" && "${array[2]}" = "f" && "${array[3]}" = "t" ]]
+#then
+#  SCORE=$((SCORE+12))
+#fi
+#
+#if [[ ${array[0]} = "t" && "${array[1]}" = "f" && "${array[2]}" = "f" && "${array[3]}" = "f" ]]
+#then
+#  SCORE=$((SCORE+1))
+#fi
+#
+#if [[ ${array[0]} = "t" && "${array[1]}" = "f" && "${array[2]}" = "t" && "${array[3]}" = "f" ]]
+#then
+#  SCORE=$((SCORE+10))
+#fi
+#
+#if [[ ${array[0]} = "f" && "${array[1]}" = "f" && "${array[2]}" = "f" && "${array[3]}" = "t" ]]
+#then
+#  SCORE=$((SCORE+25))
+#fi
+#
 echo $SCORE
 
 
