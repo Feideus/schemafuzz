@@ -44,6 +44,7 @@ public class GenericTreeNode {
         this.id = id;
         this.isFirstApperance = true;
         this.initial_state_row = initial_state_row;
+        this.potential_changes = new ArrayList<>();
         this.potential_changes = discoverMutationPossibilities(this);
     }
 
@@ -69,6 +70,7 @@ public class GenericTreeNode {
         initDepth();
         this.isFirstApperance = isFirstApperance;
         this.initial_state_row = initial_state_row;
+        this.potential_changes = new ArrayList<>();
         this.potential_changes = discoverMutationPossibilities(rootMutation);
     }
 
@@ -277,6 +279,7 @@ public class GenericTreeNode {
             case "character":
             case "character varying":
             case "varchar":
+
                     char tmp2 = (char) rootForThisMutation.getInitial_state_row().getContent().get(tableColumn.getName()).toString().charAt(0);
                     char nextChar = (char) (tmp2 + 1);
                     char prevChar = (char) (tmp2 - 1);
@@ -325,7 +328,7 @@ public class GenericTreeNode {
               case 12: typeName = "December";
                        break;*/
             default:
-                System.out.println("Unsupported dataType");
+                System.out.println("Unsupported dataType = "+typeName);
         }
 
 
