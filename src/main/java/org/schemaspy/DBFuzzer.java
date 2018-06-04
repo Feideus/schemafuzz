@@ -178,26 +178,26 @@ public class DBFuzzer
     //Extract Random row from the db specified in sqlService
     public Row pickRandomRow()
     {
-      Table randomTable = pickRandomTable();
+        Row res = null;
 
+      do {
+          Table randomTable = pickRandomTable();
 
-      String theQuery = "SELECT * FROM "+randomTable.getName()+" ORDER BY RANDOM() LIMIT 1";
-      //String theQuery = "SELECT * FROM test_table2 ORDER BY RANDOM() LIMIT 1"; // Change test_table2 to test_table here to swap back to line finding
-      QueryResponseParser qrp = new QueryResponseParser();
-      ResultSet rs = null;
-      Row res = null ;
-      PreparedStatement stmt;
+          String theQuery = "SELECT * FROM " + randomTable.getName() + " ORDER BY RANDOM() LIMIT 1";
+          //String theQuery = "SELECT * FROM test_table2 ORDER BY RANDOM() LIMIT 1"; // Change test_table2 to test_table here to swap back to line finding
+          QueryResponseParser qrp = new QueryResponseParser();
+          ResultSet rs = null;
+          PreparedStatement stmt;
 
-        try
-        {
-             stmt = analyzer.getSqlService().prepareStatement(theQuery);
-             rs = stmt.executeQuery();
-             res = qrp.parse(rs,analyzer.getDb().getTablesMap().get(randomTable.getName())).getRows().get(0); //randomTable should be set there
-        }
-        catch (Exception e)
-        {
-          LOGGER.info("This query threw an error"+e);
-        }
+          try {
+              stmt = analyzer.getSqlService().prepareStatement(theQuery);
+              rs = stmt.executeQuery();
+              res = qrp.parse(rs, analyzer.getDb().getTablesMap().get(randomTable.getName())).getRows().get(0); //randomTable should be set there
+          } catch (Exception e) {
+              LOGGER.info("This query threw an error" + e);
+          }
+      }
+      while(res == null);
         return res;
     }
 

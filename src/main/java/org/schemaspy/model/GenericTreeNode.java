@@ -228,7 +228,10 @@ public class GenericTreeNode {
     public ArrayList<SingleChange> discoverMutationPossibilities(GenericTreeNode rootMutation) {
 
         if(initial_state_row == null)
+        {
+            System.out.println("NO INITIAL STATE");
             return null ;
+        }
 
         ArrayList<SingleChange> possibilities = new ArrayList<SingleChange>();
 
@@ -246,7 +249,7 @@ public class GenericTreeNode {
             }
         }
         if(possibilities.isEmpty())
-            System.out.println("No raw Mutation could be found for this row"); // TO BE HANDLED. juste create another GenericTreeNode
+            System.out.println("No raw Mutation could be found for this row");
 
         //REMOVING POSSIBILITIES THAT DONT MATCH CONSTRAINTS
     //        for(SingleChange singleChange : possibilities)
@@ -265,27 +268,37 @@ public class GenericTreeNode {
         String typeName = tableColumn.getTypeName();
         GenericTreeNode rootForThisMutation = FirstApperanceOf(this);
 
+
         switch (typeName) {
             case "smallint":
             case "integer":
             case "int2":
 
-                int tmp = Integer.parseInt(rootForThisMutation.getInitial_state_row().getContent().get(tableColumn.getName()).toString());
-                oneChange.add(new SingleChange(tableColumn, this, column_value, Integer.toString(tmp++)));
-                oneChange.add(new SingleChange(tableColumn, this, column_value, Integer.toString(32767)));
-                oneChange.add(new SingleChange(tableColumn, this, column_value, Integer.toString(1)));
-                break;
-
+                Object tmp3 = rootForThisMutation.getInitial_state_row().getContent().get(tableColumn.getName());
+                if( tmp3 != null && tmp3.toString() != "" )
+                {
+                    int tmp = Integer.parseInt(rootForThisMutation.getInitial_state_row().getContent().get(tableColumn.getName()).toString());
+                    oneChange.add(new SingleChange(tableColumn, this, column_value, Integer.toString(tmp++)));
+                    oneChange.add(new SingleChange(tableColumn, this, column_value, Integer.toString(32767)));
+                    oneChange.add(new SingleChange(tableColumn, this, column_value, Integer.toString(1)));
+                    break;
+                }
             case "character":
-            case "character varying":
+            case "character varying": // MIXED CHARACTERS/NUMBERS STRINGS MAKE CHARAT CRASH AT 0 IF FIRST CHAR IS NUMBER. USE REGEX TO FIND FIRST ACTUAL LETTER ?
             case "varchar":
 
-                    char tmp2 = (char) rootForThisMutation.getInitial_state_row().getContent().get(tableColumn.getName()).toString().charAt(0);
+
+                Object tmp4 = rootForThisMutation.getInitial_state_row().getContent().get(tableColumn.getName());
+                if(tmp4 != null && tmp4.toString() != "" )
+                {
+
+                    char tmp2 = tmp4.toString().replaceAll("\\d","").charAt(0);
                     char nextChar = (char) (tmp2 + 1);
                     char prevChar = (char) (tmp2 - 1);
                     SingleChange sg = new SingleChange(tableColumn, this, column_value, (Character.toString(nextChar) + column_value.toString().substring(1)));
-                    oneChange.add(new SingleChange(tableColumn, this, column_value, (Character.toString(nextChar) + column_value.toString().substring(1))));oneChange.add(new SingleChange(tableColumn, this, column_value, (Character.toString(prevChar) + column_value.toString().substring(1))));
-
+                    oneChange.add(new SingleChange(tableColumn, this, column_value, (Character.toString(nextChar) + column_value.toString().substring(1))));
+                    oneChange.add(new SingleChange(tableColumn, this, column_value, (Character.toString(prevChar) + column_value.toString().substring(1))));
+                }
                 break;
             case "bool":
                 if (column_value.equals("f"))
@@ -330,7 +343,6 @@ public class GenericTreeNode {
             default:
                 System.out.println("Unsupported dataType = "+typeName);
         }
-
 
         return oneChange;
     }
@@ -410,7 +422,16 @@ public class GenericTreeNode {
                         || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("date"))
                     theQuery = theQuery + (entry.getKey() + "='" + entry.getValue().toString() + "', ");
                 else
-                    theQuery = theQuery + (entry.getKey() + "=" + entry.getValue().toString() + ", ");
+                {
+                    if(entry.getValue() == null || entry.getValue().toString() == "" || entry.getValue().toString() == null)
+                    {
+                        String tmp = "null";
+                        theQuery = theQuery + (entry.getKey() + "=" + tmp+ ", "); // A CHANGER DURGENCE
+
+                    }
+                    else
+                        theQuery = theQuery + (entry.getKey() + "=" + entry.getValue().toString() + ", ");
+                }
             }
         }
 
@@ -428,7 +449,14 @@ public class GenericTreeNode {
                             || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("date"))
                         theQuery = theQuery + (entry.getKey() + "='" + entry.getValue().toString() + "' AND ");
                     else
-                        theQuery = theQuery + (entry.getKey() + "=" + entry.getValue().toString() + " AND ");
+                    {
+                        if (entry.getValue() == null || entry.getValue().toString() == "" || entry.getValue().toString() == null) {
+                            String tmp = "null";
+                            theQuery = theQuery + (entry.getKey() + "=" + tmp + " AND "); // A CHANGER DURGENCE
+
+                        } else
+                            theQuery = theQuery + (entry.getKey() + "=" + entry.getValue().toString() + " AND ");;
+                    }
                 }
                 else
                 {
