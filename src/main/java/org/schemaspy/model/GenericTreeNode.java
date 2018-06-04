@@ -146,9 +146,6 @@ public class GenericTreeNode {
     {
         final Random r = new Random();
 
-        if(this.getPotential_changes().isEmpty())
-            System.out.println(this+"EMMMMMMPTY");
-
         checkWeightConsistency();
         if (this.potential_changes.isEmpty() && (0 == subTreeWeight))
             System.out.println("ERROR PICKING : no potential_changes AND subtreeweight = 0");
@@ -268,6 +265,8 @@ public class GenericTreeNode {
         String typeName = tableColumn.getTypeName();
         GenericTreeNode rootForThisMutation = FirstApperanceOf(this);
 
+        System.out.println(typeName);
+
 
         switch (typeName) {
             case "smallint":
@@ -292,12 +291,14 @@ public class GenericTreeNode {
                 if(tmp4 != null && tmp4.toString() != "" )
                 {
 
-                    char tmp2 = tmp4.toString().replaceAll("\\d","").charAt(0);
-                    char nextChar = (char) (tmp2 + 1);
-                    char prevChar = (char) (tmp2 - 1);
-                    SingleChange sg = new SingleChange(tableColumn, this, column_value, (Character.toString(nextChar) + column_value.toString().substring(1)));
-                    oneChange.add(new SingleChange(tableColumn, this, column_value, (Character.toString(nextChar) + column_value.toString().substring(1))));
-                    oneChange.add(new SingleChange(tableColumn, this, column_value, (Character.toString(prevChar) + column_value.toString().substring(1))));
+                    String tmp2 = tmp4.toString().replaceAll("\\d", "");
+                    if (!tmp2.isEmpty())
+                    {
+                        char nextChar = (char) (tmp2.charAt(0) + 1);
+                        char prevChar = (char) (tmp2.charAt(0) - 1);
+                        oneChange.add(new SingleChange(tableColumn, this, column_value, (Character.toString(nextChar) + column_value.toString().substring(1))));
+                        oneChange.add(new SingleChange(tableColumn, this, column_value, (Character.toString(prevChar) + column_value.toString().substring(1))));
+                    }
                 }
                 break;
             case "bool":
@@ -397,7 +398,9 @@ public class GenericTreeNode {
             if (chosenChange.getParentTableColumn().getTypeName().equals("varchar")
                     || chosenChange.getParentTableColumn().getTypeName().equals("bool")
                     || chosenChange.getParentTableColumn().getTypeName().equals("timestamp")
-                    || chosenChange.getParentTableColumn().getTypeName().equals("date"))
+                    || chosenChange.getParentTableColumn().getTypeName().equals("date")
+                    || chosenChange.getParentTableColumn().getTypeName().equals("_text")
+                    || chosenChange.getParentTableColumn().getTypeName().equals("text"))
                 theQuery = "UPDATE " + initial_state_row.getParentTable().getName() + " SET " + chosenChange.getParentTableColumn().getName() + "='" + chosenChange.getOldValue().toString() + "', ";
             else
                 theQuery = "UPDATE " + initial_state_row.getParentTable().getName() + " SET " + chosenChange.getParentTableColumn().getName() + " = " + chosenChange.getOldValue().toString() + ", ";
@@ -407,7 +410,9 @@ public class GenericTreeNode {
             if (chosenChange.getParentTableColumn().getTypeName().equals("varchar")
                     || chosenChange.getParentTableColumn().getTypeName().equals("bool")
                     || chosenChange.getParentTableColumn().getTypeName().equals("timestamp")
-                    || chosenChange.getParentTableColumn().getTypeName().equals("date"))
+                    || chosenChange.getParentTableColumn().getTypeName().equals("date")
+                    || chosenChange.getParentTableColumn().getTypeName().equals("_text")
+                    || chosenChange.getParentTableColumn().getTypeName().equals("text"))
                 theQuery = "UPDATE " + initial_state_row.getParentTable().getName() + " SET " + chosenChange.getParentTableColumn().getName() + "='" + chosenChange.getNewValue().toString() + "', ";
             else
                 theQuery = "UPDATE " + initial_state_row.getParentTable().getName() + " SET " + chosenChange.getParentTableColumn().getName() + "=" + chosenChange.getNewValue().toString() + ", ";
@@ -416,10 +421,12 @@ public class GenericTreeNode {
         {
             if (!entry.getKey().equals(chosenChange.getParentTableColumn().getName()))
             {
-                if (chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("varchar") ||
-                        chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("bool") ||
-                        chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("timestamp")
-                        || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("date"))
+                if (chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("varchar")
+                        || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("bool")
+                        || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("timestamp")
+                        || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("date")
+                        || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("_text")
+                        || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("text"))
                     theQuery = theQuery + (entry.getKey() + "='" + entry.getValue().toString() + "', ");
                 else
                 {
@@ -443,10 +450,12 @@ public class GenericTreeNode {
             {
                 if (!entry.getKey().equals(chosenChange.getParentTableColumn().getName()))
                 {
-                    if (chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("varchar") ||
-                            chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("bool") ||
-                            chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("timestamp")
-                            || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("date"))
+                    if (chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("varchar")
+                            || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("bool")
+                            || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("timestamp")
+                            || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("date")
+                            || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("_text")
+                            || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("text"))
                         theQuery = theQuery + (entry.getKey() + "='" + entry.getValue().toString() + "' AND ");
                     else
                     {
@@ -455,7 +464,7 @@ public class GenericTreeNode {
                             theQuery = theQuery + (entry.getKey() + "=" + tmp + " AND "); // A CHANGER DURGENCE
 
                         } else
-                            theQuery = theQuery + (entry.getKey() + "=" + entry.getValue().toString() + " AND ");;
+                            theQuery = theQuery + (entry.getKey() + "=" + entry.getValue().toString() + " AND ");
                     }
                 }
                 else
@@ -468,8 +477,7 @@ public class GenericTreeNode {
             }
             theQuery = theQuery.substring(0, theQuery.lastIndexOf(" AND "));
 
-
-        System.out.println("build query ! "+theQuery); //uncomment to see built request;
+            System.out.println(theQuery);
 
         return theQuery;
     }
