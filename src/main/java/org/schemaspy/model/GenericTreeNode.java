@@ -1,10 +1,8 @@
 package org.schemaspy.model;
 
-import java.sql.PreparedStatement;
+import java.io.IOException;
+import java.sql.*;
 
-import java.sql.ResultSet;
-import java.sql.Statement;
-import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.ArrayList;
@@ -350,12 +348,13 @@ public class GenericTreeNode {
 
     public boolean inject(SqlService sqlService,Database db, boolean undo)
     {
+
         if (undo)
             System.out.println("UNDOING");
         else
             System.out.println("INJECT");
 
-        String theQuery = updateQueryBuilder(undo);
+        String theQuery = updateQueryBuilderWrapper(undo,db,sqlService);
         try
         {
             Statement stmt = sqlService.getConnection().createStatement();
@@ -389,7 +388,7 @@ public class GenericTreeNode {
         }
     }
 
-    public String updateQueryBuilder(boolean undo) //undo variable tells if the function should build Inject string or Undo string
+    public String updateQueryBuilder(boolean undo,Database db, SqlService sqlService) //undo variable tells if the function should build Inject string or Undo string
     {
         String theQuery;
 
@@ -663,6 +662,59 @@ public class GenericTreeNode {
             return mutation;
 
         return FirstApperanceOf(mutation.getParent());
+    }
+
+
+    public String updateQueryBuilderWrapper(boolean undo,Database db, SqlService sqlService)
+    {
+        String theQuery = "";
+        boolean hasFk = db.getLesForeignKeys().containsKey(chosenChange.getParentTableColumn().getName());
+
+        if(hasFk)
+        {
+            theQuery = "START TRANSACTION; SET CONSTRAINTS ALL DEFERRED;";
+
+            for(ForeignKeyConstraint fk : db.getLesForeignKeys().get(chosenChange.getParentTableColumn().getName()))
+            {
+                ArrayList<TableColumn> allChildrenAndParents = new ArrayList<TableColumn>();
+                allChildrenAndParents.addAll(fk.getChildColumns());
+                allChildrenAndParents.addAll(fk.getParentColumns());
+
+                for(TableColumn tb : allChildrenAndParents)
+                {
+                    String semiQuery = "SELECT * FROM "+tb.getTable()+" WHERE "+tb.getName()+"="+chosenChange.getOldValue();
+                    QueryResponseParser qrp;
+                    QueryResponse response = null ;
+                    try {
+                        Statement stmt = sqlService.getConnection().createStatement();
+                        ResultSet res = stmt.executeQuery(semiQuery);
+                        qrp = new QueryResponseParser();
+                        response = qrp.parse(res,tb.getTable());
+                    }
+                    catch(Exception e)
+                    {
+                        e.printStackTrace();
+                    }
+
+                    if(response != null)
+                    {
+                        for (int i = 0; i < response.getNbRows(); i++)
+                        {
+                            GenericTreeNode tmp = new GenericTreeNode(response.getRows().get(i),0,new SingleChange(chosenChange.getParentTableColumn(),this,chosenChange.getOldValue(),chosenChange.getNewValue()));
+                            theQuery = theQuery + tmp.updateQueryBuilder(false,db,sqlService);
+                        }
+                    }
+                }
+            }
+        }
+
+        theQuery = theQuery + updateQueryBuilder(undo,db,sqlService);
+
+        if(hasFk)
+        {
+            theQuery = theQuery + " ; COMMIT TRANSACTION;";
+        }
+        return theQuery;
     }
 
 }
