@@ -348,13 +348,16 @@ public class GenericTreeNode {
 
     public boolean inject(SqlService sqlService,Database db, boolean undo)
     {
-
+        String theQuery = "";
         if (undo)
             System.out.println("UNDOING");
         else
             System.out.println("INJECT");
 
-        String theQuery = updateQueryBuilderWrapper(undo,db,sqlService);
+        if(checkIfHasFk(db))
+            theQuery = updateQueryBuilderWrapper(undo,db,sqlService);
+        else
+            theQuery = updateQueryBuilder(undo,db,sqlService);
         try
         {
             Statement stmt = sqlService.getConnection().createStatement();
@@ -671,62 +674,62 @@ public class GenericTreeNode {
     public String updateQueryBuilderWrapper(boolean undo,Database db, SqlService sqlService)
     {
         String theQuery = "";
-        boolean hasFk = db.getLesForeignKeys().containsKey(chosenChange.getParentTableColumn().getTable().getName().toUpperCase());
 
-        if(hasFk)
-        {
             theQuery = "START TRANSACTION; SET CONSTRAINTS ALL DEFERRED;";
 
-            for(ForeignKeyConstraint fk : db.getLesForeignKeys().get(chosenChange.getParentTableColumn().getTable().getName().toUpperCase()))
-            {
-                for(TableColumn tb : fk.getParentColumns())
+                Collection<ForeignKeyConstraint> tmp2 = db.getLesForeignKeys().get(chosenChange.getParentTableColumn().getTable().getName().toUpperCase());
+                for (ForeignKeyConstraint fk : db.getLesForeignKeys().get(chosenChange.getParentTableColumn().getTable().getName().toUpperCase()))
                 {
-                    String semiQuery = "SELECT * FROM "+tb.getTable()+" WHERE "+tb.getName()+"=";
-                    if (chosenChange.getParentTableColumn().getTypeName().equals("varchar")
-                            || chosenChange.getParentTableColumn().getTypeName().equals("bool")
-                            || chosenChange.getParentTableColumn().getTypeName().equals("timestamp")
-                            || chosenChange.getParentTableColumn().getTypeName().equals("date")
-                            || chosenChange.getParentTableColumn().getTypeName().equals("_text")
-                            || chosenChange.getParentTableColumn().getTypeName().equals("text")
-                            || chosenChange.getParentTableColumn().getTypeName().equals("fulltext"))
-                        semiQuery = semiQuery +"' "+chosenChange.getOldValue()+" '";
-                    else
-                        semiQuery = semiQuery +chosenChange.getOldValue();
-
-                    QueryResponseParser qrp;
-                    QueryResponse response=null;
-                    try {
-                        Statement stmt = sqlService.getConnection().createStatement();
-                        ResultSet res = stmt.executeQuery(semiQuery);
-                        qrp = new QueryResponseParser();
-                        ArrayList<Row> rows = new ArrayList<Row>(qrp.parse(res,tb.getTable()).getRows());
-                        response = new QueryResponse(rows,rows.size());
-                    }
-                    catch(Exception e)
+                    for (TableColumn tb : fk.getChildColumns())
                     {
-                        e.printStackTrace();
-                    }
+                        String semiQuery = "SELECT * FROM " + tb.getTable() + " WHERE " + tb.getName() + "=";
+                        if (chosenChange.getParentTableColumn().getTypeName().equals("varchar")
+                                || chosenChange.getParentTableColumn().getTypeName().equals("bool")
+                                || chosenChange.getParentTableColumn().getTypeName().equals("timestamp")
+                                || chosenChange.getParentTableColumn().getTypeName().equals("date")
+                                || chosenChange.getParentTableColumn().getTypeName().equals("_text")
+                                || chosenChange.getParentTableColumn().getTypeName().equals("text")
+                                || chosenChange.getParentTableColumn().getTypeName().equals("fulltext"))
+                            semiQuery = semiQuery + "' " + chosenChange.getNewValue() + " ' ORDER BY RANDOM() LIMIT 1";
+                        else
+                            semiQuery = semiQuery + chosenChange.getNewValue()+" ORDER BY RANDOM() LIMIT 1";
 
-                    if(response != null)
-                    {
-                        for (int i = 0; i < response.getNbRows(); i++)
-                        {
-                            GenericTreeNode tmp = new GenericTreeNode(response.getRows().get(i),0,new SingleChange(chosenChange.getParentTableColumn(),this,chosenChange.getOldValue(),chosenChange.getNewValue()));
-                            theQuery = theQuery + tmp.updateQueryBuilder(false,db,sqlService);
+                        QueryResponseParser qrp;
+                        QueryResponse response = null;
+                        try {
+                            Statement stmt = sqlService.getConnection().createStatement();
+                            ResultSet res = stmt.executeQuery(semiQuery);
+                            qrp = new QueryResponseParser();
+                            ArrayList<Row> rows = new ArrayList<Row>(qrp.parse(res, tb.getTable()).getRows());
+                            response = new QueryResponse(rows, rows.size());
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
+                        if (response != null) {
+                            if (response.getNbRows() == 0) {
+                                for (int i = 0; i < response.getNbRows(); i++) {
+                                    //select all rows with oldValue. change to newValue for all of them
+                                    GenericTreeNode tmp = new GenericTreeNode(response.getRows().get(i), 0, new SingleChange(chosenChange.getParentTableColumn(), this, chosenChange.getOldValue(), chosenChange.getNewValue()));
+                                    theQuery = theQuery + tmp.updateQueryBuilder(false, db, sqlService);
+                                }
+                            }
                         }
                     }
                 }
-            }
-        }
 
         theQuery = theQuery + updateQueryBuilder(undo,db,sqlService);
+        theQuery = theQuery + " ; COMMIT TRANSACTION;";
 
-        if(hasFk)
-        {
-            theQuery = theQuery + " ; COMMIT TRANSACTION;";
-        }
         System.out.println("Total query = "+theQuery);
         return theQuery;
+    }
+
+    public boolean checkIfHasFk(Database db)
+    {
+        if(db.getLesForeignKeys().get(chosenChange.getParentTableColumn().getTable().getName().toUpperCase()).size() > 0)
+            return true;
+        return false;
     }
 
 }

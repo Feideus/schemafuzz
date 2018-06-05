@@ -81,7 +81,7 @@ public class DBFuzzer
         int maxDepth = Integer.parseInt(analyzer.getCommandLineArguments().getMaxDepth());
         int mark = 0;
         //adding CASCADE to all foreign key tableColumns.
-        settingTemporaryCascade(false); // need to drop and recreate database
+        //settingTemporaryCascade(false); // need to drop and recreate database
 
         LOGGER.info("Starting Database Fuzzing");
 
@@ -170,7 +170,7 @@ public class DBFuzzer
 
       System.out.println("success");
       printMutationTree();
-      removeTemporaryCascade();
+      //removeTemporaryCascade();
       return returnStatus;
     }
 
