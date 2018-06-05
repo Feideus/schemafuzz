@@ -399,7 +399,8 @@ public class GenericTreeNode {
                     || chosenChange.getParentTableColumn().getTypeName().equals("timestamp")
                     || chosenChange.getParentTableColumn().getTypeName().equals("date")
                     || chosenChange.getParentTableColumn().getTypeName().equals("_text")
-                    || chosenChange.getParentTableColumn().getTypeName().equals("text"))
+                    || chosenChange.getParentTableColumn().getTypeName().equals("text")
+                    || chosenChange.getParentTableColumn().getTypeName().equals("fulltext"))
                 theQuery = "UPDATE " + initial_state_row.getParentTable().getName() + " SET " + chosenChange.getParentTableColumn().getName() + "='" + chosenChange.getOldValue().toString() + "', ";
             else
                 theQuery = "UPDATE " + initial_state_row.getParentTable().getName() + " SET " + chosenChange.getParentTableColumn().getName() + " = " + chosenChange.getOldValue().toString() + ", ";
@@ -411,35 +412,36 @@ public class GenericTreeNode {
                     || chosenChange.getParentTableColumn().getTypeName().equals("timestamp")
                     || chosenChange.getParentTableColumn().getTypeName().equals("date")
                     || chosenChange.getParentTableColumn().getTypeName().equals("_text")
-                    || chosenChange.getParentTableColumn().getTypeName().equals("text"))
+                    || chosenChange.getParentTableColumn().getTypeName().equals("text")
+                    || chosenChange.getParentTableColumn().getTypeName().equals("fulltext"))
                 theQuery = "UPDATE " + initial_state_row.getParentTable().getName() + " SET " + chosenChange.getParentTableColumn().getName() + "='" + chosenChange.getNewValue().toString() + "', ";
             else
                 theQuery = "UPDATE " + initial_state_row.getParentTable().getName() + " SET " + chosenChange.getParentTableColumn().getName() + "=" + chosenChange.getNewValue().toString() + ", ";
         }
-        for (Map.Entry<String, Object> entry : initial_state_row.getContent().entrySet())
-        {
-            if (!entry.getKey().equals(chosenChange.getParentTableColumn().getName()))
-            {
-                if (chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("varchar")
-                        || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("bool")
-                        || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("timestamp")
-                        || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("date")
-                        || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("_text")
-                        || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("text"))
-                    theQuery = theQuery + (entry.getKey() + "='" + entry.getValue().toString() + "', ");
-                else
-                {
-                    if(entry.getValue() == null || entry.getValue().toString() == "" || entry.getValue().toString() == null)
-                    {
-                        String tmp = "null";
-                        theQuery = theQuery + (entry.getKey() + "=" + tmp+ ", "); // A CHANGER DURGENCE
-
-                    }
-                    else
-                        theQuery = theQuery + (entry.getKey() + "=" + entry.getValue().toString() + ", ");
-                }
-            }
-        }
+//        for (Map.Entry<String, Object> entry : initial_state_row.getContent().entrySet())
+//        {
+//            if (!entry.getKey().equals(chosenChange.getParentTableColumn().getName()))
+//            {
+//                if (chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("varchar")
+//                        || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("bool")
+//                        || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("timestamp")
+//                        || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("date")
+//                        || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("_text")
+//                        || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("text"))
+//                    theQuery = theQuery + (entry.getKey() + "='" + entry.getValue().toString() + "', ");
+//                else
+//                {
+//                    if(entry.getValue() == null || entry.getValue().toString() == "" || entry.getValue().toString() == null)
+//                    {
+//                        String tmp = "null";
+//                        theQuery = theQuery + (entry.getKey() + "=" + tmp+ ", "); // A CHANGER DURGENCE
+//
+//                    }
+//                    else
+//                        theQuery = theQuery + (entry.getKey() + "=" + entry.getValue().toString() + ", ");
+//                }
+//            }
+//        }
 
         theQuery = theQuery.substring(0, theQuery.lastIndexOf(","));
         theQuery = theQuery + " WHERE ";
@@ -454,17 +456,18 @@ public class GenericTreeNode {
                             || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("timestamp")
                             || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("date")
                             || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("_text")
-                            || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("text"))
+                            || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("text")
+                            || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("fulltext"))
                         theQuery = theQuery + (entry.getKey() + "='" + entry.getValue().toString() + "' AND ");
-                    else
-                    {
-                        if (entry.getValue() == null || entry.getValue().toString() == "" || entry.getValue().toString() == null) {
-                            String tmp = "null";
-                            theQuery = theQuery + (entry.getKey() + "=" + tmp + " AND "); // A CHANGER DURGENCE
-
-                        } else
-                            theQuery = theQuery + (entry.getKey() + "=" + entry.getValue().toString() + " AND ");
-                    }
+//                    else
+//                    {
+//                        if (entry.getValue() == null || entry.getValue().toString() == "" || entry.getValue().toString() == null) {
+//                            String tmp = "null";
+//                            theQuery = theQuery + (entry.getKey() + "=" + tmp + " AND "); // A CHANGER DURGENCE
+//
+//                        } else
+//                            theQuery = theQuery + (entry.getKey() + "=" + entry.getValue().toString() + " AND ");
+//                    }
                 }
                 else
                 {
@@ -668,28 +671,36 @@ public class GenericTreeNode {
     public String updateQueryBuilderWrapper(boolean undo,Database db, SqlService sqlService)
     {
         String theQuery = "";
-        boolean hasFk = db.getLesForeignKeys().containsKey(chosenChange.getParentTableColumn().getName());
+        boolean hasFk = db.getLesForeignKeys().containsKey(chosenChange.getParentTableColumn().getTable().getName().toUpperCase());
 
         if(hasFk)
         {
             theQuery = "START TRANSACTION; SET CONSTRAINTS ALL DEFERRED;";
 
-            for(ForeignKeyConstraint fk : db.getLesForeignKeys().get(chosenChange.getParentTableColumn().getName()))
+            for(ForeignKeyConstraint fk : db.getLesForeignKeys().get(chosenChange.getParentTableColumn().getTable().getName().toUpperCase()))
             {
-                ArrayList<TableColumn> allChildrenAndParents = new ArrayList<TableColumn>();
-                allChildrenAndParents.addAll(fk.getChildColumns());
-                allChildrenAndParents.addAll(fk.getParentColumns());
-
-                for(TableColumn tb : allChildrenAndParents)
+                for(TableColumn tb : fk.getParentColumns())
                 {
-                    String semiQuery = "SELECT * FROM "+tb.getTable()+" WHERE "+tb.getName()+"="+chosenChange.getOldValue();
+                    String semiQuery = "SELECT * FROM "+tb.getTable()+" WHERE "+tb.getName()+"=";
+                    if (chosenChange.getParentTableColumn().getTypeName().equals("varchar")
+                            || chosenChange.getParentTableColumn().getTypeName().equals("bool")
+                            || chosenChange.getParentTableColumn().getTypeName().equals("timestamp")
+                            || chosenChange.getParentTableColumn().getTypeName().equals("date")
+                            || chosenChange.getParentTableColumn().getTypeName().equals("_text")
+                            || chosenChange.getParentTableColumn().getTypeName().equals("text")
+                            || chosenChange.getParentTableColumn().getTypeName().equals("fulltext"))
+                        semiQuery = semiQuery +"' "+chosenChange.getOldValue()+" '";
+                    else
+                        semiQuery = semiQuery +chosenChange.getOldValue();
+
                     QueryResponseParser qrp;
-                    QueryResponse response = null ;
+                    QueryResponse response=null;
                     try {
                         Statement stmt = sqlService.getConnection().createStatement();
                         ResultSet res = stmt.executeQuery(semiQuery);
                         qrp = new QueryResponseParser();
-                        response = qrp.parse(res,tb.getTable());
+                        ArrayList<Row> rows = new ArrayList<Row>(qrp.parse(res,tb.getTable()).getRows());
+                        response = new QueryResponse(rows,rows.size());
                     }
                     catch(Exception e)
                     {
@@ -714,6 +725,7 @@ public class GenericTreeNode {
         {
             theQuery = theQuery + " ; COMMIT TRANSACTION;";
         }
+        System.out.println("Total query = "+theQuery);
         return theQuery;
     }
 
