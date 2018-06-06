@@ -36,11 +36,11 @@ public class QueryResponse
   	/**
   	* Default QueryResponse constructor
   	*/
-  	public QueryResponse(ArrayList<Row> rows, Integer nbRows)
+  	public QueryResponse(ArrayList<Row> rows)
     {
   		this.rows = new ArrayList<Row>();
       	this.rows = rows;
-  		this.nbRows = nbRows;
+  		this.nbRows = rows.size();
   	}
 	/**
 	* Returns value of rows
