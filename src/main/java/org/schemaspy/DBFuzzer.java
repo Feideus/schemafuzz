@@ -81,7 +81,7 @@ public class DBFuzzer
         int maxDepth = Integer.parseInt(analyzer.getCommandLineArguments().getMaxDepth());
         int mark = 0;
         //adding CASCADE to all foreign key tableColumns.
-        //settingTemporaryCascade(false); // need to drop and recreate database
+        settingTemporaryCascade(false); // need to drop and recreate database
 
         LOGGER.info("Starting Database Fuzzing");
 
@@ -170,7 +170,7 @@ public class DBFuzzer
 
       System.out.println("success");
       printMutationTree();
-      //removeTemporaryCascade();
+      removeTemporaryCascade();
       return returnStatus;
     }
 
@@ -192,7 +192,7 @@ public class DBFuzzer
           try {
               stmt = analyzer.getSqlService().prepareStatement(theQuery);
               rs = stmt.executeQuery();
-              res = qrp.parse(rs, analyzer.getDb().getTablesMap().get(randomTable.getName())).getRows().get(0); //randomTable should be set there
+              res = qrp.parse(rs, analyzer.getDb().getTablesMap().get(randomTable.getName())).getRows().get(0);
           } catch (Exception e) {
               LOGGER.info("This query threw an error" + e);
           }
@@ -231,12 +231,12 @@ public class DBFuzzer
                 dropSetCascade = "ALTER TABLE "+currentFK.getChildTable().getName()+" DROP CONSTRAINT "+currentFK.getName()+ " CASCADE";
                 try
                 {
-                         PreparedStatement stmt = analyzer.getSqlService().prepareStatement(dropSetCascade, analyzer.getDb(),null);
-                         stmt.execute();
+                    PreparedStatement stmt = analyzer.getSqlService().prepareStatement(dropSetCascade, analyzer.getDb(),null);
+                    stmt.execute();
                 }
                 catch(Exception e)
                 {
-                  System.out.println("Dans le catch erreur :"+e);
+                    e.printStackTrace();
                 }
               }
 
@@ -261,7 +261,7 @@ public class DBFuzzer
                   }
                   catch(Exception e)
                   {
-                    System.out.println("Dans le catch 2 erreur :"+e);
+                      e.printStackTrace();
                   }
                 }
 

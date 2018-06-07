@@ -20,7 +20,7 @@ public class GenericTreeNode {
     private Integer weight;
     private Integer subTreeWeight;
     private int depth;
-    private final Row initial_state_row;
+    private Row initial_state_row;
     private Row post_change_row;
     private ArrayList<SingleChange> potential_changes = new ArrayList<SingleChange>();
     //private ArrayList<SingleChange> cascadeFK = new ArrayList<SingleChange>(); // a integrer
@@ -340,11 +340,10 @@ public class GenericTreeNode {
             System.out.println("UNDOING");
         else
             System.out.println("INJECT");
+        if(checkIfHasParentFk(db))
+            transferMutationToParent(db,sqlService);
 
-        if(checkIfHasFk(db))
-            theQuery = updateQueryBuilderWrapper(undo,db,sqlService);
-        else
-            theQuery = updateQueryBuilder(undo,db,sqlService);
+        theQuery = updateQueryBuilder(undo,db,sqlService);
         try
         {
             Statement stmt = sqlService.getConnection().createStatement();
@@ -624,101 +623,136 @@ public class GenericTreeNode {
     }
 
 
-    public String updateQueryBuilderWrapper(boolean undo,Database db, SqlService sqlService)
+//    public String updateQueryBuilderWrapper(boolean undo,Database db, SqlService sqlService)
+//    {
+//        String theQuery = "";
+//
+//            theQuery = "START TRANSACTION; SET CONSTRAINTS ALL DEFERRED;";
+//
+//                for (ForeignKeyConstraint fk : db.getLesForeignKeys().get(chosenChange.getParentTableColumn().getTable().getName().toUpperCase()))
+//                {
+//                        for (TableColumn tb : fk.getChildColumns())
+//                        {
+//                                String semiQuery = "SELECT * FROM " + tb.getTable() + " WHERE " + tb.getName() + "=";
+//                                if (chosenChange.getParentTableColumn().getTypeName().equals("varchar")
+//                                        || chosenChange.getParentTableColumn().getTypeName().equals("bool")
+//                                        || chosenChange.getParentTableColumn().getTypeName().equals("timestamp")
+//                                        || chosenChange.getParentTableColumn().getTypeName().equals("date")
+//                                        || chosenChange.getParentTableColumn().getTypeName().equals("_text")
+//                                        || chosenChange.getParentTableColumn().getTypeName().equals("text")
+//                                        || chosenChange.getParentTableColumn().getTypeName().equals("fulltext"))
+//                                    semiQuery = semiQuery + "' " + chosenChange.getNewValue() + " ' ORDER BY RANDOM() LIMIT 1";
+//                                else
+//                                    semiQuery = semiQuery + chosenChange.getNewValue() + " ORDER BY RANDOM() LIMIT 1";
+//
+//                                QueryResponseParser qrp;
+//                                QueryResponse response = null;
+//                                try {
+//                                    Statement stmt = sqlService.getConnection().createStatement();
+//                                    ResultSet res = stmt.executeQuery(semiQuery);
+//                                    qrp = new QueryResponseParser();
+//                                    ArrayList<Row> rows = new ArrayList<Row>(qrp.parse(res, tb.getTable()).getRows());
+//                                    System.out.println(rows);
+//                                    response = new QueryResponse(rows);
+//                                } catch (Exception e) {
+//                                    e.printStackTrace();
+//                                }
+//                                if (response.getNbRows() == 0) {
+//                                    int tmpIndex = semiQuery.lastIndexOf("=") + 1;
+//                                    if (chosenChange.getParentTableColumn().getTypeName().equals("varchar")
+//                                            || chosenChange.getParentTableColumn().getTypeName().equals("bool")
+//                                            || chosenChange.getParentTableColumn().getTypeName().equals("timestamp")
+//                                            || chosenChange.getParentTableColumn().getTypeName().equals("date")
+//                                            || chosenChange.getParentTableColumn().getTypeName().equals("_text")
+//                                            || chosenChange.getParentTableColumn().getTypeName().equals("text")
+//                                            || chosenChange.getParentTableColumn().getTypeName().equals("fulltext"))
+//                                        semiQuery = semiQuery.substring(0, tmpIndex) + "' " + chosenChange.getOldValue() + "' ";
+//                                    else
+//                                        semiQuery = semiQuery.substring(0, tmpIndex) + chosenChange.getOldValue();
+//
+//                                    try {
+//                                        Statement stmt = sqlService.getConnection().createStatement();
+//                                        ResultSet res = stmt.executeQuery(semiQuery);
+//                                        qrp = new QueryResponseParser();
+//                                        ArrayList<Row> rows = new ArrayList<Row>(qrp.parse(res, tb.getTable()).getRows());
+//                                        response = new QueryResponse(rows);
+//                                    } catch (Exception e) {
+//                                        e.printStackTrace();
+//                                    }
+//
+//                                    if (response.getRows().size() > 1) {
+//                                        FkGenericTreeNode tmp = new FkGenericTreeNode(response.getRows().get(0), this, new SingleChange(tb, this, chosenChange.getOldValue(), chosenChange.getNewValue()), true);
+//                                        fkMutations.put(tb, tmp);
+//                                        theQuery = theQuery + tmp.updateQueryBuilder(false, db, sqlService) + ";"; // adding semicolon between fk updates inside the transaction
+//
+//                                    } else if (response.getRows().size() == 1) {
+//                                        FkGenericTreeNode tmp = new FkGenericTreeNode(response.getRows().get(0), this, new SingleChange(tb, this, chosenChange.getOldValue(), chosenChange.getNewValue()), false);
+//                                        fkMutations.put(tb, tmp);
+//                                        theQuery = theQuery + tmp.updateQueryBuilder(false, db, sqlService) + ";"; // adding semicolon between fk updates inside the transaction
+//
+//                                    }
+//                                }
+//                        }
+//                }
+//
+//
+//
+//        theQuery = theQuery + updateQueryBuilder(undo,db,sqlService);
+//        theQuery = theQuery + " ; COMMIT TRANSACTION;";
+//
+//        System.out.println("Total query = "+theQuery);
+//        return theQuery;
+//    }
+
+    public void transferMutationToParent( Database db,SqlService sqlService)
     {
-        String theQuery = "";
+        TableColumn sgParentColumn = chosenChange.getParentTableColumn();
 
-            theQuery = "START TRANSACTION; SET CONSTRAINTS ALL DEFERRED;";
+        QueryResponseParser qrp;
+        QueryResponse response = null;
 
-                System.out.println(db.getLesForeignKeys().get(chosenChange.getParentTableColumn().getTable().getName().toUpperCase()).isEmpty());
+        Collection<ForeignKeyConstraint> lesFk= db.getLesForeignKeys().get(sgParentColumn.getTable().getName().toUpperCase());
+        for(ForeignKeyConstraint fk : lesFk)
+        {
+            if(fk.getChildColumns().contains(sgParentColumn))
+            {
+                chosenChange.setParentTableColumn(fk.getParentColumns().get(0)); // might require some change if there are multiple parents to one field
+            }
+        }
 
-                    for (ForeignKeyConstraint fk : db.getLesForeignKeys().get(chosenChange.getParentTableColumn().getTable().getName().toUpperCase())) {
-                        for (TableColumn tb : fk.getChildColumns())
-                        {
-                            String semiQuery = "SELECT * FROM " + tb.getTable() + " WHERE " + tb.getName() + "=";
-                            if (chosenChange.getParentTableColumn().getTypeName().equals("varchar")
-                                    || chosenChange.getParentTableColumn().getTypeName().equals("bool")
-                                    || chosenChange.getParentTableColumn().getTypeName().equals("timestamp")
-                                    || chosenChange.getParentTableColumn().getTypeName().equals("date")
-                                    || chosenChange.getParentTableColumn().getTypeName().equals("_text")
-                                    || chosenChange.getParentTableColumn().getTypeName().equals("text")
-                                    || chosenChange.getParentTableColumn().getTypeName().equals("fulltext"))
-                                semiQuery = semiQuery + "' " + chosenChange.getNewValue() + " ' ORDER BY RANDOM() LIMIT 1";
-                            else
-                                semiQuery = semiQuery + chosenChange.getNewValue() + " ORDER BY RANDOM() LIMIT 1";
-
-                            QueryResponseParser qrp;
-                            QueryResponse response = null;
-                            try
-                            {
-                                Statement stmt = sqlService.getConnection().createStatement();
-                                ResultSet res = stmt.executeQuery(semiQuery);
-                                qrp = new QueryResponseParser();
-                                ArrayList<Row> rows = new ArrayList<Row>(qrp.parse(res, tb.getTable()).getRows());
-                                response = new QueryResponse(rows);
-                            }
-                            catch (Exception e)
-                            {
-                                e.printStackTrace();
-                            }
-
-                            if (response != null)
-                            {
-                                if (response.getNbRows() == 0)
-                                {
-                                    int tmpIndex = semiQuery.lastIndexOf("=");
-                                    if (chosenChange.getParentTableColumn().getTypeName().equals("varchar")
-                                            || chosenChange.getParentTableColumn().getTypeName().equals("bool")
-                                            || chosenChange.getParentTableColumn().getTypeName().equals("timestamp")
-                                            || chosenChange.getParentTableColumn().getTypeName().equals("date")
-                                            || chosenChange.getParentTableColumn().getTypeName().equals("_text")
-                                            || chosenChange.getParentTableColumn().getTypeName().equals("text")
-                                            || chosenChange.getParentTableColumn().getTypeName().equals("fulltext"))
-                                        semiQuery = semiQuery.substring(tmpIndex) + "' " + chosenChange.getOldValue()+"' ";
-                                    else
-                                        semiQuery = semiQuery.substring(tmpIndex) + chosenChange.getOldValue();
-
-                                    try
-                                    {
-                                        Statement stmt = sqlService.getConnection().createStatement();
-                                        ResultSet res = stmt.executeQuery(semiQuery);
-                                        qrp = new QueryResponseParser();
-                                        ArrayList<Row> rows = new ArrayList<Row>(qrp.parse(res, tb.getTable()).getRows());
-                                        response = new QueryResponse(rows);
-                                    }
-                                    catch (Exception e)
-                                    {
-                                        e.printStackTrace();
-                                    }
-
-                                    if(!response.getRows().isEmpty())
-                                    {
-                                        for (int i = 0; i < response.getNbRows(); i++)
-                                        {
-                                            FkGenericTreeNode tmp = new FkGenericTreeNode(response.getRows().get(i), this, new SingleChange(chosenChange.getParentTableColumn(), this, chosenChange.getOldValue(), chosenChange.getNewValue()));
-                                            fkMutations.put(tb,tmp);
-                                            theQuery = theQuery + tmp.updateQueryBuilder(false, db, sqlService);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
+        String semiQuery = "SELECT * FROM " + chosenChange.getParentTableColumn().getTable().getName() + " WHERE " + chosenChange.getParentTableColumn().getName() + "=";
+        if (chosenChange.getParentTableColumn().getTypeName().equals("varchar")
+                || chosenChange.getParentTableColumn().getTypeName().equals("bool")
+                || chosenChange.getParentTableColumn().getTypeName().equals("timestamp")
+                || chosenChange.getParentTableColumn().getTypeName().equals("date")
+                || chosenChange.getParentTableColumn().getTypeName().equals("_text")
+                || chosenChange.getParentTableColumn().getTypeName().equals("text")
+                || chosenChange.getParentTableColumn().getTypeName().equals("fulltext"))
+            semiQuery = semiQuery + chosenChange.getOldValue() + "' ";
+        else
+            semiQuery = semiQuery + chosenChange.getOldValue();
 
 
-        theQuery = theQuery + updateQueryBuilder(undo,db,sqlService);
-        theQuery = theQuery + " ; COMMIT TRANSACTION;";
 
-        System.out.println("Total query = "+theQuery);
-        return theQuery;
+        try {
+            Statement stmt = sqlService.getConnection().createStatement();
+            ResultSet res = stmt.executeQuery(semiQuery);
+            qrp = new QueryResponseParser();
+            ArrayList<Row> rows = new ArrayList<Row>(qrp.parse(res, chosenChange.getParentTableColumn().getTable()).getRows());
+            response = new QueryResponse(rows);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        initial_state_row = response.getRows().get(0);
     }
 
-    public boolean checkIfHasFk(Database db)
+    public boolean checkIfHasParentFk(Database db)
     {
         Collection<ForeignKeyConstraint> lesFk= db.getLesForeignKeys().get(chosenChange.getParentTableColumn().getTable().getName().toUpperCase());
         for(ForeignKeyConstraint fk : lesFk)
         {
-            if(fk.getChildColumns().contains(chosenChange.getParentTableColumn()))
+            if(!fk.getParentColumns().isEmpty())
                 return true;
         }
         return false;

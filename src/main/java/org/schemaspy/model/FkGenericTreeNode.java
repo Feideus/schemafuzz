@@ -10,12 +10,14 @@ public class FkGenericTreeNode {
     private Row initial_state_row;
     private Row post_change_row;
     private SingleChange fkChange;
+    private boolean targetsMultipleRows;
 
-    public FkGenericTreeNode(Row initial_state_row,GenericTreeNode parent, SingleChange sg)
+    public FkGenericTreeNode(Row initial_state_row,GenericTreeNode parent, SingleChange sg,boolean multipleRows)
     {
-        this.parent = null;
+        this.targetsMultipleRows = multipleRows;
+        this.parent = parent;
         this.initial_state_row = initial_state_row;
-        this.fkChange = fkChange;
+        this.fkChange = sg;
         initPostChangeRow();
     }
 

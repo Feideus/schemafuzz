@@ -48,7 +48,11 @@ public class Row
         this.nbKeys = nbKeys;
 	}
 
-  public Table getParentTable()
+    public void setParentTable(Table parentTable) {
+        this.parentTable = parentTable;
+    }
+
+    public Table getParentTable()
   {
     return this.parentTable;
   }

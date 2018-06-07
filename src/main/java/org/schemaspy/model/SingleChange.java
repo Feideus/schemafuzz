@@ -39,7 +39,11 @@ public class SingleChange
     }
   }
 
-   @Override
+    public void setParentTableColumn(TableColumn parentTableColumn) {
+        this.parentTableColumn = parentTableColumn;
+    }
+
+    @Override
    public String toString()
    {
      return "\n[SG - attachedToMutation : "+this.getAttachedToMutation().getId()+"| OV :"+oldValue+" | NV :"+newValue+" ]\n";
