@@ -389,7 +389,8 @@ public class GenericTreeNode {
                     || chosenChange.getParentTableColumn().getTypeName().equals("date")
                     || chosenChange.getParentTableColumn().getTypeName().equals("_text")
                     || chosenChange.getParentTableColumn().getTypeName().equals("text")
-                    || chosenChange.getParentTableColumn().getTypeName().equals("fulltext"))
+                    || chosenChange.getParentTableColumn().getTypeName().equals("fulltext")
+                    || chosenChange.getParentTableColumn().getTypeName().equals("email"))
                 theQuery = "UPDATE " + initial_state_row.getParentTable().getName() + " SET " + chosenChange.getParentTableColumn().getName() + "='" + chosenChange.getOldValue().toString() + "', ";
             else
                 theQuery = "UPDATE " + initial_state_row.getParentTable().getName() + " SET " + chosenChange.getParentTableColumn().getName() + " = " + chosenChange.getOldValue().toString() + ", ";
@@ -402,7 +403,8 @@ public class GenericTreeNode {
                     || chosenChange.getParentTableColumn().getTypeName().equals("date")
                     || chosenChange.getParentTableColumn().getTypeName().equals("_text")
                     || chosenChange.getParentTableColumn().getTypeName().equals("text")
-                    || chosenChange.getParentTableColumn().getTypeName().equals("fulltext"))
+                    || chosenChange.getParentTableColumn().getTypeName().equals("fulltext")
+                    || chosenChange.getParentTableColumn().getTypeName().equals("email"))
                 theQuery = "UPDATE " + initial_state_row.getParentTable().getName() + " SET " + chosenChange.getParentTableColumn().getName() + "='" + chosenChange.getNewValue().toString() + "', ";
             else
                 theQuery = "UPDATE " + initial_state_row.getParentTable().getName() + " SET " + chosenChange.getParentTableColumn().getName() + "=" + chosenChange.getNewValue().toString() + ", ";
@@ -421,7 +423,8 @@ public class GenericTreeNode {
                             || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("date")
                             || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("_text")
                             || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("text")
-                            || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("fulltext"))
+                            || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("fulltext")
+                            || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("email"))
                         theQuery = theQuery + (entry.getKey() + "='" + entry.getValue().toString() + "' AND ");
                 }
                 else
@@ -720,17 +723,18 @@ public class GenericTreeNode {
             }
         }
 
-        String semiQuery = "SELECT * FROM " + chosenChange.getParentTableColumn().getTable().getName() + " WHERE " + chosenChange.getParentTableColumn().getName() + "=";
+        String semiQuery = "SELECT * FROM " + chosenChange.getParentTableColumn().getTable().getName() ;
         if (chosenChange.getParentTableColumn().getTypeName().equals("varchar")
                 || chosenChange.getParentTableColumn().getTypeName().equals("bool")
                 || chosenChange.getParentTableColumn().getTypeName().equals("timestamp")
                 || chosenChange.getParentTableColumn().getTypeName().equals("date")
                 || chosenChange.getParentTableColumn().getTypeName().equals("_text")
                 || chosenChange.getParentTableColumn().getTypeName().equals("text")
-                || chosenChange.getParentTableColumn().getTypeName().equals("fulltext"))
-            semiQuery = semiQuery + chosenChange.getOldValue() + "' ";
+                || chosenChange.getParentTableColumn().getTypeName().equals("fulltext")
+                || chosenChange.getParentTableColumn().getTypeName().equals("email"))
+            semiQuery = semiQuery + " WHERE " + chosenChange.getParentTableColumn().getName() + "= '"+chosenChange.getOldValue() + " '";
         else
-            semiQuery = semiQuery + chosenChange.getOldValue();
+            semiQuery = semiQuery + " WHERE " + chosenChange.getParentTableColumn().getName() + "="+chosenChange.getOldValue();
 
 
 
@@ -744,7 +748,7 @@ public class GenericTreeNode {
             e.printStackTrace();
         }
 
-        initial_state_row = response.getRows().get(0);
+        initial_state_row = response.getRows().get(0); // there should be only one row.
     }
 
     public boolean checkIfHasParentFk(Database db)

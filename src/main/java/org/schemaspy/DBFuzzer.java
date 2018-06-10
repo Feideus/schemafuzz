@@ -337,7 +337,8 @@ public class DBFuzzer
                     nextMut.setChosenChange(tmp);
                     nextMut.initPostChangeRow();
                 }
-                else {
+                else
+                {
                     Row nextRow;
                     do
                     {
