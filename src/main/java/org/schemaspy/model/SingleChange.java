@@ -64,6 +64,10 @@ public class SingleChange
       return parentTableColumn;
     }
 
+    public void setNewValue(Object newValue) {
+        this.newValue = newValue;
+    }
+
     public boolean compare(SingleChange chosenChange)
     {
         if(chosenChange == null || this == null )
@@ -77,6 +81,7 @@ public class SingleChange
 
         if(!chosenChange.getParentTableColumn().getName().equals(this.getParentTableColumn().getName()))
           return false;
+
 
       return true;
     }

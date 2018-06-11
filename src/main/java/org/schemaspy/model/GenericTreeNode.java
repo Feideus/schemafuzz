@@ -1,6 +1,8 @@
 package org.schemaspy.model;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.sql.*;
 
 import java.text.SimpleDateFormat;
@@ -749,7 +751,49 @@ public class GenericTreeNode {
             e.printStackTrace();
         }
 
+
+
         initial_state_row = response.getRows().get(0); // there should be only one row.
+
+
+
+        semiQuery = "SELECT * FROM " + chosenChange.getParentTableColumn().getTable().getName() ;
+        if (chosenChange.getParentTableColumn().getTypeName().equals("varchar")
+                || chosenChange.getParentTableColumn().getTypeName().equals("bool")
+                || chosenChange.getParentTableColumn().getTypeName().equals("timestamp")
+                || chosenChange.getParentTableColumn().getTypeName().equals("date")
+                || chosenChange.getParentTableColumn().getTypeName().equals("_text")
+                || chosenChange.getParentTableColumn().getTypeName().equals("text")
+                || chosenChange.getParentTableColumn().getTypeName().equals("fulltext")
+                || chosenChange.getParentTableColumn().getTypeName().equals("email"))
+            semiQuery = semiQuery + " WHERE " + chosenChange.getParentTableColumn().getName() + "= '"+chosenChange.getNewValue() + " '";
+        else
+            semiQuery = semiQuery + " WHERE " + chosenChange.getParentTableColumn().getName() + "="+chosenChange.getNewValue();
+
+        try {
+            Statement stmt = sqlService.getConnection().createStatement();
+            ResultSet res = stmt.executeQuery(semiQuery);
+            qrp = new QueryResponseParser();
+            ArrayList<Row> rows = new ArrayList<Row>(qrp.parse(res, chosenChange.getParentTableColumn().getTable()).getRows());
+            response = new QueryResponse(rows);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        if(!response.getRows().isEmpty())
+        {
+            try
+            {
+                Process fuID = new ProcessBuilder("/bin/bash", "firstUnusedId.sh").start();
+                String newValueAsString = getScriptResponse(fuID);
+                int newValue = Integer.parseInt(newValueAsString.replaceAll("\\s+",""));
+                chosenChange.setNewValue(newValue);
+            }
+            catch(Exception e)
+            {
+                e.printStackTrace();
+            }
+        }
     }
 
     public boolean checkIfHasParentFk(Database db)
@@ -806,5 +850,25 @@ public class GenericTreeNode {
             }
         }
         return newPossibilities;
+    }
+
+    public String getScriptResponse(Process p)
+    {
+        String response = "";
+        try
+        {
+
+            BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            String line;
+            while ((line = r.readLine())!=null) {
+                response = response+line;
+            }
+            r.close();
+        }
+        catch(Exception e)
+        {
+            System.out.println("error while reading process output"+e);
+        }
+        return response;
     }
 }
