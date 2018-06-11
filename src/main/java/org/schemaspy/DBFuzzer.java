@@ -89,7 +89,7 @@ public class DBFuzzer
         // Building root Mutation. Could be extended by looking for a relevant first SingleChange as rootMutation
         do {
             Row randomRow = pickRandomRow();
-            currentMutation = new GenericTreeNode(randomRow, nextId());
+            currentMutation = new GenericTreeNode(randomRow, nextId(),analyzer.getSqlService());
         } while(currentMutation.getPotential_changes().isEmpty());
         currentMutation.setChosenChange(currentMutation.getPotential_changes().get(0));
         currentMutation.initPostChangeRow();
@@ -126,7 +126,6 @@ public class DBFuzzer
                 e.printStackTrace();
               }
             }
-            mutationTree.addToTree(currentMutation);
             //Injection
             try
             {
@@ -136,6 +135,7 @@ public class DBFuzzer
                     if(resQuery)
                     {
                         LOGGER.info("GenericTreeNode was sucessfull");
+                        mutationTree.addToTree(currentMutation);
                     }
                     else
                         LOGGER.info("QueryError");
@@ -146,7 +146,6 @@ public class DBFuzzer
                 e.printStackTrace();
                 returnStatus = false;
             }
-
 
             //Evalutation
             try
@@ -322,7 +321,7 @@ public class DBFuzzer
             if (markingDiff > 0) //
             {
                 int randNumber = rand.nextInt(previousMutation.getPotential_changes().size());
-                nextMut = new GenericTreeNode(previousMutation.getPost_change_row(), nextId(), mutationTree.getRoot(), previousMutation,false);
+                nextMut = new GenericTreeNode(previousMutation.getPost_change_row(), nextId(), mutationTree.getRoot(), previousMutation,false,analyzer.getSqlService());
                 nextMut.setChosenChange(previousMutation.getPotential_changes().get(randNumber));
                 nextMut.initPostChangeRow();
             }
@@ -333,7 +332,7 @@ public class DBFuzzer
                 if(changeOrDepthen.nextInt(2) == 1)
                 {
                     SingleChange tmp = mutationTree.getRoot().singleChangeBasedOnWeight();
-                    nextMut = new GenericTreeNode(tmp.getAttachedToMutation().getPost_change_row(), nextId(), mutationTree.getRoot(), tmp.getAttachedToMutation(),false);
+                    nextMut = new GenericTreeNode(tmp.getAttachedToMutation().getPost_change_row(), nextId(), mutationTree.getRoot(), tmp.getAttachedToMutation(),false,analyzer.getSqlService());
                     nextMut.setChosenChange(tmp);
                     nextMut.initPostChangeRow();
                 }
@@ -343,7 +342,7 @@ public class DBFuzzer
                     do
                     {
                         nextRow = pickRandomRow();
-                        nextMut = new GenericTreeNode(nextRow, nextId(), mutationTree.getRoot(), previousMutation, true);
+                        nextMut = new GenericTreeNode(nextRow, nextId(), mutationTree.getRoot(), previousMutation, true, analyzer.getSqlService());
                     }while(nextMut.getPotential_changes().isEmpty());
 
                     Random nextSingleChangeId = new Random();

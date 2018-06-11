@@ -34,7 +34,7 @@ public class GenericTreeNode {
     /**
      * Default GenericTreeNode constructor
      */
-    public GenericTreeNode(Row initial_state_row, int id) { // used only for rootMutation and Tests
+    public GenericTreeNode(Row initial_state_row, int id,SqlService sqlService) { // used only for rootMutation and Tests
         //this.cascadingFK = false;
         this.subTreeWeight = 0;
         this.parent = null;
@@ -43,11 +43,11 @@ public class GenericTreeNode {
         this.id = id;
         this.isFirstApperance = true;
         this.initial_state_row = initial_state_row;
-        this.potential_changes = discoverMutationPossibilities(this);
+        this.potential_changes = discoverMutationPossibilities(this,sqlService);
     }
 
 
-    public GenericTreeNode(Row initial_state_row, int id, GenericTreeNode rootMutation, GenericTreeNode parentMutation,boolean isFirstApperance) {
+    public GenericTreeNode(Row initial_state_row, int id, GenericTreeNode rootMutation, GenericTreeNode parentMutation,boolean isFirstApperance,SqlService sqlService) {
         //this.cascadingFK = false;
         this.parent = parentMutation;
         this.subTreeWeight = 0;
@@ -56,7 +56,7 @@ public class GenericTreeNode {
         initDepth();
         this.isFirstApperance = isFirstApperance;
         this.initial_state_row = initial_state_row;
-        this.potential_changes = discoverMutationPossibilities(rootMutation);
+        this.potential_changes = discoverMutationPossibilities(rootMutation,sqlService);
     }
 
 
@@ -207,7 +207,7 @@ public class GenericTreeNode {
         this.parent = parent;
     }
 
-    public ArrayList<SingleChange> discoverMutationPossibilities(GenericTreeNode rootMutation) {
+    public ArrayList<SingleChange> discoverMutationPossibilities(GenericTreeNode rootMutation,SqlService sqlService) {
 
         if(initial_state_row == null)
         {
@@ -230,15 +230,10 @@ public class GenericTreeNode {
                 e.printStackTrace();
             }
         }
+        possibilities = removePotentialChangesThatDontMatchConstraints(possibilities,sqlService);
         if(possibilities.isEmpty())
             System.out.println("No raw Mutation could be found for this row");
 
-        //REMOVING POSSIBILITIES THAT DONT MATCH CONSTRAINTS
-    //        for(SingleChange singleChange : possibilities)
-    //        {
-    //            if (!singleChange.respectsConstraints())
-    //                possibilities.remove(singleChange);
-    //        }
         return possibilities;
     }
 
@@ -264,7 +259,7 @@ public class GenericTreeNode {
                     int tmp = Integer.parseInt(rootForThisMutation.getInitial_state_row().getContent().get(tableColumn.getName()).toString());
                     oneChange.add(new SingleChange(tableColumn, this, column_value, Integer.toString(tmp++)));
                     oneChange.add(new SingleChange(tableColumn, this, column_value, Integer.toString(32767)));
-                    oneChange.add(new SingleChange(tableColumn, this, column_value, Integer.toString(1)));
+                    oneChange.add(new SingleChange(tableColumn, this, column_value, Integer.toString(0)));
                     break;
                 }
             case "character":
@@ -341,7 +336,10 @@ public class GenericTreeNode {
         else
             System.out.println("INJECT");
         if(checkIfHasParentFk(db))
+        {
+            System.out.println("TRANSFERT");
             transferMutationToParent(db,sqlService);
+        }
 
         theQuery = updateQueryBuilder(undo,db,sqlService);
         try
@@ -353,7 +351,7 @@ public class GenericTreeNode {
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            System.out.println("Error ! : Mutation Canceled"+e); // temporerally putting aside the Unique constraint brought by the tranfertToParent Mechanic
             return false;
         }
     }
@@ -425,7 +423,12 @@ public class GenericTreeNode {
                             || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("text")
                             || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("fulltext")
                             || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("email"))
-                        theQuery = theQuery + (entry.getKey() + "='" + entry.getValue().toString() + "' AND ");
+                    {
+                        if(entry.getValue() != null )
+                            theQuery = theQuery + (entry.getKey() + "='" + entry.getValue().toString() + "' AND ");
+                        else
+                            theQuery = theQuery + (entry.getKey() + "= null AND ");
+                    }
                 }
                 else
                 {
@@ -736,8 +739,6 @@ public class GenericTreeNode {
         else
             semiQuery = semiQuery + " WHERE " + chosenChange.getParentTableColumn().getName() + "="+chosenChange.getOldValue();
 
-
-
         try {
             Statement stmt = sqlService.getConnection().createStatement();
             ResultSet res = stmt.executeQuery(semiQuery);
@@ -762,4 +763,48 @@ public class GenericTreeNode {
         return false;
     }
 
+    public ArrayList<SingleChange> removePotentialChangesThatDontMatchConstraints(ArrayList<SingleChange> possibilities, SqlService sqlService)
+    {
+        QueryResponseParser qrp;
+        QueryResponse response = null;
+        ArrayList<SingleChange> newPossibilities = possibilities;
+
+        for(SingleChange sg : possibilities)
+        {
+            if(sg.getParentTableColumn().getTable().getPrimaryColumns().contains(sg.getParentTableColumn())) // unique OR PK constraints
+            {
+                String semiQuery = "SELECT * FROM " + sg.getParentTableColumn().getTable().getName();
+                if (sg.getParentTableColumn().getTypeName().equals("varchar")
+                        || sg.getParentTableColumn().getTypeName().equals("bool")
+                        || sg.getParentTableColumn().getTypeName().equals("timestamp")
+                        || sg.getParentTableColumn().getTypeName().equals("date")
+                        || sg.getParentTableColumn().getTypeName().equals("_text")
+                        || sg.getParentTableColumn().getTypeName().equals("text")
+                        || sg.getParentTableColumn().getTypeName().equals("fulltext")
+                        || sg.getParentTableColumn().getTypeName().equals("email"))
+                    semiQuery = semiQuery + " WHERE " + sg.getParentTableColumn().getName() + "= '" + sg.getNewValue() + " '";
+                else
+                    semiQuery = semiQuery + " WHERE " + sg.getParentTableColumn().getName() + "=" + sg.getNewValue();
+
+                System.out.println("removing = " + semiQuery);
+
+                try
+                {
+                    Statement stmt = sqlService.getConnection().createStatement();
+                    ResultSet res = stmt.executeQuery(semiQuery);
+                    qrp = new QueryResponseParser();
+                    ArrayList<Row> rows = new ArrayList<Row>(qrp.parse(res, sg.getParentTableColumn().getTable()).getRows());
+                    response = new QueryResponse(rows);
+                }
+                catch (Exception e)
+                {
+                    e.printStackTrace();
+                }
+
+                if(response.getRows() != null)
+                    newPossibilities.remove(sg);
+            }
+        }
+        return newPossibilities;
+    }
 }
