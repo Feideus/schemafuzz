@@ -83,27 +83,27 @@ public class GenericTreeTest {
 
         GenericTree tree = new GenericTree();
 
-        GenericTreeNode tmpMutation = new GenericTreeNode(row,1);
+        GenericTreeNode tmpMutation = new GenericTreeNode(row,1,sqlService);
         tmpMutation.setChosenChange(tmpMutation.getPotential_changes().get(0));
         tmpMutation.setDepth(0);
 
-        GenericTreeNode tmpMutation2 = new GenericTreeNode(row2,2);
+        GenericTreeNode tmpMutation2 = new GenericTreeNode(row2,2,sqlService);
         tmpMutation2.setChosenChange(tmpMutation.getPotential_changes().get(0));
         tmpMutation2.setDepth(1);
 
-        GenericTreeNode tmpMutation3 = new GenericTreeNode(row3,3);
+        GenericTreeNode tmpMutation3 = new GenericTreeNode(row3,3,sqlService);
         tmpMutation3.setChosenChange(tmpMutation.getPotential_changes().get(0));
         tmpMutation3.setDepth(2);
 
-        GenericTreeNode tmpMutation4 = new GenericTreeNode(row4,4);
+        GenericTreeNode tmpMutation4 = new GenericTreeNode(row4,4,sqlService);
         tmpMutation4.setChosenChange(tmpMutation.getPotential_changes().get(0));
         tmpMutation4.setDepth(1);
 
-        GenericTreeNode tmpMutation5 = new GenericTreeNode(row5,5);
+        GenericTreeNode tmpMutation5 = new GenericTreeNode(row5,5,sqlService);
         tmpMutation4.setChosenChange(tmpMutation.getPotential_changes().get(0));
         tmpMutation4.setDepth(3);
 
-        GenericTreeNode tmpMutation6 = new GenericTreeNode(row6,6);
+        GenericTreeNode tmpMutation6 = new GenericTreeNode(row6,6,sqlService);
         tmpMutation6.setChosenChange(tmpMutation.getPotential_changes().get(0));
         tmpMutation6.setDepth(4);
 

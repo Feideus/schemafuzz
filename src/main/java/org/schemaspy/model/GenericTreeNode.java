@@ -1,16 +1,8 @@
 package org.schemaspy.model;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.sql.*;
-
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
-
 import org.schemaspy.*;
 import org.schemaspy.service.SqlService;
 
@@ -25,8 +17,6 @@ public class GenericTreeNode {
     private Row initial_state_row;
     private Row post_change_row;
     private ArrayList<SingleChange> potential_changes = new ArrayList<SingleChange>();
-    //private ArrayList<SingleChange> cascadeFK = new ArrayList<SingleChange>(); // a integrer
-    //private boolean cascadingFK;
     private GenericTreeNode parent;
     private ArrayList<GenericTreeNode> children = new ArrayList<GenericTreeNode>();
     private SingleChange chosenChange;
@@ -247,9 +237,6 @@ public class GenericTreeNode {
         String typeName = tableColumn.getTypeName();
         GenericTreeNode rootForThisMutation = FirstApperanceOf(this);
 
-        System.out.println(typeName);
-
-
         switch (typeName) {
             case "smallint":
             case "integer":
@@ -265,7 +252,7 @@ public class GenericTreeNode {
                     break;
                 }
             case "character":
-            case "character varying": // MIXED CHARACTERS/NUMBERS STRINGS MAKE CHARAT CRASH AT 0 IF FIRST CHAR IS NUMBER. USE REGEX TO FIND FIRST ACTUAL LETTER ?
+            case "character varying":
             case "varchar":
 
 
@@ -383,28 +370,14 @@ public class GenericTreeNode {
 
         if (undo)
         {
-            if (chosenChange.getParentTableColumn().getTypeName().equals("varchar")
-                    || chosenChange.getParentTableColumn().getTypeName().equals("bool")
-                    || chosenChange.getParentTableColumn().getTypeName().equals("timestamp")
-                    || chosenChange.getParentTableColumn().getTypeName().equals("date")
-                    || chosenChange.getParentTableColumn().getTypeName().equals("_text")
-                    || chosenChange.getParentTableColumn().getTypeName().equals("text")
-                    || chosenChange.getParentTableColumn().getTypeName().equals("fulltext")
-                    || chosenChange.getParentTableColumn().getTypeName().equals("email"))
+            if (requireQuotes(chosenChange.getParentTableColumn()) ==1)
                 theQuery = "UPDATE " + initial_state_row.getParentTable().getName() + " SET " + chosenChange.getParentTableColumn().getName() + "='" + chosenChange.getOldValue().toString() + "', ";
             else
                 theQuery = "UPDATE " + initial_state_row.getParentTable().getName() + " SET " + chosenChange.getParentTableColumn().getName() + " = " + chosenChange.getOldValue().toString() + ", ";
         }
         else
         {
-            if (chosenChange.getParentTableColumn().getTypeName().equals("varchar")
-                    || chosenChange.getParentTableColumn().getTypeName().equals("bool")
-                    || chosenChange.getParentTableColumn().getTypeName().equals("timestamp")
-                    || chosenChange.getParentTableColumn().getTypeName().equals("date")
-                    || chosenChange.getParentTableColumn().getTypeName().equals("_text")
-                    || chosenChange.getParentTableColumn().getTypeName().equals("text")
-                    || chosenChange.getParentTableColumn().getTypeName().equals("fulltext")
-                    || chosenChange.getParentTableColumn().getTypeName().equals("email"))
+            if (requireQuotes(chosenChange.getParentTableColumn()) ==1)
                 theQuery = "UPDATE " + initial_state_row.getParentTable().getName() + " SET " + chosenChange.getParentTableColumn().getName() + "='" + chosenChange.getNewValue().toString() + "', ";
             else
                 theQuery = "UPDATE " + initial_state_row.getParentTable().getName() + " SET " + chosenChange.getParentTableColumn().getName() + "=" + chosenChange.getNewValue().toString() + ", ";
@@ -418,20 +391,15 @@ public class GenericTreeNode {
                 if (!entry.getKey().equals(chosenChange.getParentTableColumn().getName()))
                 {
                     if(chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()) != null) {// not very good, check why the field is null in the first place
-                        if (chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("varchar")
-                                || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("bool")
-                                || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("timestamp")
-                                || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("date")
-                                || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("_text")
-                                || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("text")
-                                || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("fulltext")
-                                || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("email")) {
+                        if (requireQuotes(chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey())) == 1)
+                        {
                             if (entry.getValue() != null)
                                 theQuery = theQuery + (entry.getKey() + "='" + entry.getValue().toString() + "' AND ");
                             else
                                 theQuery = theQuery + (entry.getKey() + "= null AND ");
                         }
                     }
+                    
                 }
                 else
                 {
@@ -441,8 +409,14 @@ public class GenericTreeNode {
                         theQuery = theQuery + (entry.getKey() + "='" + chosenChange.getOldValue().toString() + "' AND ");
                 }
             }
-            theQuery = theQuery.substring(0, theQuery.lastIndexOf(" AND "));
+            try
+            {
+                theQuery = theQuery.substring(0, theQuery.lastIndexOf(" AND "));
+            }
+            catch(Exception e)
+            {
 
+            }
             System.out.println(theQuery);
 
         return theQuery;
@@ -717,9 +691,6 @@ public class GenericTreeNode {
     {
         TableColumn sgParentColumn = chosenChange.getParentTableColumn();
 
-        QueryResponseParser qrp;
-        QueryResponse response = null;
-
         Collection<ForeignKeyConstraint> lesFk= db.getLesForeignKeys().get(sgParentColumn.getTable().getName().toUpperCase());
         for(ForeignKeyConstraint fk : lesFk)
         {
@@ -730,59 +701,29 @@ public class GenericTreeNode {
         }
 
         String semiQuery = "SELECT * FROM " + chosenChange.getParentTableColumn().getTable().getName() ;
-        if (chosenChange.getParentTableColumn().getTypeName().equals("varchar")
-                || chosenChange.getParentTableColumn().getTypeName().equals("bool")
-                || chosenChange.getParentTableColumn().getTypeName().equals("timestamp")
-                || chosenChange.getParentTableColumn().getTypeName().equals("date")
-                || chosenChange.getParentTableColumn().getTypeName().equals("_text")
-                || chosenChange.getParentTableColumn().getTypeName().equals("text")
-                || chosenChange.getParentTableColumn().getTypeName().equals("fulltext")
-                || chosenChange.getParentTableColumn().getTypeName().equals("email"))
+        if (requireQuotes(chosenChange.getParentTableColumn()) == 1)
             semiQuery = semiQuery + " WHERE " + chosenChange.getParentTableColumn().getName() + "= '"+chosenChange.getOldValue() + " '";
         else
             semiQuery = semiQuery + " WHERE " + chosenChange.getParentTableColumn().getName() + "="+chosenChange.getOldValue();
 
-        try {
-            Statement stmt = sqlService.getConnection().createStatement();
-            ResultSet res = stmt.executeQuery(semiQuery);
-            qrp = new QueryResponseParser();
-            ArrayList<Row> rows = new ArrayList<Row>(qrp.parse(res, chosenChange.getParentTableColumn().getTable()).getRows());
-            response = new QueryResponse(rows);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        System.out.println(semiQuery);
+
+        QueryResponse response = fetchingDataFromDatabase(semiQuery,chosenChange.getParentTableColumn().getTable(),sqlService);
+
 
         setInitial_state_row(response.getRows().get(0)); // there should be only one row. post change row ?
 
-
-
         semiQuery = "SELECT * FROM " + chosenChange.getParentTableColumn().getTable().getName() ;
-        if (chosenChange.getParentTableColumn().getTypeName().equals("varchar")
-                || chosenChange.getParentTableColumn().getTypeName().equals("bool")
-                || chosenChange.getParentTableColumn().getTypeName().equals("timestamp")
-                || chosenChange.getParentTableColumn().getTypeName().equals("date")
-                || chosenChange.getParentTableColumn().getTypeName().equals("_text")
-                || chosenChange.getParentTableColumn().getTypeName().equals("text")
-                || chosenChange.getParentTableColumn().getTypeName().equals("fulltext")
-                || chosenChange.getParentTableColumn().getTypeName().equals("email"))
+
+        if (requireQuotes(chosenChange.getParentTableColumn()) == 1)
             semiQuery = semiQuery + " WHERE " + chosenChange.getParentTableColumn().getName() + "= '"+chosenChange.getNewValue() + " '";
         else
             semiQuery = semiQuery + " WHERE " + chosenChange.getParentTableColumn().getName() + "="+chosenChange.getNewValue();
 
-        try {
-            Statement stmt = sqlService.getConnection().createStatement();
-            ResultSet res = stmt.executeQuery(semiQuery);
-            qrp = new QueryResponseParser();
-            ArrayList<Row> rows = new ArrayList<Row>(qrp.parse(res, chosenChange.getParentTableColumn().getTable()).getRows());
-            response = new QueryResponse(rows);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        response = fetchingDataFromDatabase(semiQuery,chosenChange.getParentTableColumn().getTable(),sqlService);
 
         if(!response.getRows().isEmpty())
         {
-            try
-            {
                 String columnName= chosenChange.getParentTableColumn().getName();
                 String tableName = chosenChange.getParentTableColumn().getTable().getName();
 
@@ -790,20 +731,12 @@ public class GenericTreeNode {
                             "UNION ALL SELECT  * FROM    ( SELECT  "+columnName+" + 1 FROM "+tableName+" t WHERE NOT EXISTS ( SELECT  1 FROM "+tableName+" ti WHERE ti."+columnName+" = t."+columnName+" + 1) " +
                             "ORDER BY "+columnName+" LIMIT 1) q2 LIMIT 1";
 
-                Statement stmt = sqlService.getConnection().createStatement();
-                ResultSet res = stmt.executeQuery(semiQuery);
-                qrp = new QueryResponseParser();
-                ArrayList<Row> rows = new ArrayList<Row>(qrp.parse(res, chosenChange.getParentTableColumn().getTable()).getRows());
-                response = new QueryResponse(rows);
+                response = fetchingDataFromDatabase(semiQuery,chosenChange.getParentTableColumn().getTable(),sqlService);
 
                 chosenChange.setNewValue(response.getRows().get(0).getValueOfColumn(columnName));
-            }
-            catch(Exception e)
-            {
-                e.printStackTrace();
-            }
         }
     }
+
 
     public void setInitial_state_row(Row initial_state_row) {
         this.initial_state_row = initial_state_row;
@@ -823,8 +756,6 @@ public class GenericTreeNode {
 
     public ArrayList<SingleChange> removePotentialChangesThatDontMatchConstraints(ArrayList<SingleChange> possibilities, SqlService sqlService)
     {
-        QueryResponseParser qrp;
-        QueryResponse response = null;
         ArrayList<SingleChange> newPossibilities = possibilities;
 
         for(SingleChange sg : possibilities)
@@ -832,33 +763,14 @@ public class GenericTreeNode {
             if(sg.getParentTableColumn().getTable().getPrimaryColumns().contains(sg.getParentTableColumn())) // unique OR PK constraints
             {
                 String semiQuery = "SELECT * FROM " + sg.getParentTableColumn().getTable().getName();
-                if (sg.getParentTableColumn().getTypeName().equals("varchar")
-                        || sg.getParentTableColumn().getTypeName().equals("bool")
-                        || sg.getParentTableColumn().getTypeName().equals("timestamp")
-                        || sg.getParentTableColumn().getTypeName().equals("date")
-                        || sg.getParentTableColumn().getTypeName().equals("_text")
-                        || sg.getParentTableColumn().getTypeName().equals("text")
-                        || sg.getParentTableColumn().getTypeName().equals("fulltext")
-                        || sg.getParentTableColumn().getTypeName().equals("email"))
+                if (requireQuotes(sg.getParentTableColumn()) == 1)
                     semiQuery = semiQuery + " WHERE " + sg.getParentTableColumn().getName() + "= '" + sg.getNewValue() + " '";
                 else
                     semiQuery = semiQuery + " WHERE " + sg.getParentTableColumn().getName() + "=" + sg.getNewValue();
 
                 System.out.println("removing = " + semiQuery);
 
-                try
-                {
-                    Statement stmt = sqlService.getConnection().createStatement();
-                    ResultSet res = stmt.executeQuery(semiQuery);
-                    qrp = new QueryResponseParser();
-                    ArrayList<Row> rows = new ArrayList<Row>(qrp.parse(res, sg.getParentTableColumn().getTable()).getRows());
-                    response = new QueryResponse(rows);
-                }
-                catch (Exception e)
-                {
-                    e.printStackTrace();
-                }
-
+                QueryResponse response = fetchingDataFromDatabase(semiQuery,sg.getParentTableColumn().getTable(),sqlService);
 
                 SingleChange tmp = sg;
                 if(response.getRows() != null)
@@ -866,5 +778,39 @@ public class GenericTreeNode {
             }
         }
         return newPossibilities;
+    }
+
+    public int requireQuotes(TableColumn column) // checks if column is of "Stringish" (needs sql quotes) as 1 or "integerish" as 0. more typeishes can be added in the future. existing lists can be edited
+    {
+        if (column.getTypeName().equals("varchar")
+                || column.getTypeName().equals("bool")
+                || column.getTypeName().equals("timestamp")
+                || column.getTypeName().equals("date")
+                || column.getTypeName().equals("_text")
+                || column.getTypeName().equals("text")
+                || column.getTypeName().equals("fulltext")
+                || column.getTypeName().equals("email"))
+            return 1;
+        else
+            return 0;
+    }
+
+    public QueryResponse fetchingDataFromDatabase(String semiQuery,Table parentTable, SqlService sqlService)
+    {
+        QueryResponseParser qrp;
+        QueryResponse response = null;
+        try
+        {
+            Statement stmt = sqlService.getConnection().createStatement();
+            ResultSet res = stmt.executeQuery(semiQuery);
+            qrp = new QueryResponseParser();
+            ArrayList<Row> rows = new ArrayList<Row>(qrp.parse(res, parentTable).getRows());
+            response = new QueryResponse(rows);
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+        return response;
     }
 }
