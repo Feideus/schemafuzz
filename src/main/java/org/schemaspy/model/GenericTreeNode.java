@@ -232,7 +232,7 @@ public class GenericTreeNode {
                 e.printStackTrace();
             }
         }
-        possibilities = removePotentialChangesThatDontMatchConstraints(possibilities,sqlService);
+        //possibilities = removePotentialChangesThatDontMatchConstraints(possibilities,sqlService);
         if(possibilities.isEmpty())
             System.out.println("No raw Mutation could be found for this row");
 
@@ -751,9 +751,7 @@ public class GenericTreeNode {
             e.printStackTrace();
         }
 
-
-
-        initial_state_row = response.getRows().get(0); // there should be only one row.
+        setInitial_state_row(response.getRows().get(0)); // there should be only one row. post change row ?
 
 
 
@@ -784,10 +782,20 @@ public class GenericTreeNode {
         {
             try
             {
-                Process fuID = new ProcessBuilder("/bin/bash", "firstUnusedId.sh").start();
-                String newValueAsString = getScriptResponse(fuID);
-                int newValue = Integer.parseInt(newValueAsString.replaceAll("\\s+",""));
-                chosenChange.setNewValue(newValue);
+                String columnName= chosenChange.getParentTableColumn().getName();
+                String tableName = chosenChange.getParentTableColumn().getTable().getName();
+
+                semiQuery = "SELECT * FROM ( SELECT  1 AS "+columnName+" ) q1 WHERE NOT EXISTS ( SELECT  1 FROM "+tableName+" WHERE   "+columnName+" = 1) " +
+                            "UNION ALL SELECT  * FROM    ( SELECT  "+columnName+" + 1 FROM "+tableName+" t WHERE NOT EXISTS ( SELECT  1 FROM "+tableName+" ti WHERE ti."+columnName+" = t."+columnName+" + 1) " +
+                            "ORDER BY "+columnName+" LIMIT 1) q2 LIMIT 1";
+
+                Statement stmt = sqlService.getConnection().createStatement();
+                ResultSet res = stmt.executeQuery(semiQuery);
+                qrp = new QueryResponseParser();
+                ArrayList<Row> rows = new ArrayList<Row>(qrp.parse(res, chosenChange.getParentTableColumn().getTable()).getRows());
+                response = new QueryResponse(rows);
+
+                chosenChange.setNewValue(response.getRows().get(0).getValueOfColumn(columnName));
             }
             catch(Exception e)
             {
@@ -796,12 +804,17 @@ public class GenericTreeNode {
         }
     }
 
+    public void setInitial_state_row(Row initial_state_row) {
+        this.initial_state_row = initial_state_row;
+        initPostChangeRow();
+    }
+
     public boolean checkIfHasParentFk(Database db)
     {
         Collection<ForeignKeyConstraint> lesFk= db.getLesForeignKeys().get(chosenChange.getParentTableColumn().getTable().getName().toUpperCase());
         for(ForeignKeyConstraint fk : lesFk)
         {
-            if(!fk.getParentColumns().isEmpty())
+            if(fk.getChildColumns().contains(chosenChange.getParentTableColumn()) && !fk.getParentColumns().isEmpty())
                 return true;
         }
         return false;
@@ -845,30 +858,12 @@ public class GenericTreeNode {
                     e.printStackTrace();
                 }
 
+
+                SingleChange tmp = sg;
                 if(response.getRows() != null)
-                    newPossibilities.remove(sg);
+                    newPossibilities.remove(tmp);
             }
         }
         return newPossibilities;
-    }
-
-    public String getScriptResponse(Process p)
-    {
-        String response = "";
-        try
-        {
-
-            BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream()));
-            String line;
-            while ((line = r.readLine())!=null) {
-                response = response+line;
-            }
-            r.close();
-        }
-        catch(Exception e)
-        {
-            System.out.println("error while reading process output"+e);
-        }
-        return response;
     }
 }
