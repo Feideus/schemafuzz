@@ -417,19 +417,20 @@ public class GenericTreeNode {
             {
                 if (!entry.getKey().equals(chosenChange.getParentTableColumn().getName()))
                 {
-                    if (chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("varchar")
-                            || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("bool")
-                            || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("timestamp")
-                            || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("date")
-                            || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("_text")
-                            || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("text")
-                            || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("fulltext")
-                            || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("email"))
-                    {
-                        if(entry.getValue() != null )
-                            theQuery = theQuery + (entry.getKey() + "='" + entry.getValue().toString() + "' AND ");
-                        else
-                            theQuery = theQuery + (entry.getKey() + "= null AND ");
+                    if(chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()) != null) {// not very good, check why the field is null in the first place
+                        if (chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("varchar")
+                                || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("bool")
+                                || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("timestamp")
+                                || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("date")
+                                || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("_text")
+                                || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("text")
+                                || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("fulltext")
+                                || chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("email")) {
+                            if (entry.getValue() != null)
+                                theQuery = theQuery + (entry.getKey() + "='" + entry.getValue().toString() + "' AND ");
+                            else
+                                theQuery = theQuery + (entry.getKey() + "= null AND ");
+                        }
                     }
                 }
                 else

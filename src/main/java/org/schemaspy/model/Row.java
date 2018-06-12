@@ -92,17 +92,19 @@ public class Row
 
   public boolean compare(Row initial_state_row)
   {
-
     if(content.size() != initial_state_row.getContent().size())
       return false;
 
     for(Map.Entry<String,Object> entry : content.entrySet())
     {
+      if(initial_state_row.getContent().get(entry.getKey()) == null )
+        return false;
+
       if(!initial_state_row.getContent().containsKey(entry.getKey()))
         return false;
 
       if(!initial_state_row.getContent().get(entry.getKey()).equals(entry.getValue()))
-          return false;
+        return false;
     }
       return true;
   }
