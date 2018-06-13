@@ -97,14 +97,19 @@ public class Row
 
     for(Map.Entry<String,Object> entry : content.entrySet())
     {
-      if(initial_state_row.getContent().get(entry.getKey()) == null )
-        return false;
+        if(initial_state_row.getContent().get(entry.getKey()) == null || entry.getValue() == null)
+        {
+            if(!(initial_state_row.getContent().get(entry.getKey()) == null && entry.getValue() == null))
+                return false;
+        }
+        else
+        {
+            if (!initial_state_row.getContent().containsKey(entry.getKey()))
+                return false;
 
-      if(!initial_state_row.getContent().containsKey(entry.getKey()))
-        return false;
-
-      if(!initial_state_row.getContent().get(entry.getKey()).equals(entry.getValue()))
-        return false;
+            if (!initial_state_row.getContent().get(entry.getKey()).toString().equals(entry.getValue().toString()))
+                return false;
+        }
     }
       return true;
   }

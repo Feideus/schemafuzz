@@ -62,7 +62,12 @@ public class QueryResponseParser
             {
               if(resultMeta.getColumnTypeName(i).equals("timestamp"))
                   mapOfTheRow.put(resultMeta.getColumnName(i),resultOfQuery.getTimestamp(i));
-              mapOfTheRow.put(resultMeta.getColumnName(i), resultOfQuery.getString(i));
+              else if(resultOfQuery.getString(i) == null)
+              {
+                mapOfTheRow.put(resultMeta.getColumnName(i), null);
+              }
+              else
+                mapOfTheRow.put(resultMeta.getColumnName(i), resultOfQuery.getString(i));
             }
 
             Row currentRow = new Row(parentTable,mapOfTheRow,resultMeta.getColumnCount());

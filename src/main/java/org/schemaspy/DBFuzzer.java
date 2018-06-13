@@ -180,10 +180,10 @@ public class DBFuzzer
         Row res = null;
 
       do {
-          Table randomTable = pickRandomTable();
+          //Table randomTable = pickRandomTable();
 
-          String theQuery = "SELECT * FROM " + randomTable.getName() + " ORDER BY RANDOM() LIMIT 1";
-          //String theQuery = "SELECT * FROM test_table2 ORDER BY RANDOM() LIMIT 1"; // Change test_table2 to test_table here to swap back to line finding
+          //String theQuery = "SELECT * FROM " + randomTable.getName() + " ORDER BY RANDOM() LIMIT 1";
+          String theQuery = "SELECT * FROM test_table3 ORDER BY RANDOM() LIMIT 1"; // Change test_table2 to test_table here to swap back to line finding
           QueryResponseParser qrp = new QueryResponseParser();
           ResultSet rs = null;
           PreparedStatement stmt;
@@ -191,7 +191,7 @@ public class DBFuzzer
           try {
               stmt = analyzer.getSqlService().prepareStatement(theQuery);
               rs = stmt.executeQuery();
-              res = qrp.parse(rs, analyzer.getDb().getTablesMap().get(randomTable.getName())).getRows().get(0);
+              res = qrp.parse(rs, analyzer.getDb().getTablesMap().get("test_table3")).getRows().get(0); // randomTable should be in the get()
           } catch (Exception e) {
               LOGGER.info("This query threw an error" + e);
           }

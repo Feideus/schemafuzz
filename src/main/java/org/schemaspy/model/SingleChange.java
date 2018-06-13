@@ -98,7 +98,7 @@ public class SingleChange
 
     public boolean compareValues()
     {
-        if(this.getNewValue().equals(this.getOldValue()))
+        if(this.getNewValue().toString().equals(this.getOldValue().toString()))
             return true;
 
         return false;

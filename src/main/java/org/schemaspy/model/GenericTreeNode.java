@@ -1,10 +1,12 @@
 package org.schemaspy.model;
+import java.math.BigInteger;
 import java.sql.*;
 import java.util.*;
 import java.util.ArrayList;
 import java.util.List;
 import org.schemaspy.*;
 import org.schemaspy.service.SqlService;
+import org.springframework.util.SerializationUtils;
 
 public class GenericTreeNode {
 
@@ -241,26 +243,43 @@ public class GenericTreeNode {
             case "smallint":
             case "integer":
             case "int2":
-
-                Object tmp3 = rootForThisMutation.getInitial_state_row().getContent().get(tableColumn.getName());
-                if( tmp3 != null && tmp3.toString() != "" )
+            case "int8":
+            case "bigserial":
+                Object tmp = rootForThisMutation.getInitial_state_row().getContent().get(tableColumn.getName());
+                if( tmp != null && tmp.toString() != "" )
                 {
-                    int tmp = Integer.parseInt(rootForThisMutation.getInitial_state_row().getContent().get(tableColumn.getName()).toString());
-                    oneChange.add(new SingleChange(tableColumn, this, column_value, Integer.toString(tmp++)));
-                    oneChange.add(new SingleChange(tableColumn, this, column_value, Integer.toString(32767)));
+                    int tmp2;
+                    if(typeName.equals("int2"))
+                    {
+                        tmp2 = Integer.parseInt(rootForThisMutation.getInitial_state_row().getContent().get(tableColumn.getName()).toString());
+                        oneChange.add(new SingleChange(tableColumn, this, column_value, Integer.toString(tmp2++)));
+                        oneChange.add(new SingleChange(tableColumn, this, column_value, Integer.toString(32767)));
+                    }
+                    else if(typeName.equals("int8") || typeName.equals("bigserial") )
+                    {
+                        BigInteger bigInt = new BigInteger(rootForThisMutation.getInitial_state_row().getContent().get(tableColumn.getName()).toString());
+                        bigInt = bigInt.add(new BigInteger("1"));
+                        oneChange.add(new SingleChange(tableColumn, this, column_value, bigInt));
+                        oneChange.add(new SingleChange(tableColumn, this, column_value, new BigInteger("9223372036854775806")));
+                    }
                     oneChange.add(new SingleChange(tableColumn, this, column_value, Integer.toString(0)));
                     break;
                 }
+
             case "character":
             case "character varying":
+            case "bytea":
             case "varchar":
-
-
-                Object tmp4 = rootForThisMutation.getInitial_state_row().getContent().get(tableColumn.getName());
-                if(tmp4 != null && tmp4.toString() != "" )
+                tmp = rootForThisMutation.getInitial_state_row().getContent().get(tableColumn.getName());
+                if(typeName.equals("bytea"))
+                {
+                    byte[] bytes = SerializationUtils.serialize(tmp);
+                    tmp = Arrays.toString(bytes);
+                }
+                if(tmp != null && tmp.toString() != "" )
                 {
 
-                    String tmp2 = tmp4.toString().replaceAll("\\d", "");
+                    String tmp2 = tmp.toString().replaceAll("\\d", "");
                     if (!tmp2.isEmpty())
                     {
                         char nextChar = (char) (tmp2.charAt(0) + 1);
@@ -270,6 +289,7 @@ public class GenericTreeNode {
                     }
                 }
                 break;
+
             case "bool":
                 if (column_value.equals("f"))
                     oneChange.add(new SingleChange(tableColumn, this, column_value, "t"));
@@ -277,7 +297,21 @@ public class GenericTreeNode {
                     oneChange.add(new SingleChange(tableColumn, this, column_value, "f"));
                 break;
 
-            /*case "timestamp":
+            case "text":
+                tmp = rootForThisMutation.getInitial_state_row().getContent().get(tableColumn.getName());
+                if( tmp != null && tmp.toString() != "" )
+                {
+                    Random rand = new Random();
+                    int randNum = rand.nextInt(tmp.toString().length());
+                    char tmp2 = tmp.toString().charAt(randNum);
+
+                    oneChange.add(new SingleChange(tableColumn, this, column_value, tmp.toString().substring(0,randNum) + (Character.toString(tmp2++)) + tmp.toString().substring(randNum+1)));
+                    oneChange.add(new SingleChange(tableColumn, this, column_value, tmp.toString().substring(0,randNum) + (Character.toString(tmp2--)) + tmp.toString().substring(randNum+1)));
+                    break;
+                }
+
+
+            /*case "bytea":
                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
                 Calendar cal = Calendar.getInstance();
 
@@ -296,11 +330,11 @@ public class GenericTreeNode {
 
                 break;
 
-              case 6:  typeName = "June";
+              case 6:  int8 = "June";
                        break;
-              case 7:  typeName = "July";
+              case 7:  bigSerial = "July";
                        break;
-              case 8:  typeName = "August";
+              case 8:  text = "August";
                        break;
               case 9:  typeName = "September";
                        break;
@@ -396,7 +430,14 @@ public class GenericTreeNode {
                             if (entry.getValue() != null)
                                 theQuery = theQuery + (entry.getKey() + "='" + entry.getValue().toString() + "' AND ");
                             else
-                                theQuery = theQuery + (entry.getKey() + "= null AND ");
+                                theQuery = theQuery + (entry.getKey() + " IS NULL AND ");
+                        }
+                        else
+                        {
+                            if (entry.getValue() != null)
+                                theQuery = theQuery + (entry.getKey() + "=" + entry.getValue().toString() + " AND ");
+                            else
+                                theQuery = theQuery + (entry.getKey() + " IS NULL AND ");
                         }
                     }
                     
@@ -711,7 +752,7 @@ public class GenericTreeNode {
         QueryResponse response = fetchingDataFromDatabase(semiQuery,chosenChange.getParentTableColumn().getTable(),sqlService);
 
 
-        setInitial_state_row(response.getRows().get(0)); // there should be only one row. post change row ?
+        setInitial_state_row(response.getRows().get(0)); // there should be only one row.
 
         semiQuery = "SELECT * FROM " + chosenChange.getParentTableColumn().getTable().getName() ;
 
@@ -789,7 +830,8 @@ public class GenericTreeNode {
                 || column.getTypeName().equals("_text")
                 || column.getTypeName().equals("text")
                 || column.getTypeName().equals("fulltext")
-                || column.getTypeName().equals("email"))
+                || column.getTypeName().equals("email")
+                || column.getTypeName().equals("bytea"))
             return 1;
         else
             return 0;
