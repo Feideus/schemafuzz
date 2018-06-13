@@ -311,7 +311,7 @@ public class DBFuzzer
         int markingDiff = previousMutation.getInterest_mark();
         Random rand = new Random();
 
-        if (mutationTree.getNumberOfNodes() > 1) // first mutation does;n;t have a predecessor
+        if (mutationTree.getNumberOfNodes() > 1) // first mutation doesnt have a predecessor
         {
             markingDiff = previousMutation.getInterest_mark() - mutationTree.find(mutationTree.getLastId()).getInterest_mark();
         }

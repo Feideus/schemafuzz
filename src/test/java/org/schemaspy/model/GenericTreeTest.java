@@ -40,7 +40,6 @@ public class GenericTreeTest {
     @MockBean
     private CommandLineRunner commandLineRunner;
 
-    @Ignore
     @Test
     public void checkMaxDepthTest() throws Exception
     {
@@ -69,10 +68,10 @@ public class GenericTreeTest {
         databaseService.gatheringSchemaDetails(config, database, progressListener);
 
 
-        PreparedStatement stmt = sqlService.prepareStatement("SELECT * FROM test_table", database, null);
+        PreparedStatement stmt = sqlService.prepareStatement("SELECT * FROM actual_test_table", database, null);
         ResultSet rs = stmt.executeQuery();
         QueryResponseParser parser = new QueryResponseParser();
-        QueryResponse response = parser.parse(rs,database.getTablesMap().get("test_table"));
+        QueryResponse response = parser.parse(rs,database.getTablesMap().get("actual_test_table"));
 
         Row row = response.getRows().get(0);
         Row row2 = row.clone();
