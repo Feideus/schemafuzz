@@ -268,7 +268,7 @@ public class GenericTreeNode {
 
             case "character":
             case "character varying":
-            case "bytea":
+            //case "bytea":
             case "varchar":
                 tmp = rootForThisMutation.getInitial_state_row().getContent().get(tableColumn.getName());
                 if(typeName.equals("bytea"))
@@ -276,17 +276,14 @@ public class GenericTreeNode {
                     byte[] bytes = SerializationUtils.serialize(tmp);
                     tmp = Arrays.toString(bytes);
                 }
-                if(tmp != null && tmp.toString() != "" )
-                {
 
-                    String tmp2 = tmp.toString().replaceAll("\\d", "");
-                    if (!tmp2.isEmpty())
-                    {
+                if(tmp != null && !tmp.toString().isEmpty() )
+                {
+                        String tmp2 = tmp.toString();
                         char nextChar = (char) (tmp2.charAt(0) + 1);
                         char prevChar = (char) (tmp2.charAt(0) - 1);
                         oneChange.add(new SingleChange(tableColumn, this, column_value, (Character.toString(nextChar) + column_value.toString().substring(1))));
                         oneChange.add(new SingleChange(tableColumn, this, column_value, (Character.toString(prevChar) + column_value.toString().substring(1))));
-                    }
                 }
                 break;
 
@@ -303,10 +300,10 @@ public class GenericTreeNode {
                 {
                     Random rand = new Random();
                     int randNum = rand.nextInt(tmp.toString().length());
-                    char tmp2 = tmp.toString().charAt(randNum);
+                    char tmp3 = tmp.toString().charAt(randNum);
 
-                    oneChange.add(new SingleChange(tableColumn, this, column_value, tmp.toString().substring(0,randNum) + (Character.toString(tmp2++)) + tmp.toString().substring(randNum+1)));
-                    oneChange.add(new SingleChange(tableColumn, this, column_value, tmp.toString().substring(0,randNum) + (Character.toString(tmp2--)) + tmp.toString().substring(randNum+1)));
+                    oneChange.add(new SingleChange(tableColumn, this, column_value, tmp.toString().substring(0,randNum) + (Character.toString(tmp3++)) + tmp.toString().substring(randNum+1)));
+                    oneChange.add(new SingleChange(tableColumn, this, column_value, tmp.toString().substring(0,randNum) + (Character.toString(tmp3--)) + tmp.toString().substring(randNum+1)));
                     break;
                 }
 
@@ -351,7 +348,7 @@ public class GenericTreeNode {
         return oneChange;
     }
 
-    public boolean inject(SqlService sqlService,Database db, boolean undo)
+    public int inject(SqlService sqlService,Database db, boolean undo)
     {
         String theQuery = "";
         if (undo)
@@ -368,14 +365,13 @@ public class GenericTreeNode {
         try
         {
             Statement stmt = sqlService.getConnection().createStatement();
-            stmt.execute(theQuery);
-            System.out.println("Query success");
-            return true;
+            int nbUpdates = stmt.executeUpdate(theQuery);
+            return nbUpdates;
         }
         catch (Exception e)
         {
             System.out.println("Error ! : Mutation Canceled"+e); // temporerally putting aside the Unique constraint brought by the tranfertToParent Mechanic
-            return false;
+            return 0;
         }
     }
 
@@ -385,7 +381,7 @@ public class GenericTreeNode {
         this.post_change_row.setValueOfColumn(chosenChange.getParentTableColumn().getName(), chosenChange.getNewValue());
     }
 
-    public boolean undo(SqlService sqlService,Database db)
+    public int undo(SqlService sqlService,Database db)
     {
         try
         {
@@ -394,7 +390,7 @@ public class GenericTreeNode {
         catch(Exception e)
         {
             e.printStackTrace();
-            return false;
+            return 0;
         }
     }
 
@@ -524,12 +520,15 @@ public class GenericTreeNode {
 
         for(GenericTreeNode node : goingUp )
         {
-            node.undo(analyzer.getSqlService(),analyzer.getDb());
+            if(node.undo(analyzer.getSqlService(),analyzer.getDb()) > 0);
+                System.out.println("success");
         }
 
         for(GenericTreeNode node : goingDown )
         {
-            node.inject(analyzer.getSqlService(),analyzer.getDb(), false);
+            if(node.inject(analyzer.getSqlService(),analyzer.getDb(), false) > 0);
+                System.out.println("success");
+
         }
 
         return true;
@@ -829,7 +828,6 @@ public class GenericTreeNode {
                 || column.getTypeName().equals("date")
                 || column.getTypeName().equals("_text")
                 || column.getTypeName().equals("text")
-                || column.getTypeName().equals("fulltext")
                 || column.getTypeName().equals("email")
                 || column.getTypeName().equals("bytea"))
             return 1;
