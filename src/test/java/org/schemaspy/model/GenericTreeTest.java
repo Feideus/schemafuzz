@@ -40,6 +40,7 @@ public class GenericTreeTest {
     @MockBean
     private CommandLineRunner commandLineRunner;
 
+    @Ignore
     @Test
     public void checkMaxDepthTest() throws Exception
     {

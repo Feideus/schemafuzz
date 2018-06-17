@@ -1,11 +1,11 @@
 #!/bin/bash
 
-RESULT="$(psql -d sample_database2 -c 'SELECT * FROM test_table2')";
+#RESULT="$(psql -d sample_database2 -U feideus -c 'SELECT * FROM test_table2')" ;
 
-RESULT=$( echo $RESULT | grep -P -o "\- .*" )
-RESULT=$( echo $RESULT | cut -d "-" -f 2 )
-RESULT=$( echo $RESULT | cut -d "(" -f1 )
-IFS=' | ' read -ra array <<< "$RESULT"
+#RESULT=$( echo $RESULT | grep -P -o "\- .*" )
+#RESULT=$( echo $RESULT | cut -d "-" -f 2 )
+#RESULT=$( echo $RESULT | cut -d "(" -f1 )
+#IFS=' | ' read -ra array <<< "$RESULT"
 
 SCORE=10
 

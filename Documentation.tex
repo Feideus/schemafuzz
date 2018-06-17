@@ -1,78 +1,28 @@
 \documentclass{article}
 \usepackage[utf8]{inputenc}
 \usepackage[document]{ragged2e}
-\usepackage{titlesec}
-\usepackage{xcolor}
-\newcommand{\sectionbreak}{\clearpage}
-\titleformat{\section}{\Large\bfseries\filcenter}{}{1em}{}
 
 \title{Documentation for schemaFuzz}
-\author{Erwan "Feideus" Ulrich}
+\author{Ulrich "Feideus" Erwan}
 
 \begin{document}
 
+	
 \maketitle Documentation For SchemaFuzz
-
-	\section{Summary}	
-		\begin{itemize}	
-		\item \subsection*{Introduction} 
-		\item \subsection*{Usage}
-		\item \subsection*{Design}
-		\begin{itemize}	
-			\item a) Idea and philosophy
-			\item b) SchemaSpy legacy
-			\item c) SchemaFuzz Core
-		\end{itemize}
-		\item \subsection*{Conclusion}
-			
-		\end{itemize}
-				
+	\section{Summary?}
+		This document actually needs a front page.
 	\section{Introduction}
-	
-SchemaFuzz is an analitic tool that provides intresting data on the robustness of a 			software's handling of its database.It is being developped primarely as part of the (wonderfull) GNU Taler project .The general idea is to inject malformed or corrupted-like data into the database that is used by the target software to stress it. The process will (hopefully) pop new/intresting/weird-looking buggs, helping the developpers handle unpredicted behavior.
-This tool falls under the category of "Fuzzers" as it is the "database" adaptation of the classical vision of program fuzzing. License used ????
-		
-	
+		this is the first section of the documentation.
+	\section{Usage}
+		How to set up, invoke, and more genericly use schemaFuzz.
 	\section{How it is Designed}
 		\subsection{Idea behind the tool}
-		
-As mentionned in the introduction, this project is conducted as part of the Gnu Taler project. However, it is ultimately meant for the wild world which means it shall be usable on any kind of database with any kind of database type and inputs you can possibly think of.
-Please refer to the "Future features" section for more detail on that matter.
-			
+			Analyse shit
 		\subsection{SchemaSpy legacy}
-		
-SchemaFuzz Core code is placed on top of some of the SchemaSpy project code. More precisely, the metadata extraction process is being performed by one of SchemaSpy routines. 
-
-		\subsection{SchemaFuzz Core. Need subsections}
-So far, SchemaFuzz is able to inject "mutations" into a specified database. These mutations
-are stored up as "sequences" in a tree structure which means that a sequence of mutation is typically composed of several individual mutations performed one after the other, on the same piece of data.
-SchemaFuzz relies on a do/undo mechanism to navigate between several sequences inside the tree which gives it a decent adaptative power.
-The tree itself contains an arbitrary number of sequences, depending of the "scoring" of the sequence. This score will be calculated by an evaluator (not yet functionnal) that analyses the response from the target software after each mutation.
-The score is an essential component of the project as it represents the effectiveness of the mutation is it attached to. Its precision is therefore vital as well highly depedent on the criterias concidered. 
-Severals approches and enhancements are being discussed.
-		\subsection{Future features}
-		\begin{itemize}
-			\item use code coverage as a determining factor for the evalutator
-			\item user report to enhance the evaluator's precision (gives back best mutation paterns).
-		\end{itemize}
-			
-	\section{Installation and Usage}	
-As SchemaFuzz is based on some of SchemaSpy's mechanics. it requires some/all of its 		dependencies (to be precisely determined). 
-		
-\begin{quote}
-Building =  =  "./mvn package"
-\end{quote}
-
-
-\begin{quote}
-	Running = java -jar target/schemaspy-6.0.0-rc2.jar -t (Database-Type) -db (Database-Name) -hostOptionalPort 127.0.0.1 -o (Output-Folder) -dp (MydriverFolderPath/(MyDriver.jar)) -u (Database-UserName) -p (User-Password)
-\end{quote}
-
-It usualy is a good idea to script that.
+			"stole" some shit
+		\subsection{SchemaFuzz Core}
+			Developped some shit
 	
-	\section{Contributing.Where should this be ?}
-	
+	\section{Contributing}
 	\section{Conclusion}
-	Thanks for reading so far down !	
-	
 \end{document} 

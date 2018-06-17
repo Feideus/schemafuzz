@@ -244,12 +244,13 @@ public class GenericTreeNode {
             case "integer":
             case "int2":
             case "int8":
+            case "serial":
             case "bigserial":
                 Object tmp = rootForThisMutation.getInitial_state_row().getContent().get(tableColumn.getName());
                 if( tmp != null && tmp.toString() != "" )
                 {
                     int tmp2;
-                    if(typeName.equals("int2"))
+                    if(typeName.equals("int2") || typeName.equals("serial")  )
                     {
                         tmp2 = Integer.parseInt(rootForThisMutation.getInitial_state_row().getContent().get(tableColumn.getName()).toString());
                         oneChange.add(new SingleChange(tableColumn, this, column_value, Integer.toString(tmp2++)));
@@ -420,7 +421,8 @@ public class GenericTreeNode {
             {
                 if (!entry.getKey().equals(chosenChange.getParentTableColumn().getName()))
                 {
-                    if(chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()) != null) {// not very good, check why the field is null in the first place
+                    if(chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()) != null && !chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey()).getTypeName().equals("timestamp"))
+                    {
                         if (requireQuotes(chosenChange.getParentTableColumn().getTable().getColumn(entry.getKey())) == 1)
                         {
                             if (entry.getValue() != null)
@@ -619,13 +621,14 @@ public class GenericTreeNode {
         ArrayList<GenericTreeNode> finalPath = new ArrayList<GenericTreeNode>();
         finalPath.addAll(this.findPathToMutation(rootMutation).get(0));
         finalPath.addAll(this.findPathToMutation(rootMutation).get(1));
+        finalPath.remove(this);
 
         for (GenericTreeNode mutOnPath : finalPath)
         {
             if (mutOnPath.getChosenChange().compare(this.getChosenChange()))
-                return false;
+                return true;
         }
-        return true;
+        return false;
     }
 
 
@@ -798,7 +801,7 @@ public class GenericTreeNode {
     {
         ArrayList<SingleChange> newPossibilities = possibilities;
 
-        for(SingleChange sg : possibilities)
+        for(SingleChange sg : newPossibilities)
         {
             if(sg.getParentTableColumn().getTable().getPrimaryColumns().contains(sg.getParentTableColumn())) // unique OR PK constraints
             {
@@ -829,7 +832,8 @@ public class GenericTreeNode {
                 || column.getTypeName().equals("_text")
                 || column.getTypeName().equals("text")
                 || column.getTypeName().equals("email")
-                || column.getTypeName().equals("bytea"))
+                || column.getTypeName().equals("bytea")
+                || column.getTypeName().equals("bpchar"))
             return 1;
         else
             return 0;

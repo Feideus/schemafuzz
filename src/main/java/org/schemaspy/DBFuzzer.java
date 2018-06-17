@@ -57,7 +57,7 @@ public class DBFuzzer
         try
         {
             int mark;
-            Process evaluatorProcess = new ProcessBuilder("/bin/bash", "./evaluator.sh").start();
+            Process evaluatorProcess = new ProcessBuilder("/bin/bash", "./aLittleBitLessDumbEvaluator.sh").start();
             mark = Integer.parseInt(getEvaluatorResponse(evaluatorProcess));
             rootMutation.setInterest_mark(mark);
             rootMutation.setWeight(mark);
@@ -114,6 +114,7 @@ public class DBFuzzer
           }
 
           System.out.println("chosen mutation "+currentMutation);
+          System.out.println("parent mutation "+currentMutation.getParent());
 
             if(!currentMutation.getParent().compare(mutationTree.getLastMutation()))
             {
@@ -194,7 +195,7 @@ public class DBFuzzer
           }
           catch (Exception e)
           {
-              LOGGER.info("This query threw an error" + e);
+              LOGGER.info("This query threw an error while looking for a row" + e);
           }
         }
         while(res == null);
@@ -326,7 +327,7 @@ public class DBFuzzer
                 nextMut.initPostChangeRow();
                 return nextMut;
             }
-            else if (markingDiff == 0 || markingDiff < 0)
+            else if (markingDiff <= 0)
             {
                 Random changeOrDepthen = new Random(); // 1 is same row
 
@@ -387,7 +388,7 @@ public class DBFuzzer
 
     public int nextId()
     {
-      return mutationTree.getLastId()+1;
+        return mutationTree.getLastId()+1;
     }
 
     

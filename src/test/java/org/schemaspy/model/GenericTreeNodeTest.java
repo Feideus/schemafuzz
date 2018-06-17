@@ -78,6 +78,7 @@ public class GenericTreeNodeTest extends AbstractTestExecutionListener {
         }
     }
 
+    @Ignore
     @Test
     public void WeightPropagationTest() throws Exception
     {
@@ -120,7 +121,7 @@ public class GenericTreeNodeTest extends AbstractTestExecutionListener {
 
     }
 
-
+    @Ignore
     @Test
     public void SingleChangeBasedOnWeightShouldNotReturnNull() throws Exception
     {
@@ -146,6 +147,7 @@ public class GenericTreeNodeTest extends AbstractTestExecutionListener {
         Assert.assertNotNull(tmpMutation3.singleChangeBasedOnWeight());
     }
 
+    @Ignore
     @Test
     public void singleChangeAttachedMutationShouldMatch() throws Exception// Not very Usefull
     {
@@ -165,6 +167,7 @@ public class GenericTreeNodeTest extends AbstractTestExecutionListener {
 
     }
 
+    @Ignore
     @Test
     public void NoNullMutationPossibilitiesTest() throws Exception
     {
@@ -180,6 +183,7 @@ public class GenericTreeNodeTest extends AbstractTestExecutionListener {
 
     }
 
+    @Ignore
     @Test
     public void injectAndUndoConsistencyTest() throws Exception
     {
@@ -213,6 +217,7 @@ public class GenericTreeNodeTest extends AbstractTestExecutionListener {
 
     }
 
+    @Ignore
     @Test
     public void compareTest() throws Exception
     {
