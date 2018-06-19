@@ -24,7 +24,7 @@ public class FkGenericTreeNode {
 
     public void initPostChangeRow()
     {
-        this.post_change_row = this.initial_state_row.clone();
+        this.post_change_row = this.initial_state_row.myClone();
         this.post_change_row.setValueOfColumn(fkChange.getParentTableColumn().getName(), fkChange.getNewValue());
     }
 

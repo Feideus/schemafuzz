@@ -113,6 +113,9 @@ public class DBFuzzer
             currentMutation = chooseNextMutation();
           }
 
+          if(currentMutation.getInitial_state_row().compare(currentMutation.getPost_change_row()))
+              System.out.println("ICI");
+
           System.out.println("chosen mutation "+currentMutation);
           System.out.println("parent mutation "+currentMutation.getParent());
 
@@ -138,6 +141,7 @@ public class DBFuzzer
                     {
                         LOGGER.info("GenericTreeNode was sucessfull");
                         mutationTree.addToTree(currentMutation);
+                        currentMutation.discoverMutationPossibilities(analyzer.getSqlService());
                     }
                     else
                         LOGGER.info("QueryError. This update affected 0 rows");
@@ -319,20 +323,22 @@ public class DBFuzzer
 
         if (mutationTree.getRoot() != null)
         {
-            if (markingDiff > 0) //
+            if (markingDiff > 0 ) //
             {
+                System.out.println("creation1");
                 int randNumber = rand.nextInt(previousMutation.getPotential_changes().size());
                 GenericTreeNode nextMut = new GenericTreeNode(previousMutation.getPost_change_row(), nextId(), mutationTree.getRoot(), previousMutation,false,analyzer.getSqlService());
                 nextMut.setChosenChange(previousMutation.getPotential_changes().get(randNumber));
                 nextMut.initPostChangeRow();
                 return nextMut;
             }
-            else if (markingDiff <= 0)
+            else
             {
                 Random changeOrDepthen = new Random(); // 1 is same row
 
                 if(changeOrDepthen.nextInt(2) == 1)
                 {
+                    System.out.println("creation2");
                     SingleChange tmp = mutationTree.getRoot().singleChangeBasedOnWeight();
                     GenericTreeNode nextMut = new GenericTreeNode(tmp.getAttachedToMutation().getPost_change_row(), nextId(), mutationTree.getRoot(), tmp.getAttachedToMutation(),false,analyzer.getSqlService());
                     nextMut.setChosenChange(tmp);
@@ -341,6 +347,7 @@ public class DBFuzzer
                 }
                 else
                 {
+                    System.out.println("creation3");
                     Row nextRow;
                     GenericTreeNode nextMut;
                     do
@@ -355,8 +362,6 @@ public class DBFuzzer
                     return nextMut;
                 }
             }
-            else
-                System.out.println("I mean What Da Heck");
         }
         throw new Error("No mutation returned. That should not happen");
     }

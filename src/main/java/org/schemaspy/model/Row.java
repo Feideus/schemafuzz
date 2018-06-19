@@ -77,7 +77,9 @@ public class Row
 
   public void setValueOfColumn(String columnName, Object newVal)
   {
-    this.getContent().replace(columnName, newVal);
+    this.getContent().put(columnName,newVal);
+    if(!this.getContent().get(columnName).equals(newVal))
+        System.out.println("problem");
   }
 
 	public void setNbKeys(Integer nbKeys) {
@@ -114,11 +116,15 @@ public class Row
       return true;
   }
 
-  public Row clone()
+  public Row myClone()
   {
-    HashMap<String,Object> clonedMap = (HashMap<String,Object>) this.content.clone();
-    Row res = new Row(this.parentTable,clonedMap,this.content.keySet().size());
+    HashMap<String,Object> clonedRow = new HashMap<String,Object>();
 
-    return res;
+    for(Map.Entry<String,Object> entry: content.entrySet())
+    {
+        clonedRow.put(entry.getKey(),entry.getValue());
+    }
+
+    return new Row(parentTable,clonedRow,clonedRow.size());
   }
 }

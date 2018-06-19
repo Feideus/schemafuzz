@@ -76,7 +76,8 @@ public class GenericTree {
         return find(getLastId());
     }
 
-    public void addToTree(GenericTreeNode currentMutation) {
+    public void addToTree(GenericTreeNode currentMutation)
+    {
         currentMutation.getParent().addChild(currentMutation);
     }
 

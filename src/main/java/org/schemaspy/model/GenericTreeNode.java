@@ -37,7 +37,7 @@ public class GenericTreeNode {
         this.id = id;
         this.isFirstApperance = true;
         this.initial_state_row = initial_state_row;
-        this.potential_changes = discoverMutationPossibilities(this, sqlService);
+        this.potential_changes = discoverMutationPossibilities(sqlService);
     }
 
 
@@ -50,7 +50,7 @@ public class GenericTreeNode {
         initDepth();
         this.isFirstApperance = isFirstApperance;
         this.initial_state_row = initial_state_row;
-        this.potential_changes = discoverMutationPossibilities(rootMutation, sqlService);
+        this.potential_changes = discoverMutationPossibilities(sqlService);
     }
 
 
@@ -186,7 +186,11 @@ public class GenericTreeNode {
 
     public void setChosenChange(SingleChange sc) {
         this.chosenChange = sc;
+        this.chosenChange.getAttachedToMutation().getPotential_changes().remove(chosenChange);
+        this.getPotential_changes().add(sc);
         this.chosenChange.setAttachedToMutation(this);
+
+        assert(sc.getAttachedToMutation().equals(this.getId()));
     }
 
     /**
@@ -199,12 +203,7 @@ public class GenericTreeNode {
         this.parent = parent;
     }
 
-    public ArrayList<SingleChange> discoverMutationPossibilities(GenericTreeNode rootMutation, SqlService sqlService) {
-
-        if (initial_state_row == null) {
-            System.out.println("NO INITIAL STATE");
-            return null;
-        }
+    public ArrayList<SingleChange> discoverMutationPossibilities( SqlService sqlService) {
 
         ArrayList<SingleChange> possibilities = new ArrayList<SingleChange>();
 
@@ -212,7 +211,7 @@ public class GenericTreeNode {
         for (Map.Entry<String, Object> content : initial_state_row.getContent().entrySet()) {
             try {
                 TableColumn parentColumn = initial_state_row.getParentTable().findTableColumn(content.getKey());
-                possibilities.addAll(discoverFieldPossibilities(parentColumn, content.getValue(), rootMutation));
+                possibilities.addAll(discoverFieldPossibilities(parentColumn, content.getValue()));
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -224,7 +223,7 @@ public class GenericTreeNode {
         return possibilities;
     }
 
-    public ArrayList<SingleChange> discoverFieldPossibilities(TableColumn tableColumn, Object column_value, GenericTreeNode rootMutation) throws Exception //listing of the mutation possibilities on the specified row
+    public ArrayList<SingleChange> discoverFieldPossibilities(TableColumn tableColumn, Object column_value) throws Exception //listing of the mutation possibilities on the specified row
     {
 
         ArrayList<SingleChange> oneChange = new ArrayList<SingleChange>();
@@ -331,7 +330,6 @@ public class GenericTreeNode {
             default:
                 System.out.println("Unsupported dataType = " + typeName);
         }
-
         return oneChange;
     }
 
@@ -358,8 +356,10 @@ public class GenericTreeNode {
     }
 
     public void initPostChangeRow() {
-        this.post_change_row = this.initial_state_row.clone();
+        this.post_change_row = this.initial_state_row.myClone();
         this.post_change_row.setValueOfColumn(chosenChange.getParentTableColumn().getName(), chosenChange.getNewValue());
+        if(!post_change_row.getValueOfColumn(chosenChange.getParentTableColumn().getName()).equals(chosenChange.getNewValue()))
+            System.out.println("problem");
     }
 
     public int undo(SqlService sqlService, Database db) {
@@ -373,11 +373,6 @@ public class GenericTreeNode {
 
     public String updateQueryBuilder(boolean undo, Database db, SqlService sqlService) //undo variable tells if the function should build Inject string or Undo string
     {
-
-        if(db.getTablesMap().get(chosenChange.getParentTableColumn().getTable().getName()) == null)
-        {
-            System.out.println("unmatching tableColumn");
-        }
 
         String theQuery;
 
@@ -561,6 +556,7 @@ public class GenericTreeNode {
             tmpThis = tmpThis.getParent();
             tmpTarget = tmpTarget.getParent();
         }
+        thisPath.add(tmpThis); // tmpThis and tmpTarget are equals, so add the commun ancestor
 
         Collections.reverse(targetPath);
         finalPath.add(thisPath); //way up
@@ -705,8 +701,7 @@ public class GenericTreeNode {
 
         QueryResponse response = fetchingDataFromDatabase(semiQuery, chosenChange.getParentTableColumn().getTable(), sqlService);
 
-
-        setInitial_state_row(response.getRows().get(0)); // Crashes sometimes due to 0 row found. to be fixed.
+        setInitial_state_row(response.getRows().get(0),sqlService); // Crashes sometimes due to 0 row found. to be fixed.
 
         semiQuery = "SELECT * FROM " + chosenChange.getParentTableColumn().getTable().getName();
 
@@ -732,8 +727,10 @@ public class GenericTreeNode {
     }
 
 
-    public void setInitial_state_row(Row initial_state_row) {
+    public void setInitial_state_row(Row initial_state_row,SqlService sqlService) {
         this.initial_state_row = initial_state_row;
+        this.potential_changes = null;
+        this.potential_changes = discoverMutationPossibilities(sqlService);
         initPostChangeRow();
     }
 
@@ -758,13 +755,14 @@ public class GenericTreeNode {
                 else
                     semiQuery = semiQuery + " WHERE " + sg.getParentTableColumn().getName() + "=" + sg.getNewValue();
 
-                System.out.println("removing = " + semiQuery);
-
                 QueryResponse response = fetchingDataFromDatabase(semiQuery, sg.getParentTableColumn().getTable(), sqlService);
 
                 SingleChange tmp = sg;
                 if (response.getNbRows() > 0)
+                {
+                    System.out.println("removing "+sg);
                     toBeRemoved.add(tmp);
+                }
             }
         }
         possibilities.removeAll(toBeRemoved);
@@ -810,4 +808,5 @@ public class GenericTreeNode {
             return true;
         return false;
     }
+
 }
