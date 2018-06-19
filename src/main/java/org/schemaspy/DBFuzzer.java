@@ -141,7 +141,6 @@ public class DBFuzzer
                     {
                         LOGGER.info("GenericTreeNode was sucessfull");
                         mutationTree.addToTree(currentMutation);
-                        currentMutation.discoverMutationPossibilities(analyzer.getSqlService());
                     }
                     else
                         LOGGER.info("QueryError. This update affected 0 rows");

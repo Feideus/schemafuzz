@@ -483,16 +483,20 @@ public class GenericTreeNode {
 
     public boolean undoToMutation(GenericTreeNode target, SchemaAnalyzer analyzer) {
         ArrayList<GenericTreeNode> goingUp = findPathToMutation(target).get(0);
+        goingUp.remove(this.getParent());
         ArrayList<GenericTreeNode> goingDown = findPathToMutation(target).get(1);
+
+        if(goingUp.contains(parent))
+            goingUp.remove(parent);
 
         for (GenericTreeNode node : goingUp) {
             if (node.undo(analyzer.getSqlService(), analyzer.getDb()) > 0) ;
-            System.out.println("success");
+                System.out.println("success");
         }
 
         for (GenericTreeNode node : goingDown) {
             if (node.inject(analyzer.getSqlService(), analyzer.getDb(), false) > 0) ;
-            System.out.println("success");
+                System.out.println("success");
 
         }
 
@@ -701,14 +705,17 @@ public class GenericTreeNode {
 
         QueryResponse response = fetchingDataFromDatabase(semiQuery, chosenChange.getParentTableColumn().getTable(), sqlService);
 
-        setInitial_state_row(response.getRows().get(0),sqlService); // Crashes sometimes due to 0 row found. to be fixed.
 
         semiQuery = "SELECT * FROM " + chosenChange.getParentTableColumn().getTable().getName();
 
-        if (requireQuotes(chosenChange.getParentTableColumn()) == 1)
+        setInitial_state_row(response.getRows().get(0),sqlService); // Crashes sometimes due to 0 row found. to be fixed.
+
+        if (requireQuotes(chosenChange.getParentTableColumn()) == 1) {
             semiQuery = semiQuery + " WHERE " + chosenChange.getParentTableColumn().getName() + "= '" + chosenChange.getNewValue() + " '";
-        else
+        }
+        else {
             semiQuery = semiQuery + " WHERE " + chosenChange.getParentTableColumn().getName() + "=" + chosenChange.getNewValue();
+        }
 
         response = fetchingDataFromDatabase(semiQuery, chosenChange.getParentTableColumn().getTable(), sqlService);
 
@@ -723,6 +730,7 @@ public class GenericTreeNode {
             response = fetchingDataFromDatabase(semiQuery, chosenChange.getParentTableColumn().getTable(), sqlService);
 
             chosenChange.setNewValue(response.getRows().get(0).getValueOfColumn(columnName));
+            initPostChangeRow();
         }
     }
 
