@@ -75,11 +75,11 @@ public class GenericTreeTest {
         QueryResponse response = parser.parse(rs,database.getTablesMap().get("actual_test_table"));
 
         Row row = response.getRows().get(0);
-        Row row2 = row.clone();
-        Row row3 = row.clone();
-        Row row4 = row.clone();
-        Row row5 = row.clone();
-        Row row6 = row.clone();
+        Row row2 = row.myClone();
+        Row row3 = row.myClone();
+        Row row4 = row.myClone();
+        Row row5 = row.myClone();
+        Row row6 = row.myClone();
 
         GenericTree tree = new GenericTree();
 

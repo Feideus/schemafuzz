@@ -15,16 +15,12 @@ import org.junit.Test;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.TestContext;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.support.AbstractTestExecutionListener;
 
 import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Random;
 
 
@@ -78,7 +74,6 @@ public class GenericTreeNodeTest extends AbstractTestExecutionListener {
         }
     }
 
-    @Ignore
     @Test
     public void WeightPropagationTest() throws Exception
     {
@@ -121,7 +116,6 @@ public class GenericTreeNodeTest extends AbstractTestExecutionListener {
 
     }
 
-    @Ignore
     @Test
     public void SingleChangeBasedOnWeightShouldNotReturnNull() throws Exception
     {
@@ -147,7 +141,6 @@ public class GenericTreeNodeTest extends AbstractTestExecutionListener {
         Assert.assertNotNull(tmpMutation3.singleChangeBasedOnWeight());
     }
 
-    @Ignore
     @Test
     public void singleChangeAttachedMutationShouldMatch() throws Exception// Not very Usefull
     {
@@ -167,7 +160,6 @@ public class GenericTreeNodeTest extends AbstractTestExecutionListener {
 
     }
 
-    @Ignore
     @Test
     public void NoNullMutationPossibilitiesTest() throws Exception
     {
@@ -183,7 +175,6 @@ public class GenericTreeNodeTest extends AbstractTestExecutionListener {
 
     }
 
-    @Ignore
     @Test
     public void injectAndUndoConsistencyTest() throws Exception
     {
@@ -217,7 +208,6 @@ public class GenericTreeNodeTest extends AbstractTestExecutionListener {
 
     }
 
-    @Ignore
     @Test
     public void compareTest() throws Exception
     {
@@ -228,7 +218,7 @@ public class GenericTreeNodeTest extends AbstractTestExecutionListener {
         QueryResponse response = parser.parse(rs,database.getTablesMap().get("actual_test_table"));
 
         Row row = response.getRows().get(0);
-        Row row2 = row.clone();
+        Row row2 = row.myClone();
 
         GenericTreeNode tmpMutation1 = new GenericTreeNode(response.getRows().get(0),1,sqlService);
         tmpMutation1.setChosenChange(tmpMutation1.getPotential_changes().get(0));

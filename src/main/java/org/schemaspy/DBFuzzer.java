@@ -143,7 +143,21 @@ public class DBFuzzer
                         mutationTree.addToTree(currentMutation);
                     }
                     else
-                        LOGGER.info("QueryError. This update affected 0 rows");
+                    {
+                        LOGGER.info("QueryError. This update affected 0 rows.");
+                        if(!currentMutation.getParent().compare(mutationTree.getLastMutation()))
+                        {
+                            try
+                            {
+                                currentMutation.getParent().undoToMutation(mutationTree.getLastMutation(),analyzer);
+
+                            }
+                            catch(Exception e)
+                            {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
                 }
             }
             catch(Exception e)
@@ -333,7 +347,7 @@ public class DBFuzzer
             }
             else
             {
-                Random changeOrDepthen = new Random(); // 1 is same row
+                Random changeOrDepthen = new Random(); // 1 inside tree, 2 is pick new random row
 
                 if(changeOrDepthen.nextInt(2) == 1)
                 {

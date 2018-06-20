@@ -187,10 +187,9 @@ public class GenericTreeNode {
     public void setChosenChange(SingleChange sc) {
         this.chosenChange = sc;
         this.chosenChange.getAttachedToMutation().getPotential_changes().remove(chosenChange);
-        this.getPotential_changes().add(sc);
         this.chosenChange.setAttachedToMutation(this);
 
-        assert(sc.getAttachedToMutation().equals(this.getId()));
+        assert(sc.getAttachedToMutation().getId().equals(this.getId()));
     }
 
     /**
@@ -350,7 +349,7 @@ public class GenericTreeNode {
             int nbUpdates = stmt.executeUpdate(theQuery);
             return nbUpdates;
         } catch (Exception e) {
-            System.out.println("Error ! : Mutation Canceled" + e); // temporerally putting aside the Unique constraint brought by the transfertToParent Mechanic
+            e.printStackTrace(); // TransfertToMutation Modifies the tree and provoques the happenning of 2 do's on one single mutation during undoToMutation.
             return 0;
         }
     }
@@ -403,7 +402,9 @@ public class GenericTreeNode {
                             theQuery = theQuery + (entry.getKey() + "='" + entry.getValue().toString() + "' AND ");
                         else
                             theQuery = theQuery + (entry.getKey() + " IS NULL AND ");
-                    } else {
+                    }
+                    else
+                    {
                         if (entry.getValue() != null)
                             theQuery = theQuery + (entry.getKey() + "=" + entry.getValue().toString() + " AND ");
                         else
@@ -413,9 +414,9 @@ public class GenericTreeNode {
 
             } else {
                 if (undo)
-                    theQuery = theQuery + (entry.getKey() + "='" + chosenChange.getNewValue().toString() + "' AND ");
+                    theQuery = theQuery + (entry.getKey() + "='" + post_change_row.getContent().get(entry.getKey()) + "' AND ");
                 else
-                    theQuery = theQuery + (entry.getKey() + "='" + chosenChange.getOldValue().toString() + "' AND ");
+                    theQuery = theQuery + (entry.getKey() + "='" + initial_state_row.getContent().get(entry.getKey()) + "' AND ");
             }
         }
         try {
@@ -483,20 +484,19 @@ public class GenericTreeNode {
 
     public boolean undoToMutation(GenericTreeNode target, SchemaAnalyzer analyzer) {
         ArrayList<GenericTreeNode> goingUp = findPathToMutation(target).get(0);
-        goingUp.remove(this.getParent());
         ArrayList<GenericTreeNode> goingDown = findPathToMutation(target).get(1);
 
-        if(goingUp.contains(parent))
+        if(goingUp.contains(parent) && goingDown.isEmpty())
             goingUp.remove(parent);
 
         for (GenericTreeNode node : goingUp) {
-            if (node.undo(analyzer.getSqlService(), analyzer.getDb()) > 0) ;
-                System.out.println("success");
+            if (node.undo(analyzer.getSqlService(), analyzer.getDb()) > 0)
+                System.out.println("success undoing :"+node.getId());
         }
 
         for (GenericTreeNode node : goingDown) {
-            if (node.inject(analyzer.getSqlService(), analyzer.getDb(), false) > 0) ;
-                System.out.println("success");
+            if (node.inject(analyzer.getSqlService(), analyzer.getDb(), false) > 0)
+                System.out.println("success doing :"+node.getId());
 
         }
 
@@ -560,7 +560,6 @@ public class GenericTreeNode {
             tmpThis = tmpThis.getParent();
             tmpTarget = tmpTarget.getParent();
         }
-        thisPath.add(tmpThis); // tmpThis and tmpTarget are equals, so add the commun ancestor
 
         Collections.reverse(targetPath);
         finalPath.add(thisPath); //way up
