@@ -336,14 +336,16 @@ public class GenericTreeNode {
     {
             boolean transfered = false;
             String theQuery = "";
+
             if (undo)
                 System.out.println("UNDOING");
             else
                 System.out.println("INJECT");
+
             if (checkIfHasParentFk(db)) {
                 transfered = true;
                 System.out.println("TRANSFERT");
-                transferMutationToParent(db, sqlService);
+                transferMutationToParent(db, sqlService); //LAST UNCONSISTENCY COMES FROM THE CASCADE ON CONSTRAINT.SOME OTHER MUTATIONS ARE AFECTED BY THE CASCADE AND GET THEIR INITIAL STATE ROW UNCONSISTENT.
             }
 
             theQuery = updateQueryBuilder(undo, db, sqlService);
