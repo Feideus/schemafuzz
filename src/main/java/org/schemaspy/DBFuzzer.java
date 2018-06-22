@@ -77,7 +77,6 @@ public class DBFuzzer
     public boolean fuzz (Config config)
     {
         boolean returnStatus = true;
-        int nbUpdates;
         int TreeDepth = 0;
         int maxDepth = Integer.parseInt(analyzer.getCommandLineArguments().getMaxDepth());
         int mark = 0;
@@ -136,15 +135,20 @@ public class DBFuzzer
             {
                 if(currentMutation.getChosenChange() != null)
                 {
-                    nbUpdates = currentMutation.inject(analyzer.getSqlService(),analyzer.getDb(),false);
+                    int nbUpdates = currentMutation.inject(analyzer.getSqlService(),analyzer.getDb(),false);
                     if(nbUpdates > 0)
                     {
                         LOGGER.info("GenericTreeNode was sucessfull");
+                        currentMutation.updatePotentialChangeAfterInjection();
                         mutationTree.addToTree(currentMutation);
                     }
-                    else
+                    else if (nbUpdates == 0 || nbUpdates == -1)
                     {
-                        LOGGER.info("QueryError. This update affected 0 rows.");
+                        if(nbUpdates == 0)
+                            LOGGER.info("QueryError. This update affected 0 rows.");
+                        else
+                            LOGGER.info("GenericTreeNode was sucessfull");
+
                         if(!currentMutation.getParent().compare(mutationTree.getLastMutation()))
                         {
                             try

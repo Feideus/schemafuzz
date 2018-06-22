@@ -18,7 +18,12 @@ public class SingleChange
 		this.newValue = newValue;
 	}
 
-  public boolean respectsConstraints()
+
+    public void setOldValue(Object oldValue) {
+        this.oldValue = oldValue;
+    }
+
+    public boolean respectsConstraints()
   {
     switch (parentTableColumn.getTypeName())
     {

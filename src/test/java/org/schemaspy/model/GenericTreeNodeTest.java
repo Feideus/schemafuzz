@@ -179,7 +179,7 @@ public class GenericTreeNodeTest extends AbstractTestExecutionListener {
     public void injectAndUndoConsistencyTest() throws Exception
     {
 
-        PreparedStatement stmt = sqlService.prepareStatement("SELECT * FROM actual_test_table WHERE address_id=1", database, null);
+        PreparedStatement stmt = sqlService.prepareStatement("SELECT * FROM actual_test_table WHERE address_id=0", database, null);
         ResultSet rs = stmt.executeQuery();
         QueryResponseParser parser = new QueryResponseParser();
         QueryResponse response = parser.parse(rs,database.getTablesMap().get("actual_test_table"));

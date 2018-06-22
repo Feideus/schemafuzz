@@ -332,27 +332,43 @@ public class GenericTreeNode {
         return oneChange;
     }
 
-    public int inject(SqlService sqlService, Database db, boolean undo) {
-        String theQuery = "";
-        if (undo)
-            System.out.println("UNDOING");
-        else
-            System.out.println("INJECT");
-        if (checkIfHasParentFk(db)) {
-            System.out.println("TRANSFERT");
-            transferMutationToParent(db, sqlService);
-        }
+    public int inject(SqlService sqlService, Database db, boolean undo)
+    {
+            boolean transfered = false;
+            String theQuery = "";
+            if (undo)
+                System.out.println("UNDOING");
+            else
+                System.out.println("INJECT");
+            if (checkIfHasParentFk(db)) {
+                transfered = true;
+                System.out.println("TRANSFERT");
+                transferMutationToParent(db, sqlService);
+            }
 
-        theQuery = updateQueryBuilder(undo, db, sqlService);
-        try {
-            Statement stmt = sqlService.getConnection().createStatement();
-            int nbUpdates = stmt.executeUpdate(theQuery);
-            return nbUpdates;
-        } catch (Exception e) {
-            e.printStackTrace(); // TransfertToMutation Modifies the tree and provoques the happenning of 2 do's on one single mutation during undoToMutation.
-            return 0;
-        }
+            theQuery = updateQueryBuilder(undo, db, sqlService);
+            try
+            {
+                Statement stmt = sqlService.getConnection().createStatement();
+                int nbUpdates = stmt.executeUpdate(theQuery);
+                if(transfered && nbUpdates > 0)
+                    return -1;
+                return nbUpdates;
+            }
+            catch (Exception e)
+            {
+                if(!e.getMessage().contains("unique constraint")) {
+                    e.printStackTrace(); // TransfertToMutation Modifies the tree and provoques the happenning of 2 do's on one single mutation during undoToMutation.
+                    return 0;
+                }
+                else {
+                    System.out.println("Value already in use");
+                    return 0;
+                }
+            }
+
     }
+
 
     public void initPostChangeRow() {
         this.post_change_row = this.initial_state_row.myClone();
@@ -489,15 +505,23 @@ public class GenericTreeNode {
         if(goingUp.contains(parent) && goingDown.isEmpty())
             goingUp.remove(parent);
 
-        for (GenericTreeNode node : goingUp) {
-            if (node.undo(analyzer.getSqlService(), analyzer.getDb()) > 0)
-                System.out.println("success undoing :"+node.getId());
+        try
+        {
+            for (GenericTreeNode node : goingUp) {
+                if (node.undo(analyzer.getSqlService(), analyzer.getDb()) > 0)
+                    System.out.println("success undoing :" + node.getId());
+            }
+
+            for (GenericTreeNode node : goingDown) {
+                if (node.inject(analyzer.getSqlService(), analyzer.getDb(), false) > 0)
+                    System.out.println("success doing :" + node.getId());
+
+            }
         }
 
-        for (GenericTreeNode node : goingDown) {
-            if (node.inject(analyzer.getSqlService(), analyzer.getDb(), false) > 0)
-                System.out.println("success doing :"+node.getId());
-
+        catch(Exception e)
+        {
+            System.out.println(e.toString());
         }
 
         return true;
@@ -707,7 +731,7 @@ public class GenericTreeNode {
 
         semiQuery = "SELECT * FROM " + chosenChange.getParentTableColumn().getTable().getName();
 
-        setInitial_state_row(response.getRows().get(0),sqlService); // Crashes sometimes due to 0 row found. to be fixed.
+        setInitial_state_row(response.getRows().get(0),sqlService); // Crashes sometimes due to 0 row found. to be fixed. Update: doesnt SEEM to crash amymore.
 
         if (requireQuotes(chosenChange.getParentTableColumn()) == 1) {
             semiQuery = semiQuery + " WHERE " + chosenChange.getParentTableColumn().getName() + "= '" + chosenChange.getNewValue() + " '";
@@ -719,17 +743,7 @@ public class GenericTreeNode {
         response = fetchingDataFromDatabase(semiQuery, chosenChange.getParentTableColumn().getTable(), sqlService);
 
         if (!response.getRows().isEmpty()) {
-            String columnName = chosenChange.getParentTableColumn().getName();
-            String tableName = chosenChange.getParentTableColumn().getTable().getName();
-
-            semiQuery = "SELECT * FROM ( SELECT  1 AS " + columnName + " ) q1 WHERE NOT EXISTS ( SELECT  1 FROM " + tableName + " WHERE   " + columnName + " = 1) " +
-                    "UNION ALL SELECT  * FROM    ( SELECT  " + columnName + " + 1 FROM " + tableName + " t WHERE NOT EXISTS ( SELECT  1 FROM " + tableName + " ti WHERE ti." + columnName + " = t." + columnName + " + 1) " +
-                    "ORDER BY " + columnName + " LIMIT 1) q2 LIMIT 1";
-
-            response = fetchingDataFromDatabase(semiQuery, chosenChange.getParentTableColumn().getTable(), sqlService);
-
-            chosenChange.setNewValue(response.getRows().get(0).getValueOfColumn(columnName));
-            initPostChangeRow();
+            handleAlreadySetValue(sqlService);
         }
     }
 
@@ -758,7 +772,7 @@ public class GenericTreeNode {
             {
                 String semiQuery = "SELECT * FROM " + sg.getParentTableColumn().getTable().getName();
                 if (requireQuotes(sg.getParentTableColumn()) == 1)
-                    semiQuery = semiQuery + " WHERE " + sg.getParentTableColumn().getName() + "= '" + sg.getNewValue() + " '";
+                    semiQuery = semiQuery + " WHERE " + sg.getParentTableColumn().getName() + "=' " + sg.getNewValue() + " '";
                 else
                     semiQuery = semiQuery + " WHERE " + sg.getParentTableColumn().getName() + "=" + sg.getNewValue();
 
@@ -814,6 +828,32 @@ public class GenericTreeNode {
                 || typeName.equals("mpaa-rating"))
             return true;
         return false;
+    }
+
+    public void updatePotentialChangeAfterInjection()
+    {
+        for(SingleChange sg : potential_changes)
+        {
+            if(sg.getOldValue().equals(initial_state_row.getValueOfColumn(sg.getParentTableColumn().getName())))
+            {
+                sg.setOldValue(post_change_row.getValueOfColumn(sg.getParentTableColumn().getName()));
+            }
+        }
+    }
+
+    public void handleAlreadySetValue(SqlService sqlService)
+    {
+        String columnName = chosenChange.getParentTableColumn().getName();
+        String tableName = chosenChange.getParentTableColumn().getTable().getName();
+
+        String semiQuery = "SELECT * FROM ( SELECT  1 AS " + columnName + " ) q1 WHERE NOT EXISTS ( SELECT  1 FROM " + tableName + " WHERE   " + columnName + " = 1) " +
+                "UNION ALL SELECT  * FROM    ( SELECT  " + columnName + " + 1 FROM " + tableName + " t WHERE NOT EXISTS ( SELECT  1 FROM " + tableName + " ti WHERE ti." + columnName + " = t." + columnName + " + 1) " +
+                "ORDER BY " + columnName + " LIMIT 1) q2 LIMIT 1";
+
+        QueryResponse response = fetchingDataFromDatabase(semiQuery, chosenChange.getParentTableColumn().getTable(), sqlService);
+
+        chosenChange.setNewValue(response.getRows().get(0).getValueOfColumn(columnName));
+        initPostChangeRow();
     }
 
 }
