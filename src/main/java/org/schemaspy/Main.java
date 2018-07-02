@@ -77,6 +77,7 @@ public class Main implements CommandLineRunner {
 
         runAnalyzer(args);
         runFuzzer(args);
+        System.out.println(Thread.getAllStackTraces());
     }
 
     private void runAnalyzer(String... args) {
