@@ -9,6 +9,7 @@ import org.schemaspy.model.*;
 import org.schemaspy.model.Table;
 import org.schemaspy.model.GenericTree;
 import org.schemaspy.model.GenericTreeNode;
+import org.schemaspy.service.DatabaseService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.BufferedReader;
@@ -37,7 +38,7 @@ public class DBFuzzer
         {
             if(rootMutation.getChosenChange() != null)
             {
-                nbUpdates = rootMutation.inject(analyzer.getSqlService(),analyzer.getDb(),false);
+                nbUpdates = rootMutation.inject(analyzer.getSqlService(),analyzer.getDb(),mutationTree,false);
                 if(nbUpdates > 0)
                 {
                     LOGGER.info("GenericTreeNode was sucessfull");
@@ -122,7 +123,7 @@ public class DBFuzzer
             {
               try
               {
-                mutationTree.getLastMutation().undoToMutation(currentMutation.getParent(),analyzer);
+                mutationTree.getLastMutation().undoToMutation(currentMutation.getParent(),analyzer,mutationTree);
 
               }
               catch(Exception e)
@@ -135,7 +136,7 @@ public class DBFuzzer
             {
                 if(currentMutation.getChosenChange() != null)
                 {
-                    int nbUpdates = currentMutation.inject(analyzer.getSqlService(),analyzer.getDb(),false);
+                    int nbUpdates = currentMutation.inject(analyzer.getSqlService(),analyzer.getDb(),mutationTree,false);
                     if(nbUpdates > 0)
                     {
                         LOGGER.info("GenericTreeNode was sucessfull");
@@ -144,17 +145,20 @@ public class DBFuzzer
                     }
                     else if (nbUpdates == 0 || nbUpdates == -1)
                     {
-                        if(nbUpdates == 0)
+                        if (nbUpdates == 0)
                             LOGGER.info("QueryError. This update affected 0 rows.");
                         else
+                        {
                             LOGGER.info("GenericTreeNode was sucessfull");
+                            currentMutation.updatePotentialChangeAfterInjection();
+                            mutationTree.addToTree(currentMutation);
+                        }
 
                         if(!currentMutation.getParent().compare(mutationTree.getLastMutation()))
                         {
                             try
                             {
-                                currentMutation.getParent().undoToMutation(mutationTree.getLastMutation(),analyzer);
-
+                                currentMutation.getParent().undoToMutation(mutationTree.getLastMutation(),analyzer,mutationTree);
                             }
                             catch(Exception e)
                             {
@@ -162,6 +166,10 @@ public class DBFuzzer
                             }
                         }
                     }
+                    else
+                        LOGGER.info("Injection returned unknown error code.");
+
+
                 }
             }
             catch(Exception e)
@@ -413,5 +421,5 @@ public class DBFuzzer
         return mutationTree.getLastId()+1;
     }
 
-    
+
 }

@@ -1,6 +1,8 @@
 
 package org.schemaspy.model;
 
+import java.util.ArrayList;
+
 public class GenericTree {
 
     private GenericTreeNode root;
@@ -120,5 +122,20 @@ public class GenericTree {
         }
 
         return res;
+    }
+
+    public ArrayList<GenericTreeNode> toArray() {
+        ArrayList<GenericTreeNode> result = new ArrayList<>();
+        toArrayHelp(root, result);
+        return result;
+    }
+
+    private void toArrayHelp(GenericTreeNode ref, ArrayList<GenericTreeNode> result) {
+        if (ref == null) {
+            return;
+        }
+        result.add(ref);
+        for(GenericTreeNode gtn : ref.getChildren())
+            toArrayHelp(gtn, result);
     }
 }

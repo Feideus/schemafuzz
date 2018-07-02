@@ -238,17 +238,20 @@ public class GenericTreeNode {
             case "serial":
             case "bigserial":
                 Object tmp = rootForThisMutation.getInitial_state_row().getContent().get(tableColumn.getName());
+                Random rand = new Random();
                 if (tmp != null && tmp.toString() != "") {
                     int tmp2;
                     if (typeName.equals("int2") || typeName.equals("serial")) {
                         tmp2 = Integer.parseInt(rootForThisMutation.getInitial_state_row().getContent().get(tableColumn.getName()).toString());
                         oneChange.add(new SingleChange(tableColumn, this, column_value, Integer.toString(tmp2++)));
                         oneChange.add(new SingleChange(tableColumn, this, column_value, Integer.toString(32767)));
+                        oneChange.add(new SingleChange(tableColumn, this, column_value, rand.nextInt(32767)));
                     } else if (typeName.equals("int8") || typeName.equals("bigserial")) {
                         BigInteger bigInt = new BigInteger(rootForThisMutation.getInitial_state_row().getContent().get(tableColumn.getName()).toString());
                         bigInt = bigInt.add(new BigInteger("1"));
                         oneChange.add(new SingleChange(tableColumn, this, column_value, bigInt));
                         oneChange.add(new SingleChange(tableColumn, this, column_value, new BigInteger("9223372036854775806")));
+                        oneChange.add(new SingleChange(tableColumn, this, column_value, nextRandomBigInteger(new BigInteger("9223372036854775806"))));
                     }
                     oneChange.add(new SingleChange(tableColumn, this, column_value, Integer.toString(0)));
                     break;
@@ -264,12 +267,15 @@ public class GenericTreeNode {
                     tmp = Arrays.toString(bytes);
                 }
 
-                if (tmp != null && !tmp.toString().isEmpty()) {
+                if (tmp != null && !tmp.toString().isEmpty() && tmp.toString().length() >0)
+                {
                     String tmp2 = tmp.toString();
-                    char nextChar = (char) (tmp2.charAt(0) + 1);
-                    char prevChar = (char) (tmp2.charAt(0) - 1);
-                    oneChange.add(new SingleChange(tableColumn, this, column_value, (Character.toString(nextChar) + column_value.toString().substring(1))));
-                    oneChange.add(new SingleChange(tableColumn, this, column_value, (Character.toString(prevChar) + column_value.toString().substring(1))));
+                    Random rand3 = new Random();
+                    int tmpRand = rand3.nextInt(tmp2.length());
+                    char nextChar = (char) (tmp2.charAt(tmpRand) + 1);
+                    char prevChar = (char) (tmp2.charAt(tmpRand) - 1);
+                    oneChange.add(new SingleChange(tableColumn, this, column_value, column_value.toString().substring(0,tmpRand)+nextChar+column_value.toString().substring(tmpRand+1)));
+                    oneChange.add(new SingleChange(tableColumn, this, column_value, column_value.toString().substring(0,tmpRand)+prevChar+column_value.toString().substring(tmpRand+1)));
                 }
                 break;
 
@@ -282,9 +288,10 @@ public class GenericTreeNode {
 
             case "text":
                 tmp = rootForThisMutation.getInitial_state_row().getContent().get(tableColumn.getName());
-                if (tmp != null && tmp.toString() != "") {
-                    Random rand = new Random();
-                    int randNum = rand.nextInt(tmp.toString().length());
+                if (tmp != null && tmp.toString() != "")
+                {
+                    Random rand2 = new Random();
+                    int randNum = rand2.nextInt(tmp.toString().length());
                     char tmp3 = tmp.toString().charAt(randNum);
 
                     oneChange.add(new SingleChange(tableColumn, this, column_value, tmp.toString().substring(0, randNum) + (Character.toString(tmp3++)) + tmp.toString().substring(randNum + 1)));
@@ -332,7 +339,7 @@ public class GenericTreeNode {
         return oneChange;
     }
 
-    public int inject(SqlService sqlService, Database db, boolean undo)
+    public int inject(SqlService sqlService, Database db,GenericTree mutationTree, boolean undo)
     {
             boolean transfered = false;
             String theQuery = "";
@@ -345,7 +352,7 @@ public class GenericTreeNode {
             if (checkIfHasParentFk(db)) {
                 transfered = true;
                 System.out.println("TRANSFERT");
-                transferMutationToParent(db, sqlService); //LAST UNCONSISTENCY COMES FROM THE CASCADE ON CONSTRAINT.SOME OTHER MUTATIONS ARE AFECTED BY THE CASCADE AND GET THEIR INITIAL STATE ROW UNCONSISTENT.
+                transferMutationToParent(db, sqlService);
             }
 
             theQuery = updateQueryBuilder(undo, db, sqlService);
@@ -353,8 +360,11 @@ public class GenericTreeNode {
             {
                 Statement stmt = sqlService.getConnection().createStatement();
                 int nbUpdates = stmt.executeUpdate(theQuery);
+                if(nbUpdates > 0)
+                    //handleCascadeUpdate(this,db,mutationTree);
                 if(transfered && nbUpdates > 0)
                     return -1;
+
                 return nbUpdates;
             }
             catch (Exception e)
@@ -379,9 +389,9 @@ public class GenericTreeNode {
             System.out.println("problem");
     }
 
-    public int undo(SqlService sqlService, Database db) {
+    public int undo(SqlService sqlService, Database db,GenericTree mutationTree) {
         try {
-            return this.inject(sqlService, db, true);
+            return this.inject(sqlService, db,mutationTree, true);
         } catch (Exception e) {
             e.printStackTrace();
             return 0;
@@ -500,22 +510,19 @@ public class GenericTreeNode {
         return false;
     }
 
-    public boolean undoToMutation(GenericTreeNode target, SchemaAnalyzer analyzer) {
+    public boolean undoToMutation(GenericTreeNode target, SchemaAnalyzer analyzer,GenericTree mutationTree) {
         ArrayList<GenericTreeNode> goingUp = findPathToMutation(target).get(0);
         ArrayList<GenericTreeNode> goingDown = findPathToMutation(target).get(1);
-
-        if(goingUp.contains(parent) && goingDown.isEmpty())
-            goingUp.remove(parent);
 
         try
         {
             for (GenericTreeNode node : goingUp) {
-                if (node.undo(analyzer.getSqlService(), analyzer.getDb()) > 0)
+                if (node.undo(analyzer.getSqlService(), analyzer.getDb(),mutationTree) > 0)
                     System.out.println("success undoing :" + node.getId());
             }
 
             for (GenericTreeNode node : goingDown) {
-                if (node.inject(analyzer.getSqlService(), analyzer.getDb(), false) > 0)
+                if (node.inject(analyzer.getSqlService(), analyzer.getDb(),mutationTree, false) > 0)
                     System.out.println("success doing :" + node.getId());
 
             }
@@ -858,4 +865,45 @@ public class GenericTreeNode {
         initPostChangeRow();
     }
 
+    public void handleCascadeUpdate(GenericTreeNode currentMutation, Database db,GenericTree mutationTree)
+    {
+        SingleChange sgCurrMut = currentMutation.getChosenChange();
+        Map<String,Collection<ForeignKeyConstraint>> lesFk = db.getLesForeignKeys();
+        List<TableColumn> cascadedColumns = new ArrayList<>();
+
+        for (Map.Entry<String,Collection<ForeignKeyConstraint>> fkCol: lesFk.entrySet())
+        {
+            for(ForeignKeyConstraint fk : fkCol.getValue())
+            {
+                if (fk.getParentColumns().contains(sgCurrMut.getParentTableColumn()))
+                {
+                    cascadedColumns = fk.getChildColumns();
+                }
+            }
+        }
+
+        if(cascadedColumns.isEmpty())
+            return;
+
+        ArrayList<GenericTreeNode> treeAsArray = mutationTree.toArray();
+        treeAsArray.remove(this);
+        for(GenericTreeNode gtn : treeAsArray)
+        {
+            for(TableColumn tb : cascadedColumns)
+            {
+                Object objectToBeChanged = gtn.getInitial_state_row().getContent().get(tb.getName());
+                if(objectToBeChanged != null && objectToBeChanged.toString().equals(sgCurrMut.getOldValue()))
+                    gtn.getInitial_state_row().setValueOfColumn(tb.getName(),sgCurrMut.getNewValue());
+            }
+        }
+    }
+
+    public BigInteger nextRandomBigInteger(BigInteger n) {
+        Random rand = new Random();
+        BigInteger result = new BigInteger(n.bitLength(), rand);
+        while( result.compareTo(n) >= 0 ) {
+            result = new BigInteger(n.bitLength(), rand);
+        }
+        return result;
+    }
 }

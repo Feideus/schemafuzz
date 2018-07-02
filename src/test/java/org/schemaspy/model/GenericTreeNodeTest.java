@@ -186,11 +186,13 @@ public class GenericTreeNodeTest extends AbstractTestExecutionListener {
 
         GenericTreeNode tmpMutation1 = new GenericTreeNode(response.getRows().get(0),1,sqlService);
 
+        GenericTree mutationTree = new GenericTree();
+
         tmpMutation1.setChosenChange(tmpMutation1.getPotential_changes().get(0));
         tmpMutation1.initPostChangeRow();
+        mutationTree.setRoot(tmpMutation1);
 
-
-        Assert.assertTrue(tmpMutation1.inject(sqlService,database,false) > 0 ); //Test
+        Assert.assertTrue(tmpMutation1.inject(sqlService,database,mutationTree,false) > 0 ); //Test
 
         rs = stmt.executeQuery();
         response = parser.parse(rs,database.getTablesMap().get("actual_test_table"));
@@ -199,7 +201,7 @@ public class GenericTreeNodeTest extends AbstractTestExecutionListener {
         System.out.println(tmpMutation1.getPost_change_row());
         Assert.assertTrue(response.getRows().get(0).compare(tmpMutation1.getPost_change_row()));
 
-        Assert.assertTrue(tmpMutation1.undo(sqlService,database) > 0); //Test
+        Assert.assertTrue(tmpMutation1.undo(sqlService,database,mutationTree) > 0); //Test
 
         rs = stmt.executeQuery();
         response = parser.parse(rs,database.getTablesMap().get("actual_test_table"));
