@@ -123,6 +123,13 @@ public class CommandLineArguments {
     )
     private String maxDepth;
 
+    @Parameter(
+            names = {
+                    "-tg", "--target",
+            }
+    )
+    private String target;
+
     /* TODO Password handling is more complex, see Config class (prompt for password, fallback to Environment variable, multiple schemas, etc.)
     @Parameter(
             names = {
@@ -209,5 +216,7 @@ public class CommandLineArguments {
     }
 
     public String getMaxDepth() { return maxDepth; }
+
+    public String getTarget() {return target; }
 
 }

@@ -1,3 +1,0 @@
-#0  0x000000000040056f in tmpfun2 () at test_c_crash.c:21
-#1  0x0000000000400563 in tmpfun () at test_c_crash.c:16
-#2  0x000000000040054e in main (argc=1, argv=0x7ffd2395ebc8) at test_c_crash.c:10

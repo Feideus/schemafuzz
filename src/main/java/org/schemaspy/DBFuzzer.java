@@ -182,13 +182,17 @@ public class DBFuzzer
             try
             {
                 // the evaluator sets a mark for representing how interesting the mutation was
-                Process evaluatorProcess = new ProcessBuilder("/bin/bash", "./aLittleBitLessDumbEvaluator.sh").start();
-                mark = Integer.parseInt(getEvaluatorResponse(evaluatorProcess));
+                    Process tmpProcess = new ProcessBuilder("/bin/bash", "./emulated_program.sh").start(); // this should go soon now.
+                    mark = Integer.parseInt(getEvaluatorResponse(tmpProcess));
                 currentMutation.setInterest_mark(mark);
                 currentMutation.setWeight(mark);
                 currentMutation.propagateWeight(); //update parents weight according to this node new weight
                 System.out.println("marking : "+mark);
                 System.out.println("Weight : "+currentMutation.getWeight());
+
+                LOGGER.info("Target is : "+analyzer.getCommandLineArguments().getTarget());
+                Process evaluatorProcess = new ProcessBuilder("/bin/bash", "./stackTraceCParser.sh",analyzer.getCommandLineArguments().getTarget()).start();
+                LOGGER.info(getEvaluatorResponse(evaluatorProcess));
             }
             catch(Exception e)
             {
