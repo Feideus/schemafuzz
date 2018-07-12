@@ -58,11 +58,12 @@ echo "line numbers : " "${lineNumberArray[@]}"
 
 var=`shuf -i 1-10000 -n 1`;
 reportFileName=parsedStackTrace_$binaryWithoutExtention_$var
-touch $reportFileName
+touch errorReports/$reportFileName
 
-echo "${functionNameArray[@]}" >> errorReports/$reportFileName
-echo "${fileNameArray[@]}" >> errorReports/$reportFileName
-echo "${lineNumberArray[@]}" >> errorReports/$reportFileName
+echo "${functionNameArray[@]}" >> errorReport/$reportFileName
+echo "${fileNameArray[@]}" >> errorReport/$reportFileName
+echo "${lineNumberArray[@]}" >> errorReport/$reportFileName
 
 rm errorReports/core
 rm errorReports/stackTrace_$binaryWithoutExtention
+

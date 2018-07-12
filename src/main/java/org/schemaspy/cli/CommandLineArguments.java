@@ -130,6 +130,13 @@ public class CommandLineArguments {
     )
     private String target;
 
+    @Parameter(
+            names = {
+                    "-nr", "--no-report"
+            }
+    )
+    private String report; // Needs to be modified so that no futher argument is needed (currently requires a "y" after the "-nr")
+
     /* TODO Password handling is more complex, see Config class (prompt for password, fallback to Environment variable, multiple schemas, etc.)
     @Parameter(
             names = {
@@ -218,5 +225,7 @@ public class CommandLineArguments {
     public String getMaxDepth() { return maxDepth; }
 
     public String getTarget() {return target; }
+
+    public String getReport() {return report; }
 
 }

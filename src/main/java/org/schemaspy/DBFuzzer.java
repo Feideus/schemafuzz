@@ -204,6 +204,15 @@ public class DBFuzzer
 
         removeTemporaryCascade();
         printMutationTree();
+        if(analyzer.getCommandLineArguments().getReport().equals("y") || analyzer.getCommandLineArguments().getReport().equals("yes"))
+        {
+            LOGGER.info("CLEAN UP");
+            try {
+                Process evaluatorProcess = new ProcessBuilder("/bin/bash", "./cleanup.sh").start();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
         System.out.println("ending process");
       return returnStatus;
     }
