@@ -5,6 +5,8 @@ import java.lang.invoke.MethodHandles;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.*;
+
+import org.parboiled.parserunners.ProfilingParseRunner;
 import org.schemaspy.model.*;
 import org.schemaspy.model.Table;
 import org.schemaspy.model.GenericTree;
@@ -191,8 +193,11 @@ public class DBFuzzer
                 System.out.println("Weight : "+currentMutation.getWeight());
 
                 LOGGER.info("Target is : "+analyzer.getCommandLineArguments().getTarget());
-                Process evaluatorProcess = new ProcessBuilder("/bin/bash", "./stackTraceCParser.sh",analyzer.getCommandLineArguments().getTarget()).start();
-                LOGGER.info(getEvaluatorResponse(evaluatorProcess));
+                Process evaluatorProcess = new ProcessBuilder("/bin/bash", "./stackTraceCParser.sh",analyzer.getCommandLineArguments().getTarget(),Integer.toString(currentMutation.getId())).start();
+                evaluatorProcess.waitFor();
+                ReportVector mutationReport = new ReportVector(currentMutation);
+                mutationReport.parseFile("errorReports/parsedStackTrace_"+currentMutation.getId());
+
             }
             catch(Exception e)
             {
@@ -204,13 +209,14 @@ public class DBFuzzer
 
         removeTemporaryCascade();
         printMutationTree();
-        if(analyzer.getCommandLineArguments().getReport().equals("y") || analyzer.getCommandLineArguments().getReport().equals("yes"))
-        {
-            LOGGER.info("CLEAN UP");
-            try {
-                Process evaluatorProcess = new ProcessBuilder("/bin/bash", "./cleanup.sh").start();
-            } catch (Exception e) {
-                e.printStackTrace();
+        if(analyzer.getCommandLineArguments().getReport() != null) {
+            if (analyzer.getCommandLineArguments().getReport().equals("y") || analyzer.getCommandLineArguments().getReport().equals("yes")) {
+                LOGGER.info("CLEAN UP");
+                try {
+                    Process evaluatorProcess = new ProcessBuilder("/bin/bash", "./cleanup.sh").start();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
         System.out.println("ending process");

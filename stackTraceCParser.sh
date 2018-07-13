@@ -56,14 +56,52 @@ do
 done
 echo "line numbers : " "${lineNumberArray[@]}"
 
-var=`shuf -i 1-10000 -n 1`;
-reportFileName=parsedStackTrace_$binaryWithoutExtention_$var
+resultLS=`ls errorReports | grep parsedStackTrace_Mut_$2`
+
+if [[ ! -z $resultLS ]]
+then
+    fileExists=1
+    while [ $fileExists -eq 1 ]
+    do
+        var=`shuf -i 1-10000 -n 1`;
+        resultLS=`ls errorReports | grep parsedStackTrace_Mut_$var`
+        echo $resultLS
+
+        if [[ -n "$resultLS" ]]
+        then
+            fileExists=1
+        else
+            fileExists=0
+        fi
+    done
+else
+    var=$2
+fi
+
+reportFileName=parsedStackTrace_$var
+echo $reportFileName
 touch errorReports/$reportFileName
 
-echo "${functionNameArray[@]}" >> errorReport/$reportFileName
-echo "${fileNameArray[@]}" >> errorReport/$reportFileName
-echo "${lineNumberArray[@]}" >> errorReport/$reportFileName
+echo "functionNames:" >> errorReports/$reportFileName
+cpt=0
+for j in "${functionNameArray[@]}"
+do
+    echo $j"," >> errorReports/$reportFileName
+done
+
+echo "fileNames:" >> errorReports/$reportFileName
+cpt=0
+for j in "${fileNameArray[@]}"
+do
+    echo $j"," >> errorReports/$reportFileName
+done
+
+echo "lineNumbers:" >> errorReports/$reportFileName
+cpt=0
+for j in "${lineNumberArray[@]}"
+do
+    echo $j >> errorReports/$reportFileName
+done
 
 rm errorReports/core
 rm errorReports/stackTrace_$binaryWithoutExtention
-

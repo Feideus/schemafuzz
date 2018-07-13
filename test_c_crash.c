@@ -20,3 +20,25 @@ void tmpfun2()
 {
     *(char *)0 = 0;
 }
+fileNames:
+test_c_crash.c,
+fileNames:
+test_c_crash.c,
+fileNames:
+test_c_crash.c,
+fileNames:
+test_c_crash.c,
+fileNames:
+test_c_crash.c,
+fileNames:
+test_c_crash.c,
+:
+test_c_crash.c,
+:
+test_c_crash.c,
+:
+test_c_crash.c,
+fileNames:
+test_c_crash.c,
+fileNames:
+errorReports/parsedStackTrace_30,
