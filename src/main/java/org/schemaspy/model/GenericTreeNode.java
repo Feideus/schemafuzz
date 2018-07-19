@@ -24,6 +24,7 @@ public class GenericTreeNode {
     private SingleChange chosenChange;
     private boolean isFirstApperance;
     private HashMap<TableColumn, FkGenericTreeNode> fkMutations = new HashMap<TableColumn, FkGenericTreeNode>();
+    private ReportVector rpv;
 
     /**
      * Default GenericTreeNode constructor
@@ -69,6 +70,10 @@ public class GenericTreeNode {
     public void setSubTreeWeight(int subTreeWeight) {
         this.subTreeWeight = subTreeWeight;
     }
+
+    public ReportVector getReportVector() { return rpv; }
+
+    public void setReportVector(ReportVector rpv) { this.rpv = rpv; }
 
     public void setPotential_changes(ArrayList<SingleChange> potCh) //used in tests
     {

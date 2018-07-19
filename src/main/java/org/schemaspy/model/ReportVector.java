@@ -14,6 +14,7 @@ public class ReportVector {
     public ReportVector(GenericTreeNode parentMutation)
     {
         this.parentMutation = parentMutation;
+        stackTrace = new ArrayList<StackTraceLine>();
     }
 
     public ArrayList<StackTraceLine> getStackTrace() {
@@ -64,7 +65,7 @@ public class ReportVector {
 
                     key = data.replace(":", "");
                 } else {
-                    currentArray.add(data);
+                    currentArray.add(data.replace(",",""));
                 }
             }
 
@@ -75,6 +76,7 @@ public class ReportVector {
             e.printStackTrace();
         }
     }
+
 
     public void storeLines(HashMap<String,ArrayList<String>> allLists)
     {
@@ -111,7 +113,29 @@ public class ReportVector {
             StackTraceLine stl = new StackTraceLine(functionName,fileName,lineNumber);
             stackTrace.add(stl);
         }
+    }
 
+    @Override
+    public String toString() {
+        return "ReportVector{" +
+                "stackTrace=" + stackTrace +
+                ", parentMutation=" + parentMutation +
+                '}';
+    }
 
+    public boolean compareStackTrace (ReportVector rpv)
+    {
+        if(rpv.stackTrace.size() != this.stackTrace.size())
+            return false;
+
+        int i = 0;
+        for(StackTraceLine stl : rpv.stackTrace)
+        {
+            if(!stl.compare(this.stackTrace.get(i)))
+                return false;
+            
+            i++;
+        }
+        return true;
     }
 }

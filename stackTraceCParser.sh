@@ -1,6 +1,7 @@
 #!/bin/bash
 
 isBinaryInDir=`ls | grep $1`;
+echo $isBinaryInDir
 
 if [[ -n "$isBinaryInDir" ]]
 then

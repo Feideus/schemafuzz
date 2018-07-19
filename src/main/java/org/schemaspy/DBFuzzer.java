@@ -197,7 +197,8 @@ public class DBFuzzer
                 evaluatorProcess.waitFor();
                 ReportVector mutationReport = new ReportVector(currentMutation);
                 mutationReport.parseFile("errorReports/parsedStackTrace_"+currentMutation.getId());
-
+                currentMutation.setReportVector(mutationReport);
+                LOGGER.info(mutationReport.toString());
             }
             catch(Exception e)
             {

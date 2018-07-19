@@ -2,22 +2,22 @@ package org.schemaspy.model;
 
 public class StackTraceLine {
 
-    private String functionname;
+    private String functionName;
     private String fileName;
     private int lineNumber;
 
-    public StackTraceLine(String functionname, String fileName, int lineNumber) {
-        this.functionname = functionname;
+    public StackTraceLine(String functionName, String fileName, int lineNumber) {
+        this.functionName = functionName;
         this.fileName = fileName;
         this.lineNumber = lineNumber;
     }
 
-    public String getFunctionname() {
-        return functionname;
+    public String getfunctionName() {
+        return functionName;
     }
 
-    public void setFunctionname(String functionname) {
-        this.functionname = functionname;
+    public void setfunctionName(String functionName) {
+        this.functionName = functionName;
     }
 
     public String getFileName() {
@@ -34,5 +34,21 @@ public class StackTraceLine {
 
     public void setLineNumber(int lineNumber) {
         this.lineNumber = lineNumber;
+    }
+
+    @Override
+    public String toString() {
+        return "StackTraceLine{" +
+                "functionName='" + functionName + '\'' +
+                ", fileName='" + fileName + '\'' +
+                ", lineNumber=" + lineNumber +
+                '}';
+    }
+
+    public boolean compare(StackTraceLine stl)
+    {
+        if(stl.fileName.equals(this.fileName) && stl.functionName.equals(this.functionName) && stl.lineNumber == this.lineNumber)
+            return true;
+        return false;
     }
 }
