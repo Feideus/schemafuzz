@@ -59,9 +59,9 @@ public class DBFuzzer
         //Evaluation
         try
         {
-            int mark;
+            double mark;
             Process evaluatorProcess = new ProcessBuilder("/bin/bash", "./aLittleBitLessDumbEvaluator.sh").start();
-            mark = Integer.parseInt(getEvaluatorResponse(evaluatorProcess));
+            mark = Double.parseDouble(getEvaluatorResponse(evaluatorProcess));
             rootMutation.setInterest_mark(mark);
             rootMutation.setWeight(mark);
             rootMutation.propagateWeight();
@@ -82,7 +82,7 @@ public class DBFuzzer
         boolean returnStatus = true;
         int TreeDepth = 0;
         int maxDepth = Integer.parseInt(analyzer.getCommandLineArguments().getMaxDepth());
-        int mark = 0;
+        double mark = 0.0;
         //adding CASCADE to all foreign key tableColumns.
         settingTemporaryCascade(false); // need to drop and recreate database
 
@@ -185,7 +185,7 @@ public class DBFuzzer
             {
                 // the evaluator sets a mark for representing how interesting the mutation was
                     Process tmpProcess = new ProcessBuilder("/bin/bash", "./emulated_program.sh").start(); // this should go soon now.
-                    mark = Integer.parseInt(getEvaluatorResponse(tmpProcess));
+                    mark = Double.parseDouble(getEvaluatorResponse(tmpProcess));
                 currentMutation.setInterest_mark(mark);
                 currentMutation.setWeight(mark);
                 currentMutation.propagateWeight(); //update parents weight according to this node new weight
@@ -198,6 +198,7 @@ public class DBFuzzer
                 ReportVector mutationReport = new ReportVector(currentMutation);
                 mutationReport.parseFile("errorReports/parsedStackTrace_"+currentMutation.getId());
                 currentMutation.setReportVector(mutationReport);
+                currentMutation.setInterest_mark(new Scorer().score(currentMutation,mutationTree));
                 LOGGER.info(mutationReport.toString());
             }
             catch(Exception e)
@@ -358,7 +359,7 @@ public class DBFuzzer
     public GenericTreeNode chooseNextMutation()
     {
         GenericTreeNode previousMutation = mutationTree.getLastMutation();
-        int markingDiff = previousMutation.getInterest_mark();
+        double markingDiff = previousMutation.getInterest_mark();
         Random rand = new Random();
 
         if (mutationTree.getNumberOfNodes() > 1) // first mutation doesnt have a predecessor
@@ -368,7 +369,7 @@ public class DBFuzzer
 
         if (mutationTree.getRoot() != null)
         {
-            if (markingDiff > 0 ) //
+            if (markingDiff > 0.0 ) //
             {
                 System.out.println("creation1");
                 int randNumber = rand.nextInt(previousMutation.getPotential_changes().size());

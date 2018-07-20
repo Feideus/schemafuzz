@@ -12,8 +12,8 @@ public class GenericTreeNode {
 
 
     private final Integer id;
-    private Integer interest_mark;
-    private Integer weight;
+    private double interest_mark;
+    private double weight;
     private Integer subTreeWeight;
     private int depth;
     private Row initial_state_row;
@@ -33,7 +33,7 @@ public class GenericTreeNode {
         //this.cascadingFK = false;
         this.subTreeWeight = 0;
         this.parent = null;
-        this.weight = 1;
+        this.weight = 1.0;
         this.depth = 0;
         this.id = id;
         this.isFirstApperance = true;
@@ -46,7 +46,7 @@ public class GenericTreeNode {
         //this.cascadingFK = false;
         this.parent = parentMutation;
         this.subTreeWeight = 0;
-        this.weight = 1;
+        this.weight = 1.0;
         this.id = id;
         initDepth();
         this.isFirstApperance = isFirstApperance;
@@ -80,7 +80,7 @@ public class GenericTreeNode {
         this.potential_changes = potCh;
     }
 
-    public Integer getWeight() {
+    public double getWeight() {
         return this.weight;
     }
 
@@ -118,7 +118,7 @@ public class GenericTreeNode {
         this.subTreeWeight = tmp;
     }
 
-    public void setWeight(int weight) {
+    public void setWeight(double weight) {
         this.weight = weight;
     }
 
@@ -141,7 +141,7 @@ public class GenericTreeNode {
         rnd -= potential_changes.size(); // removing the potential changes "weight" of the current node to match subtree Weight
         for (GenericTreeNode n : children) // launching on every child if current node wasnt picked.
         {
-            int w = n.getWeight();
+            double w = n.getWeight();
             if (rnd < w) {
                 return n.singleChangeBasedOnWeight();
             }
@@ -172,11 +172,11 @@ public class GenericTreeNode {
         return initial_state_row;
     }
 
-    public int getInterest_mark() {
+    public double getInterest_mark() {
         return this.interest_mark;
     }
 
-    public void setInterest_mark(int mark) {
+    public void setInterest_mark(double mark) {
         this.interest_mark = mark;
     }
 

@@ -52,8 +52,10 @@ public class Scorer {
         return hash;
     }
 
-    public int score () {
-
+    public double score (GenericTreeNode gtn,GenericTree mutationTree)
+    {
+        flushContext();
+        initContext(gtn,mutationTree);
         Scorer sc = new Scorer();
         //Lets create the centroids or 'average' locations of center for our points
         double[][] centroids;
@@ -68,9 +70,9 @@ public class Scorer {
         sc.solve();
 
         //Now lets predict our test array
-        sc.closestClusterIndex(euclideanDistances);
+        //sc.closestClusterIndex(euclideanDistances); // not used right now cause we need ALL the distances.
 
-
+        return computeScore();
     }
 
 
@@ -251,10 +253,35 @@ public class Scorer {
         return euclideanDistances;//Return cluster index of shortest distance
     }
 
-    public int computeScore()
+    private double computeScore()
     {
+        double res = 0;
+        for(Double distance : euclideanDistances.keySet())
+        {
+            res = res + distance;
+        }
+        return res;
+    }
 
-        return 0;
+    private void initContext(GenericTreeNode gtn,GenericTree mutationTree)
+    {
+        int i = 0;
+        ReportVector rpv = gtn.getReportVector();
+        rpv.setStackTraceHash(rpv.hashStackTrace());
+        predict = rpv.getStackTraceHash();
+        for(GenericTreeNode gtnLoop : mutationTree.toArray())
+        {
+            double[] data = gtnLoop.getReportVector().getStackTraceHash();
+            input[i] = data;
+            i++;
+        }
+    }
+
+    private void flushContext()
+    {
+        predict = null;
+        input = null;
+        clusters = new HashMap();
     }
 
 }
