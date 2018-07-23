@@ -138,4 +138,6 @@ public class GenericTree {
         for(GenericTreeNode gtn : ref.getChildren())
             toArrayHelp(gtn, result);
     }
+
+
 }
