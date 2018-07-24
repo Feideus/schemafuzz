@@ -5,6 +5,7 @@ import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 public class ReportVector {
     private ArrayList<StackTraceLine> stackTrace;
@@ -146,26 +147,7 @@ public class ReportVector {
 
     public int hashStackTrace(GenericTree mutationTree,GenericTreeNode currentNode)
     {
-        int hash = 0;
-
-
-        for(GenericTreeNode gtn : mutationTree.toArray())
-        {
-            if(!gtn.getReportVector().getStackTrace().get(gtn.getReportVector().getStackTrace().size()-1).compare(currentNode.getReportVector().getStackTrace().get(currentNode.getReportVector().getStackTrace().size()-1)))
-                hash = gtn.getReportVector().getStackTraceHash();
-
-           for(StackTraceLine stl : gtn.getReportVector().getStackTrace())
-           {
-               for(StackTraceLine stlCurrent : currentNode.getReportVector().getStackTrace())
-               {
-
-                    if(!stl.compare(stlCurrent))
-                        hash = hash+5;
-
-                    if()
-
-               }
-           }
-        }
+        Random rand = new Random();
+        return rand.nextInt();
     }
 }

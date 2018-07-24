@@ -268,10 +268,11 @@ public class Scorer {
         int i = 0;
         ReportVector rpv = gtn.getReportVector();
         rpv.setStackTraceHash(rpv.hashStackTrace(mutationTree,gtn));
-        predict = rpv.getStackTraceHash();
+        double[] tmp = {rpv.getStackTraceHash(),0,0};
+        predict = tmp;
         for(GenericTreeNode gtnLoop : mutationTree.toArray())
         {
-            double[] data = gtnLoop.getReportVector().getStackTraceHash();
+            double[] data = {gtnLoop.getReportVector().getStackTraceHash(),0,0};
             input[i] = data;
             i++;
         }
