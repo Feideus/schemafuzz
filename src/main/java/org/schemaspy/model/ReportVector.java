@@ -9,7 +9,7 @@ import java.util.Random;
 
 public class ReportVector {
     private ArrayList<StackTraceLine> stackTrace;
-    private int stackTraceHash;
+    private double stackTraceHash;
     private int codeCoverage; //unused right now
     GenericTreeNode parentMutation;
 
@@ -19,9 +19,9 @@ public class ReportVector {
         stackTrace = new ArrayList<StackTraceLine>();
     }
 
-    public int getStackTraceHash() { return stackTraceHash; }
+    public double getStackTraceHash() { return stackTraceHash; }
 
-    public void setStackTraceHash(int stackTraceHash) { this.stackTraceHash = stackTraceHash; }
+    public void setStackTraceHash(double stackTraceHash) { this.stackTraceHash = stackTraceHash; }
 
     public ArrayList<StackTraceLine> getStackTrace() {
         return stackTrace;
@@ -145,9 +145,9 @@ public class ReportVector {
         return true;
     }
 
-    public int hashStackTrace(GenericTree mutationTree,GenericTreeNode currentNode)
+    public double hashStackTrace(GenericTree mutationTree,GenericTreeNode currentNode)
     {
         Random rand = new Random();
-        return rand.nextInt();
+        return rand.nextDouble();
     }
 }

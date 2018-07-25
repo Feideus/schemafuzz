@@ -52,9 +52,9 @@ public class Scorer {
         return hash;
     }
 
-    public double score (GenericTreeNode gtn,GenericTree mutationTree)
+    public int score (GenericTreeNode gtn,GenericTree mutationTree)
     {
-        flushContext();
+        flushContext(mutationTree);
         initContext(gtn,mutationTree);
         Scorer sc = new Scorer();
         //Lets create the centroids or 'average' locations of center for our points
@@ -70,9 +70,8 @@ public class Scorer {
         sc.solve();
 
         //Now lets predict our test array
-        //sc.closestClusterIndex(euclideanDistances); // not used right now cause we need ALL the distances.
 
-        return computeScore();
+        return computeScore(sc.euclideanDistances);
     }
 
 
@@ -110,7 +109,7 @@ public class Scorer {
             //System.out.println( Arrays.deepToString(this.clusters.values().toArray()) );
             iterations += 1;
         }
-
+        euclideanDistances = euclideanDistance(predict,centroids);
     }
 
     //Lets assign 'labels' or 'outputs' to each of our 'clusters' or grouped set of points
@@ -145,8 +144,6 @@ public class Scorer {
                 ((ArrayList) entry.getValue()).add(dummy);
             }
         }
-
-        System.out.println("hash"+hash);
 
         for(int i=0;i<hash.size();i++){
             //Lets create a matrix of each groups points to index them by column easier
@@ -245,7 +242,6 @@ public class Scorer {
             //Use the distance to each data point(or row) as key with the 'default' option as value
             euclideanDistances.put( distance  , i/*cluster number*/ );
         }
-        System.out.println(euclideanDistances);
         //Now lets sort the map's keys into a set
         SortedSet<Double> keys = new TreeSet<Double>(euclideanDistances.keySet());
         List<Integer> neighbors = new ArrayList<Integer>();
@@ -253,14 +249,14 @@ public class Scorer {
         return euclideanDistances;//Return cluster index of shortest distance
     }
 
-    private double computeScore()
+    private int computeScore(HashMap<Double, Integer> euclideanDistances)
     {
-        double res = 0;
+        Double res = 0.0;
         for(Double distance : euclideanDistances.keySet())
         {
             res = res + distance;
         }
-        return res;
+        return res.intValue();
     }
 
     private void initContext(GenericTreeNode gtn,GenericTree mutationTree)
@@ -272,16 +268,17 @@ public class Scorer {
         predict = tmp;
         for(GenericTreeNode gtnLoop : mutationTree.toArray())
         {
+
             double[] data = {gtnLoop.getReportVector().getStackTraceHash(),0,0};
             input[i] = data;
             i++;
         }
     }
 
-    private void flushContext()
+    private void flushContext(GenericTree mutationTree)
     {
         predict = null;
-        input = null;
+        input = new double[mutationTree.toArray().size()][];
         clusters = new HashMap();
     }
 

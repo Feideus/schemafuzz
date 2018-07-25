@@ -35,7 +35,7 @@ public class DBFuzzer
     public boolean processFirstMutation(GenericTreeNode rootMutation)
     {
         boolean returnStatus=true;
-        int nbUpdates;
+        int nbUpdates = 0;
         try
         {
             if(rootMutation.getChosenChange() != null)
@@ -57,21 +57,36 @@ public class DBFuzzer
 
 
         //Evaluation
-        try
+        if(nbUpdates != 0)
         {
-            double mark;
-            Process evaluatorProcess = new ProcessBuilder("/bin/bash", "./aLittleBitLessDumbEvaluator.sh").start();
-            mark = Double.parseDouble(getEvaluatorResponse(evaluatorProcess));
-            rootMutation.setInterest_mark(mark);
-            rootMutation.setWeight(mark);
-            rootMutation.propagateWeight();
-            System.out.println("marking : "+mark);
-            System.out.println("Weight : "+rootMutation.getWeight());
-        }
-        catch(Exception e)
-        {
-            e.printStackTrace();
-            returnStatus = false;
+            try {
+                // the evaluator sets a mark for representing how interesting the mutation was
+                //Process tmpProcess = new ProcessBuilder("/bin/bash", "./emulated_program.sh").start(); // this should go soon now.
+                //mark = Integer.parseInt(getEvaluatorResponse(tmpProcess));
+                //currentMutation.setInterest_mark(mark);
+                //currentMutation.setWeight(mark);
+                //currentMutation.propagateWeight(); //update parents weight according to this node new weight
+
+                int mark = 0;
+
+                LOGGER.info("Target is : " + analyzer.getCommandLineArguments().getTarget());
+                Process evaluatorProcess = new ProcessBuilder("/bin/bash", "./stackTraceCParser.sh", analyzer.getCommandLineArguments().getTarget(), Integer.toString(rootMutation.getId())).start();
+                evaluatorProcess.waitFor();
+                ReportVector mutationReport = new ReportVector(rootMutation);
+                mutationReport.parseFile("errorReports/parsedStackTrace_" + rootMutation.getId());
+                rootMutation.setReportVector(mutationReport);
+                mark = new Scorer().score(rootMutation, mutationTree);
+                rootMutation.setInterest_mark(mark);
+                rootMutation.setWeight(mark);
+                rootMutation.propagateWeight();
+                System.out.println("marking : " + mark);
+                System.out.println("Weight : " + rootMutation.getWeight());
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+                returnStatus = false;
+            }
         }
 
         return returnStatus;
@@ -82,7 +97,10 @@ public class DBFuzzer
         boolean returnStatus = true;
         int TreeDepth = 0;
         int maxDepth = Integer.parseInt(analyzer.getCommandLineArguments().getMaxDepth());
-        double mark = 0.0;
+        int mark = 0;
+        int nbUpdates = 0;
+
+
         //adding CASCADE to all foreign key tableColumns.
         settingTemporaryCascade(false); // need to drop and recreate database
 
@@ -138,7 +156,7 @@ public class DBFuzzer
             {
                 if(currentMutation.getChosenChange() != null)
                 {
-                    int nbUpdates = currentMutation.inject(analyzer.getSqlService(),analyzer.getDb(),mutationTree,false);
+                    nbUpdates = currentMutation.inject(analyzer.getSqlService(),analyzer.getDb(),mutationTree,false);
                     if(nbUpdates > 0)
                     {
                         LOGGER.info("GenericTreeNode was sucessfull");
@@ -180,33 +198,35 @@ public class DBFuzzer
                 returnStatus = false;
             }
 
-            //Evalutation
-            try
+            //Evaluation\
+            if(nbUpdates != 0)
             {
-                // the evaluator sets a mark for representing how interesting the mutation was
-                    Process tmpProcess = new ProcessBuilder("/bin/bash", "./emulated_program.sh").start(); // this should go soon now.
-                    mark = Double.parseDouble(getEvaluatorResponse(tmpProcess));
-                currentMutation.setInterest_mark(mark);
-                currentMutation.setWeight(mark);
-                currentMutation.propagateWeight(); //update parents weight according to this node new weight
-                System.out.println("marking : "+mark);
-                System.out.println("Weight : "+currentMutation.getWeight());
+                try {
+                    // the evaluator sets a mark for representing how interesting the mutation was
+                    //Process tmpProcess = new ProcessBuilder("/bin/bash", "./emulated_program.sh").start(); // this should go soon now.
+                    //mark = Integer.parseInt(getEvaluatorResponse(tmpProcess));
+                    //currentMutation.setInterest_mark(mark);
+                    //currentMutation.setWeight(mark);
+                    //currentMutation.propagateWeight(); //update parents weight according to this node new weight
 
-                LOGGER.info("Target is : "+analyzer.getCommandLineArguments().getTarget());
-                Process evaluatorProcess = new ProcessBuilder("/bin/bash", "./stackTraceCParser.sh",analyzer.getCommandLineArguments().getTarget(),Integer.toString(currentMutation.getId())).start();
-                evaluatorProcess.waitFor();
-                ReportVector mutationReport = new ReportVector(currentMutation);
-                mutationReport.parseFile("errorReports/parsedStackTrace_"+currentMutation.getId());
-                currentMutation.setReportVector(mutationReport);
-                currentMutation.setInterest_mark(new Scorer().score(currentMutation,mutationTree));
-                LOGGER.info(mutationReport.toString());
+                    LOGGER.info("Target is : " + analyzer.getCommandLineArguments().getTarget());
+                    Process evaluatorProcess = new ProcessBuilder("/bin/bash", "./stackTraceCParser.sh", analyzer.getCommandLineArguments().getTarget(), Integer.toString(currentMutation.getId())).start();
+                    evaluatorProcess.waitFor();
+                    ReportVector mutationReport = new ReportVector(currentMutation);
+                    mutationReport.parseFile("errorReports/parsedStackTrace_" + currentMutation.getId());
+                    currentMutation.setReportVector(mutationReport);
+                    mark = new Scorer().score(currentMutation, mutationTree);
+                    currentMutation.setInterest_mark(mark);
+                    currentMutation.setWeight(mark);
+                    currentMutation.propagateWeight();
+                    System.out.println("marking : " + mark);
+                    System.out.println("Weight : " + currentMutation.getWeight());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    returnStatus = false;
+                }
+                TreeDepth = mutationTree.checkMaxDepth(mutationTree.getRoot());
             }
-            catch(Exception e)
-            {
-                e.printStackTrace();
-                returnStatus = false;
-            }
-            TreeDepth = mutationTree.checkMaxDepth(mutationTree.getRoot());
       }
 
         removeTemporaryCascade();

@@ -70,6 +70,11 @@
                 <artifactId>compiler</artifactId>
                 <version>0.9.1</version>
             </dependency>
+ 	    <dependency>
+		<groupId>org.apache.commons.math3</groupId>
+ 		<artifactId>commons-math3</artifactId>
+		<version>3.6.1</version>
+	    </dependency>
             <dependency>
                 <groupId>commons-io</groupId>
                 <artifactId>commons-io</artifactId>
@@ -116,6 +121,10 @@
         <dependency>
             <groupId>com.github.spullara.mustache.java</groupId>
             <artifactId>compiler</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons.math3</groupId>
+            <artifactId>commons-math3</artifactId>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>

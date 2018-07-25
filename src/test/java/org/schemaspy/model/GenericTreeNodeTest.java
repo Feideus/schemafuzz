@@ -94,7 +94,7 @@ public class GenericTreeNodeTest extends AbstractTestExecutionListener {
 
         tmpMutation1.setWeight(rand.nextInt(Integer.MAX_VALUE));
         tmpMutation2.setWeight(rand.nextInt(Integer.MAX_VALUE));
-        tmpMutation3.setWeight(Integer.MAX_VALUE);
+        tmpMutation3.setWeight(rand.nextInt(Integer.MAX_VALUE));
 
         tmpMutation1.addChild(tmpMutation2);
         tmpMutation1.addChild(tmpMutation3);

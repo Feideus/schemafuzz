@@ -12,8 +12,8 @@ public class GenericTreeNode {
 
 
     private final Integer id;
-    private double interest_mark;
-    private double weight;
+    private int interest_mark;
+    private int weight;
     private Integer subTreeWeight;
     private int depth;
     private Row initial_state_row;
@@ -33,7 +33,7 @@ public class GenericTreeNode {
         //this.cascadingFK = false;
         this.subTreeWeight = 0;
         this.parent = null;
-        this.weight = 1.0;
+        this.weight = 1;
         this.depth = 0;
         this.id = id;
         this.isFirstApperance = true;
@@ -46,7 +46,7 @@ public class GenericTreeNode {
         //this.cascadingFK = false;
         this.parent = parentMutation;
         this.subTreeWeight = 0;
-        this.weight = 1.0;
+        this.weight = 1;
         this.id = id;
         initDepth();
         this.isFirstApperance = isFirstApperance;
@@ -80,7 +80,7 @@ public class GenericTreeNode {
         this.potential_changes = potCh;
     }
 
-    public double getWeight() {
+    public int getWeight() {
         return this.weight;
     }
 
@@ -118,7 +118,7 @@ public class GenericTreeNode {
         this.subTreeWeight = tmp;
     }
 
-    public void setWeight(double weight) {
+    public void setWeight(int weight) {
         this.weight = weight;
     }
 
@@ -172,11 +172,11 @@ public class GenericTreeNode {
         return initial_state_row;
     }
 
-    public double getInterest_mark() {
+    public int getInterest_mark() {
         return this.interest_mark;
     }
 
-    public void setInterest_mark(double mark) {
+    public void setInterest_mark(int mark) {
         this.interest_mark = mark;
     }
 
