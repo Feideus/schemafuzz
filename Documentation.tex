@@ -1,6 +1,7 @@
 \documentclass{article}
 \usepackage[utf8]{inputenc}
 \usepackage[document]{ragged2e}
+\usepackage{hyperref}
 
 \title{Documentation for schemaFuzz}
 \author{Ulrich "Feideus" Erwan}
@@ -12,17 +13,111 @@
 	\section{Summary?}
 		This document actually needs a front page.
 	\section{Introduction}
-		this is the first section of the documentation.
+	
+SchemaFuzz is a free software command line tool incorporated inside the 		GnuTaler package designed to properly fuzz databases.
+Traditionnal fuzzing is defined as "testing an automated software testing		technique that involves providing invalid, unexpected, or random data as 		inputs to a computer program". SchemaFuzz uses this principle and applies it to the database field.
+Where a traditionnal fuzzer would send malformed input to a program, SchemaFuzz modifies the content of a database to test that program's behavior when stumbling on such unexpected data. \\*
+Obviously, this tool is meant to be used as a mean of debugging as the goal is to pop buggs or put into light the security breaches that the code may contain regarding the retrieving, usage and saving of a database's content.
+As this tool is being developped as a master's thesis project, its current state is far from being finished and there are many options and optimisations that deserve to be implemented that are not yet available.
+These missing features will be detailed and discussed in a dedicated section.
+
 	\section{Usage}
-		How to set up, invoke, and more genericly use schemaFuzz.
-	\section{How it is Designed}
-		\subsection{Idea behind the tool}
+		\subsection{prerequisites}
+			SchemaFuzz requires the presence of a list of libraries to work 				properly which are :
+			\begin{itemize}
+			\item org.apache.commons.math3 >= 3.6
+			available at \\*
+			\url{https://commons.apache.org/proper/commons-math/download_math.cgi}			
+			\end{itemize}
+The library has to be installed in the maven repository to be available. The instructions detailed at the following address explain how to do that. futher information can be found on the official maven website.\\*
+
+			\url{https://www.mkyong.com/maven/how-to-include-library-manully-into-maven-local-repository/}
+			
+		\subsection{setting up the code}
+			Once all the depencies have been installed successfully, clone the source available on the official git taler repository \\*
+			\url{https://git.taler.net/schemafuzz.git}
+			\begin{verbatim}
+			 git clone https://git.taler.net/schemafuzz.git
+			\end{verbatim}
+			
+the folder containing the code shoud hold the rights for reading writing and executing (rwx) for the user that plans to run the tool.
+if this is not the case, you can give these rights like so
+			\begin{verbatim}
+			sudo chmod -R 700 schemafuzz
+			\end{verbatim}
+		\subsection{Building}
+SchemaFuzz is using maven for building and library management purposes.
+Therefore, using the maven command line building script is way to go.
+Standard way of building :\\*
+			\begin{verbatim}
+			./mvnw package
+			\end{verbatim}
+				
+This maven building method also offers alternative instructions for 	more precise/refined way of building as well as compilation and test 
+launching options (those should only be intresting for the contributors).
+
+Launching the test suit :\\*
+			\begin{verbatim}
+			./mvnw test
+			\end{verbatim}
+Compiling the code :\\*		
+			\begin{verbatim}
+			./mvnw compile
+			\end{verbatim}
+		
+Other usefull commands: \\*		
+		
+			\begin{verbatim}
+			./mvnw clean
+			\end{verbatim}
+			\begin{verbatim}
+			./mvnw validate
+			\end{verbatim}
+			\begin{verbatim}
+			./mvnw deploy
+			\end{verbatim}
+		
+		\subsection{Setting up the database}	
+	
+Launch the "dbConfigure" script.
+			\begin{verbatim}
+				./dbConfigure
+			\end{verbatim}		 
+		
+	\section{Design}
+		\subsection{Generic explanation}
 			Analyse shit
 		\subsection{SchemaSpy legacy}
 			"stole" some shit
 		\subsection{SchemaFuzz Core}
-			Developped some shit
+			\subsubsection{Mutations}
+				\paragraph{Creating malformed data}
+				\paragraph{Sql handling}
+				\paragraph{Do/Undo routine}
+			\subsubsection{TreeBased data structure}
+				\paragraph{Weight}
+				\paragraph{Path}
+			\subsubsection{The analyzer}
+				\paragraph{Stack Trace Parser}
+				\paragraph{Hashing}
+				\paragraph{The Scoring mechanism}
+				\paragraph{Clustering Mutations}
+		\subsection{Known issues}		
+			\subsubsection{Failing Mutations}
+			\subsubsection{Foreign Key constraints}
+			\subsubsection{Tests}
+	\section{Upcomming features and changes}
+This section will provide more insights on the future features that might/may/will be implemented as well as the changes in the existing code.
+Any sugestion will be greatly appriciated as long as it is relevent and well argumented. All the relevent information regarding the contributions are detailled in the so called section.
 	
+		\subsection{Code coverage}
+Debate code coverage here.
+		\subsection{Centralised anonymous user data}
+Debate computing the best types or mutations and configurations (tree depth etc...) as user data for SchemaFuzz
+		
 	\section{Contributing}
+You can send your ideas at  \\*
+		\url{erwan.ulrich@gmail.com}
+Or directly create a pull request on the official repository to edit this document
 	\section{Conclusion}
 \end{document} 
