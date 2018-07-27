@@ -5,11 +5,10 @@ import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 
 public class ReportVector {
     private ArrayList<StackTraceLine> stackTrace;
-    private double stackTraceHash;
+    private double[] stackTraceHash;
     private int codeCoverage; //unused right now
     GenericTreeNode parentMutation;
 
@@ -19,9 +18,9 @@ public class ReportVector {
         stackTrace = new ArrayList<StackTraceLine>();
     }
 
-    public double getStackTraceHash() { return stackTraceHash; }
+    public double[] getStackTraceHash() { return stackTraceHash; }
 
-    public void setStackTraceHash(double stackTraceHash) { this.stackTraceHash = stackTraceHash; }
+    public void setStackTraceHash(double[] stackTraceHash) { this.stackTraceHash = stackTraceHash; }
 
     public ArrayList<StackTraceLine> getStackTrace() {
         return stackTrace;
@@ -118,6 +117,7 @@ public class ReportVector {
 
             StackTraceLine stl = new StackTraceLine(functionName,fileName,lineNumber);
             stackTrace.add(stl);
+
         }
     }
 
@@ -145,9 +145,48 @@ public class ReportVector {
         return true;
     }
 
-    public double hashStackTrace(GenericTree mutationTree,GenericTreeNode currentNode)
+    public double[] hashStackTrace(GenericTree mutationTree)
     {
-        Random rand = new Random();
-        return rand.nextDouble();
+        ArrayList<double[]> stackTraceLinesHashes = new ArrayList<>();
+        double var1=500,var2=500,var3=500;
+
+        if(parentMutation.getId() == 1)
+        {
+            for(StackTraceLine stl :stackTrace)
+            {
+                stl.setFileNameHash(500);
+                stl.setFunctionNameHash(500);
+            }
+            double [] tmp = {500,500,500};
+            return tmp;
+        }
+
+        for(StackTraceLine stl : this.getStackTrace())
+        {
+            var1 = stl.consistentFunctionNameHash(mutationTree);
+            stl.setFunctionNameHash(var1);
+            var2 = stl.consistentFileNameHash(mutationTree);
+            stl.setFileNameHash(var2);
+            var3 = stl.getLineNumber();
+
+
+            double[] lineHash = {var1,var2,var3};
+            stackTraceLinesHashes.add(lineHash);
+        }
+
+        double functionNameHashTotal=0,fileNameHashTotal=0,lineNumberHashTotal=0;
+        for(double[] lineHash : stackTraceLinesHashes)
+        {
+            functionNameHashTotal = functionNameHashTotal + lineHash[0];
+            fileNameHashTotal= fileNameHashTotal+ lineHash[1];
+            lineNumberHashTotal= lineNumberHashTotal+ lineHash[2];
+        }
+
+        int denominator = stackTraceLinesHashes.size();
+        double[] stackTraceHash ={functionNameHashTotal/denominator,fileNameHashTotal/denominator,lineNumberHashTotal/denominator};
+        return stackTraceHash;
+        
     }
+
+
 }

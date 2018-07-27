@@ -74,6 +74,7 @@ public class DBFuzzer
                 evaluatorProcess.waitFor();
                 ReportVector mutationReport = new ReportVector(rootMutation);
                 mutationReport.parseFile("errorReports/parsedStackTrace_" + rootMutation.getId());
+                mutationReport.setStackTraceHash(mutationReport.hashStackTrace(mutationTree));
                 rootMutation.setReportVector(mutationReport);
                 mark = new Scorer().score(rootMutation, mutationTree);
                 rootMutation.setInterest_mark(mark);
@@ -213,7 +214,8 @@ public class DBFuzzer
                     Process evaluatorProcess = new ProcessBuilder("/bin/bash", "./stackTraceCParser.sh", analyzer.getCommandLineArguments().getTarget(), Integer.toString(currentMutation.getId())).start();
                     evaluatorProcess.waitFor();
                     ReportVector mutationReport = new ReportVector(currentMutation);
-                    mutationReport.parseFile("errorReports/parsedStackTrace_" + currentMutation.getId());
+                    mutationReport.parseFile("errorReports/parsedStackTrace_" + currentMutation.getId()); // initialises the reportVector stacktrace
+                    mutationReport.setStackTraceHash(mutationReport.hashStackTrace(mutationTree));
                     currentMutation.setReportVector(mutationReport);
                     mark = new Scorer().score(currentMutation, mutationTree);
                     currentMutation.setInterest_mark(mark);

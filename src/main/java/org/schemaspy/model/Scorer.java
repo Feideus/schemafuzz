@@ -5,8 +5,6 @@ import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.RealVector;
 import org.apache.commons.math3.stat.StatUtils;
 
-
-import java.lang.reflect.Array;
 import java.util.*;
 
 /**
@@ -263,13 +261,12 @@ public class Scorer {
     {
         int i = 0;
         ReportVector rpv = gtn.getReportVector();
-        rpv.setStackTraceHash(rpv.hashStackTrace(mutationTree,gtn));
-        double[] tmp = {rpv.getStackTraceHash(),0,0};
+        double[] tmp = rpv.getStackTraceHash();
         predict = tmp;
         for(GenericTreeNode gtnLoop : mutationTree.toArray())
         {
 
-            double[] data = {gtnLoop.getReportVector().getStackTraceHash(),0,0};
+            double[] data = gtnLoop.getReportVector().getStackTraceHash();
             input[i] = data;
             i++;
         }
