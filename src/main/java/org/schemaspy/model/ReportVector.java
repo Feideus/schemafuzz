@@ -62,7 +62,8 @@ public class ReportVector {
         try {
             BufferedReader infile = new BufferedReader(new FileReader(pathToFile));
             while ((data = infile.readLine()) != null) {
-                if (data.contains(":")) {
+                if (data.contains(":"))
+                {
                     if (!currentArray.isEmpty()) {
                         allLists.put(key, currentArray); // putting in the map the "title" of the data and values before stepping into the next block
                         currentArray = new ArrayList<>();
@@ -95,8 +96,8 @@ public class ReportVector {
 
         for(int i = 0; i < maxSize ; i ++)
         {
-            String functionName = "unknown.this is abnormal behavior";
-            String fileName = "unknown.this is abnormal behavior";
+            String functionName = "-1";
+            String fileName = "-1";
             int lineNumber = -1;
 
             if(i < allLists.get("functionNames").size()) {
@@ -163,9 +164,9 @@ public class ReportVector {
 
         for(StackTraceLine stl : this.getStackTrace())
         {
-            var1 = stl.consistentFunctionNameHash(mutationTree);
+            var1 = stl.consistentFunctionNameHash(mutationTree,parentMutation); // parentMutation is to be ignored in similarity calculus
             stl.setFunctionNameHash(var1);
-            var2 = stl.consistentFileNameHash(mutationTree);
+            var2 = stl.consistentFileNameHash(mutationTree,parentMutation); // same here
             stl.setFileNameHash(var2);
             var3 = stl.getLineNumber();
 

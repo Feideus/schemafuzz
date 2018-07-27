@@ -81,6 +81,14 @@ fi
 
 reportFileName=parsedStackTrace_$var
 echo $reportFileName
+
+checkFileExists=`ls errorReports | grep $reportFileName`;
+
+if [[ -n "$checkFileExists" ]]
+then
+    rm errorReports/$reportFileName
+fi
+
 touch errorReports/$reportFileName
 
 echo "functionNames:" >> errorReports/$reportFileName
@@ -103,6 +111,8 @@ for j in "${lineNumberArray[@]}"
 do
     echo $j >> errorReports/$reportFileName
 done
+
+echo "end:" >> errorReports/$reportFileName
 
 rm errorReports/core
 rm errorReports/stackTrace_$binaryWithoutExtention

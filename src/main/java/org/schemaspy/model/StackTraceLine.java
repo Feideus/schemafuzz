@@ -1,5 +1,7 @@
 package org.schemaspy.model;
 
+import java.util.ArrayList;
+
 public class StackTraceLine {
 
     private String functionName;
@@ -95,11 +97,13 @@ public class StackTraceLine {
         return costs[s2.length()];
     }
 
-    public double consistentFunctionNameHash(GenericTree mutationTree)
+    public double consistentFunctionNameHash(GenericTree mutationTree,GenericTreeNode currentMutation)
     {
         double maxSimilarity = 0.0;
         StackTraceLine closestStl = null;
-        for(GenericTreeNode gtn: mutationTree.toArray())
+        ArrayList<GenericTreeNode> treeAsArray = mutationTree.toArray();
+        treeAsArray.remove(currentMutation); // remove the currentMutation so that the loop doesnt try to get the being-built rpv
+        for(GenericTreeNode gtn: treeAsArray)
         {
             for(StackTraceLine stl : gtn.getReportVector().getStackTrace())
             {
@@ -120,11 +124,13 @@ public class StackTraceLine {
         }
     }
 
-    public double consistentFileNameHash(GenericTree mutationTree)
+    public double consistentFileNameHash(GenericTree mutationTree,GenericTreeNode currentMutation)
     {
         double maxSimilarity = 0.0;
         StackTraceLine closestStl = null;
-        for(GenericTreeNode gtn: mutationTree.toArray())
+        ArrayList<GenericTreeNode> treeAsArray = mutationTree.toArray();
+        treeAsArray.remove(currentMutation);
+        for(GenericTreeNode gtn: treeAsArray)
         {
             for(StackTraceLine stl : gtn.getReportVector().getStackTrace())
             {
