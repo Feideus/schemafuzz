@@ -32,6 +32,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.lang.invoke.MethodHandles;
 import java.util.Arrays;
 
@@ -74,6 +77,15 @@ public class Main implements CommandLineRunner {
             exitApplication(0);
             return;
         }
+
+        /*if(arguments.getSetErrorState() != null)
+        {
+            File f = new File(arguments.getSetErrorState());
+            if(f.exists() && !f.isDirectory()) {
+                setErrorState(f);
+            }
+            return;
+        }*/
 
         runAnalyzer(args);
         runFuzzer(args);
@@ -125,5 +137,24 @@ public class Main implements CommandLineRunner {
         }
     }
 
+    private void setErrorState(File f)
+    {
+        try
+        {
+            BufferedReader br = new BufferedReader(new FileReader(f));
+            StringBuilder sb = new StringBuilder();
+            String line = br.readLine();
+
+            while(line != null)
+            {
+                System.out.println(line);
+                line = br.readLine();
+            }
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
 
 }

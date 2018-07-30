@@ -911,4 +911,16 @@ public class GenericTreeNode {
         }
         return result;
     }
+
+    public ArrayList<GenericTreeNode> pathToRoot()
+    {
+        ArrayList<GenericTreeNode> res = new ArrayList<GenericTreeNode>();
+        GenericTreeNode tmp = this;
+        do{
+            res.add(tmp);
+            tmp = tmp.getParent();
+
+        }while(tmp != null);
+        return res;
+    }
 }

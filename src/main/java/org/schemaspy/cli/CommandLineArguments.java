@@ -132,6 +132,13 @@ public class CommandLineArguments {
 
     @Parameter(
             names = {
+                    "-ses", "-setErrorState",
+            }
+    )
+    private String setErrorState;
+
+    @Parameter(
+            names = {
                     "-nr", "--no-report"
             }
     )
@@ -174,11 +181,17 @@ public class CommandLineArguments {
     )
     private Integer port;
 
+    public String getSetErrorState() {return setErrorState;}
+
     public String getQuery() {
         return query;
     }
 
     public boolean isHelpRequired() {
+        return helpRequired;
+    }
+
+    public boolean isSetErrorStateRequired() {
         return helpRequired;
     }
 

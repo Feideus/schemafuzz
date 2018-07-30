@@ -1,5 +1,22 @@
 #!/bin/bash
 
+touch tmp.txt;
+compteur=1;
+tmpString="mut_"$compteur
+boolean=1
+
+while [ $boolean -eq 1 ]
+do
+        echo ${!tmpString} >> tmp.txt
+        compteur=$((compteur+1))
+        tmpString="mut_"$compteur
+        tmpString2=${!tmpString}
+        if [[ ! -n "$tmpString2" ]]
+        then
+            boolean=0
+        fi
+done
+
 isBinaryInDir=`ls | grep $1`;
 echo $isBinaryInDir
 

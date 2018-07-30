@@ -211,7 +211,14 @@ public class DBFuzzer
                     //currentMutation.propagateWeight(); //update parents weight according to this node new weight
 
                     LOGGER.info("Target is : " + analyzer.getCommandLineArguments().getTarget());
-                    Process evaluatorProcess = new ProcessBuilder("/bin/bash", "./stackTraceCParser.sh", analyzer.getCommandLineArguments().getTarget(), Integer.toString(currentMutation.getId())).start();
+                    ProcessBuilder ep = new ProcessBuilder("/bin/bash", "./stackTraceCParser.sh", analyzer.getCommandLineArguments().getTarget(), Integer.toString(currentMutation.getId()));
+                    ArrayList<GenericTreeNode> pathToRoot = currentMutation.pathToRoot();
+                    Collections.reverse(pathToRoot);
+                    for(int i=0; i< pathToRoot.size();i++)
+                    {
+                        ep.environment().put("mut_"+pathToRoot.get(i).getId(),pathToRoot.get(i).getChosenChange().toString());
+                    }
+                    Process evaluatorProcess = ep.start();
                     evaluatorProcess.waitFor();
                     ReportVector mutationReport = new ReportVector(currentMutation);
                     mutationReport.parseFile("errorReports/parsedStackTrace_" + currentMutation.getId()); // initialises the reportVector stacktrace
