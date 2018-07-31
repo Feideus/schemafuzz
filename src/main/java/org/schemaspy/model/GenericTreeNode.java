@@ -54,6 +54,12 @@ public class GenericTreeNode {
         this.potential_changes = discoverMutationPossibilities(sqlService);
     }
 
+    public GenericTreeNode( GenericTreeNode parentMutation) {
+        //this.cascadingFK = false;
+        this.parent = parentMutation;
+        id=new Random().nextInt(Integer.MAX_VALUE);
+    }
+
 
     public boolean getIsFirstApperance() {
         return isFirstApperance;
@@ -921,6 +927,55 @@ public class GenericTreeNode {
             tmp = tmp.getParent();
 
         }while(tmp != null);
+        return res;
+    }
+
+    public static GenericTreeNode parseInit(String line, SchemaAnalyzer analyzer,ArrayList<GenericTreeNode> mutationsOnPath) throws Exception
+    {
+        String buffer = "";
+        buffer = line.substring(line.indexOf("attachedToMutation : "),line.indexOf("|"));
+        GenericTreeNode parentMutation = null;
+
+        for(GenericTreeNode tmp : mutationsOnPath)
+        {
+            if(tmp.getId().equals(Integer.parseInt(buffer)))
+                parentMutation = tmp;
+        }
+        if(parentMutation == null && mutationsOnPath.size() != 0)
+            throw new Exception("ParentMutation not found during parsing");
+
+
+        line = line.substring(line.indexOf(buffer));
+
+        buffer = line.substring(line.indexOf("parentTable : "),line.indexOf("|"));
+        Table parentTable = analyzer.getDb().getTablesByName().get(buffer);
+
+
+        if(parentTable == null)
+            throw new Exception("ParentTable not found during parsing");
+
+        line.substring(line.indexOf(buffer));
+
+        buffer = line.substring(line.indexOf("parentTableColumn : "),line.indexOf("|"));
+        TableColumn parentTableColumn = analyzer.getDb().getTablesByName().get(parentTable.getName()).getColumn(buffer);
+
+        if(parentTableColumn == null)
+            throw new Exception("ParentTableColumn not found during parsing");
+
+        line.substring(line.indexOf(buffer));
+
+        buffer = line.substring(line.indexOf("OV : "),line.indexOf("|"));
+        line.substring(line.indexOf(buffer));
+        String buffer2 =  line.substring(line.indexOf("NV : "),line.indexOf("|"));
+
+        GenericTreeNode res = new GenericTreeNode(parentMutation);
+        SingleChange sg = new SingleChange(parentTableColumn,res,buffer,buffer2);
+        res.setChosenChange(sg);
+
+
+        if(res == null || res.getChosenChange() == null)
+            throw new Exception("SingleChange couldnt be parsed");
+
         return res;
     }
 }

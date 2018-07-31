@@ -2,6 +2,10 @@
 package org.schemaspy.model;
 
 
+import org.schemaspy.SchemaAnalyzer;
+
+import java.util.ArrayList;
+
 public class SingleChange
 {
   private GenericTreeNode attachedToMutation;
@@ -51,7 +55,7 @@ public class SingleChange
     @Override
    public String toString()
    {
-     return "\n[SG - attachedToMutation : "+this.getAttachedToMutation().getId()+"| OV :"+oldValue+" | NV :"+newValue+" ]\n";
+     return "\n[SG - attachedToMutation : "+this.getAttachedToMutation().getId()+" | parentTable : "+this.getParentTableColumn().getTable()+" | parentTableColumn : "+this.getParentTableColumn().toString()+" | OV : "+oldValue+" | NV : "+newValue+" ]\n";
    }
 
    public Object getOldValue()
@@ -108,4 +112,5 @@ public class SingleChange
 
         return false;
     }
+
 }

@@ -20,10 +20,7 @@ package org.schemaspy;
 
 import org.schemaspy.cli.CommandLineArgumentParser;
 import org.schemaspy.cli.CommandLineArguments;
-import org.schemaspy.model.ConnectionFailure;
-import org.schemaspy.model.EmptySchemaException;
-import org.schemaspy.model.InvalidConfigurationException;
-import org.schemaspy.model.ProcessExecutionException;
+import org.schemaspy.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +33,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 
@@ -78,6 +76,8 @@ public class Main implements CommandLineRunner {
             return;
         }
 
+        runAnalyzer(args);
+
         /*if(arguments.getSetErrorState() != null)
         {
             File f = new File(arguments.getSetErrorState());
@@ -86,8 +86,6 @@ public class Main implements CommandLineRunner {
             }
             return;
         }*/
-
-        runAnalyzer(args);
         runFuzzer(args);
         System.out.println(Thread.getAllStackTraces());
     }
@@ -139,16 +137,25 @@ public class Main implements CommandLineRunner {
 
     private void setErrorState(File f)
     {
+        ArrayList<GenericTreeNode> MutationsOnPath = new ArrayList<>();
         try
         {
             BufferedReader br = new BufferedReader(new FileReader(f));
             StringBuilder sb = new StringBuilder();
             String line = br.readLine();
+            boolean foundPathStart=false;
 
-            while(line != null)
+            while(foundPathStart == false)
             {
-                System.out.println(line);
+                if(line.contains("path:"))
+                    foundPathStart=true;
                 line = br.readLine();
+            }
+
+            while(!line.contains("endpath:")) {
+                line = br.readLine();
+                GenericTreeNode mut = GenericTreeNode.parseInit(line,analyzer,MutationsOnPath);
+                MutationsOnPath.add(mut);
             }
         }
         catch(Exception e)
