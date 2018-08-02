@@ -14,16 +14,16 @@
 		This document actually needs a front page.
 	\section{Introduction}
 	
-SchemaFuzz is a free software command line tool incorporated inside the 		GnuTaler package designed to properly fuzz databases.
-Traditionnal fuzzing is defined as "testing an automated software testing		technique that involves providing invalid, unexpected, or random data as 		inputs to a computer program". SchemaFuzz uses this principle and applies it to the database field.
+SchemaFuzz is a free software command line tool incorporated inside the GnuTaler package designed to properly fuzz databases.
+Traditionnal fuzzing is defined as "testing an automated software testing technique that involves providing invalid, unexpected, or random data as inputs to a computer program". SchemaFuzz uses this principle and applies it to the database field.
 Where a traditionnal fuzzer would send malformed input to a program, SchemaFuzz modifies the content of a database to test that program's behavior when stumbling on such unexpected data. \\*
 Obviously, this tool is meant to be used as a mean of debugging as the goal is to pop buggs or put into light the security breaches that the code may contain regarding the retrieving, usage and saving of a database's content.
 As this tool is being developped as a master's thesis project, its current state is far from being finished and there are many options and optimisations that deserve to be implemented that are not yet available.
-These missing features will be detailed and discussed in a dedicated section.
+These future/missing features will be detailed and discussed in a dedicated section.
 
 	\section{Usage}
 		\subsection{prerequisites}
-			SchemaFuzz requires the presence of a list of libraries to work 				properly which are :
+			SchemaFuzz requires the presence of a list of libraries to work properly which are :
 			\begin{itemize}
 			\item org.apache.commons.math3 >= 3.6
 			available at \\*
@@ -86,14 +86,38 @@ Launch the "dbConfigure" script.
 		
 	\section{Design}
 		\subsection{Generic explanation}
-			Analyse shit
-		\subsection{SchemaSpy legacy}
-			"stole" some shit
-		\subsection{SchemaFuzz Core}
+SchemaFuzz implementation is based on some bits of the SchemaSpy project source code.
+The majority of this project is built on top of this already existing code and is organised as follows :
+The mutation/data-set used as a way to store the imputs,outputs and other intresting data from the modification that was performed on the target database,
+the mutation Tree, used to store those objects coherently, and an analyser that scores the mutations to influence the paths that will be explored afterwards. This organisation will be detailled and discussed in the following sections.
+		\subsection{SchemaSpy legacy/metadata extraction}
+SchemaSpy source code has provided the metadata extraction routine. This routine retrieves all the relevant information about the target database. These informations include data types, table and table column names, views and foreign/primary key constraints. Having this pool of metadata allows the program to properly frame what the possibilities are in terms of modifications (called mutations) as well as dealing with the possible constraints on the different tables. 
+This part of the code also parses the arguments given as inputs and initialises the database connection.
+In order to do that, the user shall provide this set of mandatory database related arguments
+			\begin{itemize}
+ 				\item The driver to the corresponding database RDBMS (only support PostGres at the moment)
+ 				\item The credentials to be used to access the database.
+ 				\item The name of the database (duh)
+			\end{itemize}
+		\subsection{SchemaFuzz Core}		
+			\subsubsection{Constrains}
+The target database often contains contraints on one or several tables. These constraints have to be taken into account in the process of fabricating mutations as most of the time they restrict the possible values that the pointed field can take. This restriction can take the shape of a \underline {Not Null} constraint, \underline{Check} constraint, {Foreign key} constraint (value has to exist in some other table's field) or \underline{Primary key} constraint (no doublets of value allowed). These constraints are stored as Java objects instanciated from the corresponding class.
+%(add constraints class diagram here)
+The last two ones are the problematic ones. They imply specific work before applying any mutations to make sure that the value respect all the restrictions. before doing anything else after the metadata extraction is done, SchemaFuzz performs an update of all the existing constraints on the database to add the CASCADE clause. This allows the values bonded by a foreign key constraints to take effect. This update reverts to take the constraints back to their initial state before the program exits.
+				\paragraph{Primary key contraints (PKC)} :
+The primary key constraints require an extra DB query that checks the existence of the value in the column. If the value already exists (the query's result is not empty), the mutation will be dropped before being executed.
+				\paragraph{Foreign key contraints (FKC)} :
+The foreignKey constraint is the trickiest one. Its inherent nature bonds two values of different table column where the value being referenced is called the father, and the referecing field, the child. To be precise, in order to change one of the two values, the other has to be changed accordingly in the same statement.SchemaFuzz uses the power of the CASCADE clause to make the change possible. This clause allows the DRBMS to automaticly change the value of the child if the father has been changed.
+This mechanic allows to change any of the bounded values by changing the father's value.
+To do so, the software has a way to tranfert the mutation from a child to its parent (called the mutationTransfert).
+
+  				
 			\subsubsection{Mutations}
 				\paragraph{Creating malformed data}
 				\paragraph{Sql handling}
+				\paragraph{Injecting}
 				\paragraph{Do/Undo routine}
+				\paragraph{Special Cases(MutationTransfert)}
 			\subsubsection{TreeBased data structure}
 				\paragraph{Weight}
 				\paragraph{Path}
@@ -118,6 +142,6 @@ Debate computing the best types or mutations and configurations (tree depth etc.
 	\section{Contributing}
 You can send your ideas at  \\*
 		\url{erwan.ulrich@gmail.com}
-Or directly create a pull request on the official repository to edit this document
+Or directly create a pull request on the official repository to edit this document and/or the code itself
 	\section{Conclusion}
 \end{document} 
