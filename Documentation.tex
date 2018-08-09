@@ -113,8 +113,7 @@ To do so, the software has a way to tranfert the mutation from a child to its pa
 
   				
 			\subsubsection{Mutations}
-				\paragraph{Creating malformed data}
-\\*
+				\paragraph{Creating malformed data} 
 As the goal of running this tool is to submit unexpected or invalid data to the target software it is necessary to understand what t
 Fuzzing a complex type such a timestamp variable has nothing to do with fuzzing a trivial boolean. In practice, A significant part o
 and this matter could absolutly be the subject of a more abstract work. We focused here on a very simple approach (as a first step.
@@ -123,17 +122,23 @@ The algorithm then builds the possible modification for each of the fields for t
 At the moment, the supported types are : % add a list of the supported types.
 More primitives types will be added in the future.
 The possible modifications that this tool can produce at the moment are : % add complete list of the modifications that CAN be gener$
+				Int Types:
 				\begin{itemize}
-					Number Types :
+		
 					\item Extreme values (0-32676 (int) etc...)
 					\item Random value (0<value<32676 (int) etc...)
 					\item Increment/Decrement the existing value (332 -> 333 OR 332 -> 331)
-					String Types :
+				\end{itemize}
+				String Types:
+				\begin{itemize}
+			
 					\item Change string to "aaa" ("Mount Everest" -> "aaa")
 					\item Increment/Decrement ASCII character at a random position in the string ("Mount Everest" -> "Mount Fverest")
 					Boolean
 					\item Swaping the existing value (F -> T OR T -> F)
-					Date Types : (! IMPLEMENTED BUT NOT FULLY FUNCTIONNAL)
+					\end{itemize}
+					Date Types : (! IMPLEMENTED BUT NOT FULLY FUNCTIONNAL)					
+					\begin{itemize}
 					\item Increment/Decrement date by 1 day/minutes depending on the precision of the date
 					\item Set date to 00/00/0000
 				\end{itemize}
