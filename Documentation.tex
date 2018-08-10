@@ -116,7 +116,7 @@ To do so, the software has a way to tranfert the mutation from a child to its pa
 				\paragraph{Creating malformed data} 
 As the goal of running this tool is to submit unexpected or invalid data to the target software it is necessary to understand what t
 Fuzzing a complex type such a timestamp variable has nothing to do with fuzzing a trivial boolean. In practice, A significant part o
-and this matter could absolutly be the subject of a more abstract work. We focused here on a very simple approach (as a first step.
+and this matter could absolutly be the subject of a more abstract work. We focused here on a very simple approach (as a first step).
 After retrieving the current row being fuzzed (may it be a new row or a previously fuzzed row), the algorithm explores the different
 The algorithm then builds the possible modification for each of the fields for the current row.
 At the moment, the supported types are : % add a list of the supported types.
@@ -150,11 +150,29 @@ All the SQL statements are generated within the code. This means that the data c
 DBMS. This is already a very big axis for future improvements and will be detailled in the dedicated section.
 The statement is built to target the row as precisely as possible, meaning that it uses all of the non fuzzed values from the row to avoid updating other row accidently. Only the types that can possibly be fuzzed will be used in the building of the SQL statement. Since this part of the code is very delicate in the sense that it highly depends on an arbitrary large pool of variables from various types it is a good bugg provider. 
 				
-				\paragraph{Injecting}
-				\paragraph{Special Cases(MutationTransfert)}
-				\paragraph{Do/Undo routine}
-			\subsubsection{TreeBased data structure}
-				\paragraph{Weight}
+				\paragraph{Injecting} :
+The injection process sends the built statement to the DBMS so that the modification can be operated. After the execution of the query, depending of the output of the injection (one modification, several modifications, tranfer) informations are updated so that they can match the database state after the modification. If the modification failed, no trace of this mutation is kept, it is erased and running goes on like nothing happenned.  				
+				\paragraph{Special Case(MutationTransfert)} :
+The mutation tranfert is a special case of a modification being applied to the database.
+It is triggered when the value that was supposed to be fuzzed is under the influence of a FKC as the child.
+In the case a FKC (In CASCADE mode), only the father can be changed, which also triggers the same modification on all of his children. The algorithm then "transfers" the modification from the original mutation to its father.
+After injecting the transfered mutation, the children mutation is indeed modified but the modification "splashed" on some parts of the database that was not meant to be changed.
+Hopefully, this does not impact the life of the algorithm until this mutation is reverted (see next paragraph).
+				\paragraph{Do/Undo routine} :
+The Do/Undo mechanism is at the center of this software. Its behavior is crucial for the execution and will have a strong impact on the coherence of the data nested in the code or inside the target database throughout the runtime.
+This mechanism allows the algorithm to revert a previous mutation or, if necessary inject it one more time. 
+Undoing a mutation applies the exact opposite modification that was originally applied to the database ending up in recovering the same database state as before the mutation was injected.
+Reverting mutations is the key to flawlessly shifting the current position in the mutation tree.
+The case of the transfered mutation is no exception to this. In this case, the mutation applied changes on an unknown number of fields in the database. But, the FKC still bounds all the children to their father at this point (this is always the case unless this software is not used as intended).  
+Changing the father's field value back to its original state will splash the original values back on all the children.
+This mechanism might trigger failing mutations in some cases (usually mutations following a tranfer). This issue will be addressed in the known issues section. 
+			\subsubsection{Tree Based data structure}
+All the mutations that are injected at least once in the course of the execution of this software will be stored properly in a tree data structure. Having such a data structure makes parent-children relations between mutations possible. The tree follows the traditionnal definition of the a n-ary algorithmic tree.
+It is made of nodes (mutations) including a root (first mutation to be processed on a field selected randomly in the database)  
+Each node has a number of children that depends on the ranking its mutation and the number of potential modifications that it can perform.
+				\paragraph{Weight} :
+Weighting the nodes is an important part of the runtime. Each mutation has a weight that is equal to the analyzer's output. This value reflects the mutation's value. If it had an intresting impact on the target program behavior (if it triggered new buggs or uncommon code paths) than this value is high and vice-versa. The weight is then used as a mean of determining the upcomming modification. The chance that a mutation gets a child is proportionnal to its weight.
+This value currently isn't biased by any other parameter, but it this might change in the future.  				
 				\paragraph{Path}
 			\subsubsection{The analyzer}
 				\paragraph{Stack Trace Parser}
