@@ -121,7 +121,7 @@ public class ForeignKeyConstraint implements Comparable<ForeignKeyConstraint> {
     /**
      * Returns the name of the constraint
      *
-     * @return
+     \subsection{Perimeter}  * @return
      */
     public String getName() {
         return name;

@@ -2,6 +2,9 @@
 \usepackage[utf8]{inputenc}
 \usepackage[document]{ragged2e}
 \usepackage{hyperref}
+\usepackage{tikz}
+\usetikzlibrary{shapes.arrows,chains}
+\usepackage[ngerman]{babel}
 
 \title{Documentation for schemaFuzz}
 \author{Ulrich "Feideus" Erwan}
@@ -88,8 +91,13 @@ Launch the "dbConfigure" script.
 		\subsection{Generic explanation}
 SchemaFuzz implementation is based on some bits of the SchemaSpy project source code.
 The majority of this project is built on top of this already existing code and is organised as follows :
-The mutation/data-set used as a way to store the imputs,outputs and other intresting data from the modification that was performed on the target database,
-the mutation Tree, used to store those objects coherently, and an analyser that scores the mutations to influence the paths that will be explored afterwards. This organisation will be detailled and discussed in the following sections.
+		\begin{itemize}
+		\item{mutation/data-set used as a way to store the imputs,outputs and other intresting data from the modification that was performed on the target database}
+		\item{the mutation Tree, used to store the mutations coherently}
+		\item{an analyser that scores the mutations to influence the paths that will be explored afterwards}
+		\end{itemize}
+		 
+This organisation will be detailled and discussed in the following sections.
 		\subsection{SchemaSpy legacy/metadata extraction}
 SchemaSpy source code has provided the metadata extraction routine. This routine retrieves all the relevant information about the target database. These informations include data types, table and table column names, views and foreign/primary key constraints. Having this pool of metadata allows the program to properly frame what the possibilities are in terms of modifications (called mutations) as well as dealing with the possible constraints on the different tables. 
 This part of the code also parses the arguments given as inputs and initialises the database connection.
@@ -114,7 +122,18 @@ To do so, the software has a way to tranfert the mutation from a child to its pa
   				
 			\subsubsection{Mutations}
 				\paragraph{What is a Mutation}
-				\paragraph{How to chose what to mutate}
+A mutation is a Java object that bundles all the informations that are used to perform a modification in the database. Every is linked to its parent and inherits some of his parent's data. In the case of a follow up mutation the child inherits the the database row that was his parent's target.Therefore the initial state (state before the injection of the modification) of its target is exactly the final state (state after injection of the modification) of his parent's target. A mutation is created for each iteration of the main loop and represents a single step in the progress of the fuzzing.
+It also holds the informations concerning the result of the injection in the shape of a data vector. This data vector is then used to perform a clustering calculus to determine the "uniqueness" of the mutation. This value is also stored inside the mutation object and is used as the weight of this mutation in the tree.  				
+				\paragraph{Choosing patern}
+For each iteration of the main loop, a modification has to be picked up as the next step in the fuzzing proccess. This is done by concidering the current state of the tree.
+Three parallel code paths can be triggered from this point.
+				\begin{itemize}
+				\item{Continue on the current branch of the tree (triggered if the last mutation scored better than its parent)}
+				\item{Pick an existing branch in the tree and grow it (triggered if the last mutation scored worse than its parent on a 50/50 chance with the next bullet)}
+				\item{Start a new branch (triggered if the last mutation scored worse than its parent on a 50/50 chance with the previous bullet)}
+				\end{itemize}
+A branch is a succession of mutation that share the same database row as their modification target.
+The heuristics determining the next mutation's modification are still very primitive and will be thinly ajusted in futures versions.								 
 				\paragraph{Creating malformed data} 
 As the goal of running this tool is to submit unexpected or invalid data to the target software it is necessary to understand what t
 Fuzzing a complex type such a timestamp variable has nothing to do with fuzzing a trivial boolean. In practice, A significant part o
@@ -177,9 +196,10 @@ Weighting the nodes is an important part of the runtime. Each mutation has a wei
 This value currently isn't biased by any other parameter, but this might change in the future.  
 				\paragraph{Path}
 Since the weighting of the mutation allows to go back to previously more intresting mutations, 
-there is a need for a path finder mechanism. Concretly, this routines resolves the nodes that separate nodes A and B in the tree. A and B might be children and parent but can also belong to complitely different branches. This path is then given to the do/undo routine that processes back the modifications to set the database up in the required state for the upcomming mutation. %% diagram here.
+there is a need for a path finder mechanism. Concretly, this routines resolves the nodes that separate nodes A and B in the tree. A and B might be children and parent but can also belong to complitely different branches. This path is then given to the do/undo routine that processes back the modifications to set the database up in the required state for the upcomming mutation. 
+ %% diagram here.
 			\subsubsection{The analyzer}
-Analyzing the output of the target programm is another critical part of SchemaFuzz. The analyzer parses in the stack trace of the target software's execution to try measuring its interest. The main criteria that defines a mutation intrest is its proximity to previously parsed stack traces. The more distance between the new mutation and the old ones, the better the ranking. %% diagram here
+Analyzing the output of the target programm is another critical part of SchemaFuzz. The analyzer parses in the stack trace of the target software's execution to try measuring its interest. The main criteria that defines a mutation intrest is its proximity to previously parsed stack traces. The more distance between the new mutation and the old ones, the better the ranking. 
 				\paragraph{Stack Trace Parser}
 The stack trace parser is a separate Bash script that processes stack traces generated by the GDB C language debugger and stores all the relevent informations (function's name, line number, file name) into a Java object. The parser also generates as a secondary job a human readable file for each mutation that synthetises the stack trace values as well as additionnal intresting information usefull for other mechanisms (that also require parsing). These additionnal informations include the path from root to mutation (usefull for rolling back the database to a specific state).
 				\paragraph{Hashing}
@@ -196,6 +216,7 @@ This algorithm can roughly be explain by the following :
 "The Levenshtein distance between two words is the minimum number of single-character edits (insertions, deletions or substitutions) required to change one word into the other."
 				\end{quotation}				 
 After hashing the file name and the function name into numerical values trough Levenshtein distance, we are creating a triplet the fully (but not fully accuratly yet) represents the stack trace that is being parsed. This triplet will be used in the clustering method. %%exemple of hash here.
+
 				\paragraph{The Scoring mechanism}
 The "score" (or rank) of a mutation is a numerical value that reflects its intrest. This value is calculated through a modified version of a clustering method that computes an n-uplet 			into a integer depending on the sum of the euclidian distances from the n-uplet to the existing centroids (groups of mutation's n-uplets that were already processed).
 This value is then set as the mutation's rank and used as a mean of chosing the upcomming mutation.
