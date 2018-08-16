@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ReportVector {
+    private boolean errorTriggered;
     private ArrayList<StackTraceLine> stackTrace;
     private double[] stackTraceHash;
     private int codeCoverage; //unused right now
@@ -14,9 +15,14 @@ public class ReportVector {
 
     public ReportVector(GenericTreeNode parentMutation)
     {
+        this.errorTriggered = false;
         this.parentMutation = parentMutation;
         stackTrace = new ArrayList<StackTraceLine>();
     }
+
+    public boolean isErrorTriggered() { return errorTriggered; }
+
+    public void setErrorTriggered(boolean errorTriggered) {this.errorTriggered = errorTriggered; }
 
     public double[] getStackTraceHash() { return stackTraceHash; }
 
@@ -61,6 +67,7 @@ public class ReportVector {
 
         try {
             BufferedReader infile = new BufferedReader(new FileReader(pathToFile));
+            if((data = infile.readLine()) != null && data.equals("0"))
             while ((data = infile.readLine()) != null) {
                 if (data.contains(":"))
                 {
@@ -74,7 +81,7 @@ public class ReportVector {
                     currentArray.add(data.replace(",",""));
                 }
             }
-
+            this.errorTriggered = true;
             storeLines(allLists);
         }
         catch(Exception e)

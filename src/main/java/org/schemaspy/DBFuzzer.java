@@ -224,7 +224,10 @@ public class DBFuzzer
                     mutationReport.parseFile("errorReports/parsedStackTrace_" + currentMutation.getId()); // initialises the reportVector stacktrace
                     mutationReport.setStackTraceHash(mutationReport.hashStackTrace(mutationTree));
                     currentMutation.setReportVector(mutationReport);
-                    mark = new Scorer().score(currentMutation, mutationTree);
+                    if(currentMutation.getReportVector().isErrorTriggered() == true)
+                        mark = new Scorer().score(currentMutation, mutationTree);
+                    else
+                        mark = 0;
                     currentMutation.setInterest_mark(mark);
                     currentMutation.setWeight(mark);
                     currentMutation.propagateWeight();

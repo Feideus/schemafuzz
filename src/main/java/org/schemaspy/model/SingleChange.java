@@ -55,7 +55,7 @@ public class SingleChange
     @Override
    public String toString()
    {
-     return "\n[SG - attachedToMutation : "+this.getAttachedToMutation().getId()+" | parentTable : "+this.getParentTableColumn().getTable()+" | parentTableColumn : "+this.getParentTableColumn().toString()+" | OV : "+oldValue+" | NV : "+newValue+" ]\n";
+     return "\n[SG - attachedToMutation : "+this.getAttachedToMutation().getId()+" | parentTable : "+this.getParentTableColumn().getTable()+" | parentTableColumn : "+this.getParentTableColumn().getName().toString()+" | OV : "+oldValue+" | NV : "+newValue+" ]\n";
    }
 
    public Object getOldValue()

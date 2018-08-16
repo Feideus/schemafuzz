@@ -19,13 +19,14 @@ echo "--------------------------"
 ./$1
 echo "--------------------------"
 
-checkCoreGen=`ls | grep $1`;
+checkCoreGen=`ls | grep core`;
 
 if [[ -n "$checkCoreGen" ]]
 then
     mv ./core errorReports/
 else
     echo "no core dump generated. Abort";
+    echo "0" >> errorReports/parsedStackTrace_$2
     exit 0;
 fi
 
@@ -57,7 +58,7 @@ do
 done
 echo "line numbers : " "${lineNumberArray[@]}"
 
-resultLS=`ls errorReports | grep parsedStackTrace_Mut_$2`
+resultLS=`ls errorReports | grep parsedStackTrace_$2`
 
 if [[ ! -z $resultLS ]]
 then
@@ -65,7 +66,7 @@ then
     while [ $fileExists -eq 1 ]
     do
         var=`shuf -i 1-10000 -n 1`;
-        resultLS=`ls errorReports | grep parsedStackTrace_Mut_$var`
+        resultLS=`ls errorReports | grep parsedStackTrace_$var`
         echo $resultLS
 
         if [[ -n "$resultLS" ]]
@@ -136,3 +137,4 @@ echo "endpath:" >> errorReports/$reportFileName
 
 rm errorReports/core
 rm errorReports/stackTrace_$binaryWithoutExtention
+
