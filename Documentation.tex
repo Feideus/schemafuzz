@@ -3,6 +3,10 @@
 \usepackage[document]{ragged2e}
 \usepackage{hyperref}
 \usepackage{tikz}
+\usepackage{pifont}
+\graphicspath{{/home/feideu/Work/Gnunet/schemafuzz/docs/}}
+\usepackage{graphicx}
+\usepackage{emp}
 \usetikzlibrary{shapes.arrows,chains}
 \usepackage[ngerman]{babel}
 
@@ -10,20 +14,40 @@
 \author{Ulrich "Feideus" Erwan}
 
 \begin{document}
-
+\begin{empfile}
 	
 \maketitle Documentation For SchemaFuzz
 	\section{Summary?}
 		This document actually needs a front page.
 	\section{Introduction}
 	
-SchemaFuzz is a free software command line tool incorporated inside the GnuTaler package designed to properly fuzz databases.
+SchemaFuzz is a free software command line tool incorporated inside the Gnu Taler package 
+which is a free software electronic payment system providing anonymity for customers.
+The main goal of this project is to provide an effecient debbuging tool that uses a "fuzzing" strategy oriented on databases.  
 Traditionnal fuzzing is defined as "testing an automated software testing technique that involves providing invalid, unexpected, or random data as inputs to a computer program". SchemaFuzz uses this principle and applies it to the database field.
 Where a traditionnal fuzzer would send malformed input to a program, SchemaFuzz modifies the content of a database to test that program's behavior when stumbling on such unexpected data. \\*
 Obviously, this tool is meant to be used as a mean of debugging as the goal is to pop buggs or put into light the security breaches that the code may contain regarding the retrieving, usage and saving of a database's content.
 As this tool is being developped as a master's thesis project, its current state is far from being finished and there are many options and optimisations that deserve to be implemented that are not yet available.
 These future/missing features will be detailed and discussed in a dedicated section.
 
+	
+	\section{Context and Perimeter}
+SchemaFuzz's developpement enrolls in the global dynamic of the past decades regarding internet  that sustain great efforts to make it a more fluid, pleasant but more importantly a safer space. This tool is meant to help developpers, mainteners and more genericly anyone that makes use of database comming from a database under his influence in their task. A good way to summerise the effect of this tool is to compare it with an "cyber attack simulator".
+This means that the idea behind it is to emulate the damage that an attacker may cause subtly or not to a database he unlegitly gained privileges on. This might in theory go from a simple boolean flip (subtle modifications) to removing/adding content to purely and simply destroying or erasing all the content of the database.
+SchemaFuzz focuses on the first part : modification of the content of the database by single small modification that may or may not overlap. These modifications may be very aggressive of very subtle.
+It is intresting to point out that this last point also qualifies SchemaFuzz as a good "database structural flaw detector".
+That is to say that errors typically triggered by a poor management of a database (wrong data type usage, incoherence beetween database structure and use of the content etc ...) might also appear clearly during the execution.   
+		\subsection{Perimeter}
+		\begin{figure} [htbp]
+		\centering
+		\includegraphics[scale=1]{codeOriginDiagram.pdf}
+		\caption{Shows the nature of the code for every distinct component. The slice size is a rough estimation.}
+		\end{figure}
+		\subsection{When to use it}
+SchemaFuzz is a very usefull tool for anyone trying secure a piece of software that uses database ressources. The target software should be GDB compatible and the DBMS has to grant access to the target database through credentials passed as argument to this tool.
+
+---It is very strongly advice to use a copy of the target databas erather than on the production material. Doing so will very likely result in the database being corrupted and not usable for any usefull mean.--
+ 
 	\section{Usage}
 		\subsection{prerequisites}
 			SchemaFuzz requires the presence of a list of libraries to work properly which are :
@@ -86,7 +110,7 @@ Launch the "dbConfigure" script.
 			\begin{verbatim}
 				./dbConfigure
 			\end{verbatim}		 
-		
+	
 	\section{Design}
 		\subsection{Generic explanation}
 SchemaFuzz implementation is based on some bits of the SchemaSpy project source code.
@@ -99,8 +123,17 @@ The majority of this project is built on top of this already existing code and i
 		 
 This organisation will be detailled and discussed in the following sections.
 		\subsection{SchemaSpy legacy/metadata extraction}
-SchemaSpy source code has provided the metadata extraction routine. This routine retrieves all the relevant information about the target database. These informations include data types, table and table column names, views and foreign/primary key constraints. Having this pool of metadata allows the program to properly frame what the possibilities are in terms of modifications (called mutations) as well as dealing with the possible constraints on the different tables. 
-This part of the code also parses the arguments given as inputs and initialises the database connection.
+SchemaSpy source code has provided the metadata extraction routine. The only job of this routine is to initialise the connection to the database and retrieve its metadata at the very beginning of the execution (before any actual SchemaFuzz code is run). These metadata include data types, table and table column names, views and foreign/primary key constraints. Having this pool of metadata under the shape of java objects allows the main program to properly frame what the possibilities are in terms of modifications as well as dealing with the possible constraints on the different tables. The modifications that will be created during the main loop will be designed to respect the frame built for the result of this extraction.
+
+Exemple of typical metadata Set 
+
+
+\begin{figure} [htbp]
+\centering
+\includegraphics[scale=1]{MetaDataExtractionDiagram-1.pdf}
+\caption{Objects returned by the metadata extraction routine.}
+\end{figure}
+
 In order to do that, the user shall provide this set of mandatory database related arguments
 			\begin{itemize}
  				\item The driver to the corresponding database RDBMS (only support PostGres at the moment)
@@ -110,7 +143,13 @@ In order to do that, the user shall provide this set of mandatory database relat
 		\subsection{SchemaFuzz Core}		
 			\subsubsection{Constrains}
 The target database often contains contraints on one or several tables. These constraints have to be taken into account in the process of fabricating mutations as most of the time they restrict the possible values that the pointed field can take. This restriction can take the shape of a \underline {Not Null} constraint, \underline{Check} constraint, {Foreign key} constraint (value has to exist in some other table's field) or \underline{Primary key} constraint (no doublets of value allowed). These constraints are stored as Java objects instanciated from the corresponding class.
-%(add constraints class diagram here)
+
+\begin{figure} 
+\centering
+\includegraphics[scale=1]{ForeignKeyClassDiagram-1.pdf}
+\caption{Objects returned by the metadata extraction routine.}
+\end{figure}
+
 The last two ones are the problematic ones. They imply specific work before applying any mutations to make sure that the value respect all the restrictions. before doing anything else after the metadata extraction is done, SchemaFuzz performs an update of all the existing constraints on the database to add the CASCADE clause. This allows the values bonded by a foreign key constraints to take effect. This update reverts to take the constraints back to their initial state before the program exits.
 				\paragraph{Primary key contraints (PKC)} :
 The primary key constraints require an extra DB query that checks the existence of the value in the column. If the value already exists (the query's result is not empty), the mutation will be dropped before being executed.
@@ -123,7 +162,15 @@ To do so, the software has a way to tranfert the mutation from a child to its pa
 			\subsubsection{Mutations}
 				\paragraph{What is a Mutation}
 A mutation is a Java object that bundles all the informations that are used to perform a modification in the database. Every is linked to its parent and inherits some of his parent's data. In the case of a follow up mutation the child inherits the the database row that was his parent's target.Therefore the initial state (state before the injection of the modification) of its target is exactly the final state (state after injection of the modification) of his parent's target. A mutation is created for each iteration of the main loop and represents a single step in the progress of the fuzzing.
-It also holds the informations concerning the result of the injection in the shape of a data vector. This data vector is then used to perform a clustering calculus to determine the "uniqueness" of the mutation. This value is also stored inside the mutation object and is used as the weight of this mutation in the tree.  				
+It also holds the informations concerning the result of the injection in the shape of a data vector. This data vector is then used to perform a clustering calculus to determine the "uniqueness" of the mutation. This value is also stored inside the mutation object and is used as the weight of this mutation in the tree.
+
+\begin{figure} 
+\centering
+\includegraphics[scale=1]{MutationClassDiagram-1.pdf}
+\caption{Structure of a Mutation}
+\end{figure}
+
+  				
 				\paragraph{Choosing patern}
 For each iteration of the main loop, a modification has to be picked up as the next step in the fuzzing proccess. This is done by concidering the current state of the tree.
 Three parallel code paths can be triggered from this point.
@@ -131,6 +178,13 @@ Three parallel code paths can be triggered from this point.
 				\item{Continue on the current branch of the tree (triggered if the last mutation scored better than its parent)}
 				\item{Pick an existing branch in the tree and grow it (triggered if the last mutation scored worse than its parent on a 50/50 chance with the next bullet)}
 				\item{Start a new branch (triggered if the last mutation scored worse than its parent on a 50/50 chance with the previous bullet)}
+				
+\begin{figure} 
+\centering
+\includegraphics[scale=1]{pickingPaternDiagram.pdf}
+\caption{picking Patern schema}
+\end{figure}				
+				
 				\end{itemize}
 A branch is a succession of mutation that share the same database row as their modification target.
 The heuristics determining the next mutation's modification are still very primitive and will be thinly ajusted in futures versions.								 
@@ -197,7 +251,12 @@ This value currently isn't biased by any other parameter, but this might change 
 				\paragraph{Path}
 Since the weighting of the mutation allows to go back to previously more intresting mutations, 
 there is a need for a path finder mechanism. Concretly, this routines resolves the nodes that separate nodes A and B in the tree. A and B might be children and parent but can also belong to complitely different branches. This path is then given to the do/undo routine that processes back the modifications to set the database up in the required state for the upcomming mutation. 
- %% diagram here.
+
+\begin{figure} 
+\centering
+\includegraphics[scale=1]{CommonAncestorDiagram.pdf}
+\caption{Objects returned by the metadata extraction routine.}
+\end{figure}
 			\subsubsection{The analyzer}
 Analyzing the output of the target programm is another critical part of SchemaFuzz. The analyzer parses in the stack trace of the target software's execution to try measuring its interest. The main criteria that defines a mutation intrest is its proximity to previously parsed stack traces. The more distance between the new mutation and the old ones, the better the ranking. 
 				\paragraph{Stack Trace Parser}
@@ -215,14 +274,30 @@ This algorithm can roughly be explain by the following :
 				\begin{quotation}
 "The Levenshtein distance between two words is the minimum number of single-character edits (insertions, deletions or substitutions) required to change one word into the other."
 				\end{quotation}				 
-After hashing the file name and the function name into numerical values trough Levenshtein distance, we are creating a triplet the fully (but not fully accuratly yet) represents the stack trace that is being parsed. This triplet will be used in the clustering method. %%exemple of hash here.
+After hashing the file name and the function name into numerical values trough Levenshtein distance, we are creating a triplet the fully (but not fully accuratly yet) represents the stack trace that is being parsed. This triplet will be used in the clustering method. 
+
+\begin{figure} 
+\centering
+\begin{tabular}{ | l | l | l | l | l | l | c | r | }
+  \hline			
+  E & X & E & M & P & L & E &  \\ \hline
+  \ding{51}  & \ding{51}  & \ding{56}  & \ding{51}  & \ding{51}  & \ding{51}  & \ding{51} & \ding{56}  \\\hline
+  E & X & A & M & P & L & E & S \\
+  \hline  
+\end{tabular}
+\caption{Exemple of the levenshtein distance concept.}
+\end{figure}
+
+The Distance for this exemple is 2/8x100
 
 				\paragraph{The Scoring mechanism}
 The "score" (or rank) of a mutation is a numerical value that reflects its intrest. This value is calculated through a modified version of a clustering method that computes an n-uplet 			into a integer depending on the sum of the euclidian distances from the n-uplet to the existing centroids (groups of mutation's n-uplets that were already processed).
 This value is then set as the mutation's rank and used as a mean of chosing the upcomming mutation.
-%% exemple of clustering here		
+\begin{figure} 
+  \includegraphics[width=\textwidth]{Scoring.png}
+\end{figure}	
 		\subsection{Known issues}		
-This tool is still far from being perfect. About one mutation out of 15 will fail for unvalid reaseons.
+About one mutation out of 15 will fail for unvalid reaseons.
 			\subsubsection{Context Cohorence}
 A significant amount of the failing mutations do so because of the transfer mechanism. As said in the dedicated section, this mechanism applies more than one change to the database (Potentially the whole database). In specific case, this property can become problematic. 
 More specificaly, when the main loop identifies a mutation's child as the upcomming mutation and its parent row has been splashed with the effect of a transfer. In this case, the data embedded in the schemaFuzz data structure may not match the data that are actually in the database, this delta will likely induce a wrongly designed SQL statement that will result in a SQL failure (meaning that 0 row were updated by the statement).
@@ -230,7 +305,16 @@ More specificaly, when the main loop identifies a mutation's child as the upcomm
 For a reason that is not yet clear, some of the implied FKC of the target database can't be properly set to CASCADE mode. This result in a FKC error (mutation fails but the program can carry on)			
 			\subsubsection{Tests}
 Besides the test suit written by the SchemaSpy team for their own tool (still implemented in SchemaFuzz for the meta data extraction), the tests for this project are very poor. Their are only very few of them and their utility is debatable. This is due to the lack of experience in that regard of the main developper. Obviously, we are very well aware of this being a really severe flaw in this project and will be one of the main future improvements.
-This big lack of good maintenance equipment might also explain some of the silent and non silent buggs that still remain in the code to this day. 			
+This big lack of good maintenance equipment might also explain some of the silent and non silent buggs that still remain in the code to this day.
+
+			\subsubsection{Code Quality}
+We are well aware that this tool's source code is of debatable quality. This fact induces the  buggs and unexpected behaviors discussed earlier on some components of this program. 
+The following points constitute the main flaw of the source code:
+			\begin{itemize}
+			\item Hard to maintain. The code is not optimised either in term of size or 			efficency. Bad coding habits tend to make it rather weak and unstable to context changes.
+			\item Structure is not intuitive. The main loop of the program lacks a good 		structure.
+			\end{itemize}
+ 			
 	\section{Upcomming features and changes}
 This section will provide more insights on the future features that might/may/will be implemented as well as the changes in the existing code.
 Any sugestion will be greatly appriciated as long as it is relevent and well argumented. All the relevent information regarding the contributions are detailled in the so called section.
@@ -251,4 +335,5 @@ You can send your ideas at  \\*
 		\url{erwan.ulrich@gmail.com}
 Or directly create a pull request on the official repository to edit this document and/or the code itself
 	\section{Conclusion}
+\end{empfile}
 \end{document} 

@@ -1,0 +1,21 @@
+input metauml;
+beginfig(1);
+    Class.World("World")
+           ("-age: int","#ressources: List") 
+           ("+sayHello(): void");
+
+    Class.NoHuman("Human")
+           ("-birthday: Date",
+            "-nickname: String",
+            "-secret: String") 
+           ("+code(language: Language): Program");
+
+    leftToRight(50)(World, NoHuman);
+    drawObjects(World, NoHuman);
+
+    link(aggregation)(NoHuman.w -- World.e);
+    item(iAssoc)("1")(obj.n     = .2[World.e,NoHuman.w]);
+    item(iAssoc)("n*")(obj.n  = .8[World.e,NoHuman.w]);
+
+endfig;
+end
