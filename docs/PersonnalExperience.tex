@@ -36,5 +36,64 @@ Other the other hand, it is a personnal reminder of what should be improved in m
 	\end{itemize}		
 
 	\subsection{Positive outcomes}
+Throughout the development of the project, I have had the chance to acquire many new capacities and improve many of my own skills. I will give more insights on what this project and, more genericly, what this intership as a developer for a GNU package, has brought me.
 
+		\subsubsection{Technical aspect}
+		
+		\paragraph{Java language}
+In many ways, this project has been a real challenge. But the main difficulty that I encountered was the technical challenge that rose up when the project started. Indeed, it was my first time conducting a project of the size of SchemaFuzz. The size of the project and the fact that I was the only one developing the tool implied that every aspect of the project, independently of the language that was used for each module, had to be imagined and implemented with my two hands.
+Even if I was already accostumed to Java programming, I got struck by the complexity and the architecture of a "real" in-production software like SchemaSpy which I had to look into to get the metadata extraction routine.
+This was my first improvement. Code structure. Even if my coding capacitites can still be perfected in many ways, I feel like understanding/re-using complex and well structured code gave me a much better idea of what "good code" really is. Integreting these concepts enpowered my development skills and I am now much more confident about it.
+
+Apart from the Java language, which I was already familiar with, I also had the chance to get my hands of new technologies (or technologies I never really had the chance to pratice in real conditions). 
+
+			\paragraph{SQL language}
+SchemaFuzz is a database fuzzer. Naturally, A major component of the work for its development was to create and handle SQL requests and responses. In order to do that, I had to document myself for a while as I was lacking some knowledge on databases in general. After gaining a better understanding of how databases operate theoraticly, I had to go into more depth concerning the inner structure of constraints and the way datatypes are encoded for most DMBS.
+This brings me to my next point regarding the handling of SQL in this project.
+
+			\paragraph{DBMS(PostgreSQL)} 
+SchemaFuzz's first and formost import goal is to help in the debugging and maintenance of the GNU Taler payement system. GNU Taler databases are managed by the PostgreSQL DBMS. Therefore, the natural choice of technology for SQL management in this project was obvious.
+Not having ever worked with PostgreSQL before, I had to adapt my habbits when dealing with the DBMS itself.
+By doing so, and stumbling on error messages I had never seen before, I had the chance to get into more depth in the structure of DBMSes in general. In particular, I had to get my hands on the inner PostgreSQL tables in order to understand how different databases were managed within the same environnement.
+
+			\paragraph{Shell/Bash Scripting} 
+As a part of the development of the analyzer for SchemaFuzz, I have had the chance to build up several bash scripts. This excercice was to me a true pleasure as well as very instructive.
+Spending some time on writting parsing script had me look into how parsing is usually implemented for such jobs.
+Having this experience with me, I now better understand how each and every componenent of a same project connects to each other. 
+Even though I was aware of the power of scripting in general, I have now come to understand how much of a crucial skill it is to understand and be able to write scripts when working in a Linux environement.
+In the big picture, I feel like I have earned a precious asset by practicing scripting on a technical level. This also gave me the chance to develop my own script in the frame of personnal use in my own environnement. Going through more conceptual and theoratical documents on what scripting really is and how it should be used.
+   			
+			 \paragraph{LateX}
+By writting this documentation, I had to learn how to create and process properly presented and properly styled scientific documents. In this process, I have first learned and then practiced LateX as well as the very handy Tikz and metaUML packages used for graphical representations.
+Creating and implementing (in this case) graphics I did not concider to be a real coding challenge, but sone of them proved me terribly wrong. Spending time on finding the right synthax for what I wanted to show strenghend my project management skills and conforted me in the belief that presentation and creation of a project are two sides if the same coin and that both should be treated with the same amount of seriousness.  			  
+	
+
+		\subsubsection{Human aspect}
+		
+			\paragraph{Languages}
+The development of my project was conducted in german-speaking environnement, which is a language I am not very familiar with. 
+This lead to having any kind of communication both regarding the project and other subjects in english. This participated in my improvement in both oral and written english (this document is also an excellent training for written content) as well as my overall comprehension.
+Apart from the pure linguistic point of view, discussing complex topics in english gave me the keys to expressing ideas and concept in a more concise and clearer way. 			
+
+			\paragraph{Political maturity}
+Disclaimer. With this paragraph, I am not pushing forward any idea in particular, all I intend to do is explain with more detail and insights on how rich the environnement was during this intership.			
+			
+Surprisingly, I have had the chance to meet many people that shared various political points of view regarding computer science and technologies. In these subjects it was a truly enriching process to debate things such as morality, ethic or freedom.
+Some other topics that are further away from science were brought up such as veganism, green energies, or anarchism.
+I hold very dearly the moments I shared speaking and confronting my own ideas because I feel like this has allowed me to gain maturity in my political positions.		
+
+	\section{Conclusion}
+   
+The development of SchemaFuzz and my work for GNU Taler was spread out on a 6 months duration.
+Within this timelapse, I have discovered the fields of research and real software development.
+This discovery has been very beneficial to me in the sens that it gave me the chance to acquire experience both on the theoratical and technical sides as well as mastering some new technologies and new aspects in the field of computer science in general.
+
+My work for GNU Taler was primarily to imagine,conceptualize and develop a database oriented fuzzing tool. 
+First, I focused on bringing the software from a shape of "general idea" that was given to me by my internship supervisor to a concrete and structured project. In the process of creation, I started with defining what precise features were critical and with what technology they would be implemented.
+
+The main task of SchemaFuzz is to inject malformed data into a specific database in order to trigger crashes or unexpected behavior from the program that uses the content of this database.
+By working on this project for the past 6 months, I have brought it to a point where it fulfills its main task. I have uses a sample database contain content with a wide variaty in terms of data types to test the project all along the course of the development. However, the application is meant to evolve to a more advanced state. Such a big project requires much more time than what I had to be fully operationnal.
+
+Finally, I am convinced that the realisation of this project was a truly rewarding experience on all academical, technical and human aspects. All the knowledge acquired as GNU developer strenghened the concepts I had learned in my academical courses. Moreover, this internship is an excellent social experience thanks to the amount of contact with very bright professors, PhD students and other interns.     
+   
 \end{document}
