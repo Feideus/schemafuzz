@@ -211,7 +211,7 @@ public class DBFuzzer
                     //currentMutation.propagateWeight(); //update parents weight according to this node new weight
 
                     LOGGER.info("Target is : " + analyzer.getCommandLineArguments().getTarget());
-                    ProcessBuilder ep = new ProcessBuilder("/bin/bash", "./stackTraceCParser.sh", analyzer.getCommandLineArguments().getTarget(), Integer.toString(currentMutation.getId()));
+                    ProcessBuilder ep = new ProcessBuilder("/bin/bash", "./stackTraceCParser.sh", analyzer.getCommandLineArguments().getTarget(), Integer.toString(currentMutation.getId()), analyzer.getCommandLineArguments().getNestedArguments());
                     ArrayList<GenericTreeNode> pathToRoot = currentMutation.pathToRoot();
                     Collections.reverse(pathToRoot);
                     for(int i=0; i< pathToRoot.size();i++)

@@ -175,6 +175,12 @@ public class CommandLineArguments {
 
     @Parameter(
             names = {
+                    "-na", "--nestedArguments",
+            })
+    private String nestedArguments;
+
+    @Parameter(
+            names = {
                     "-port", "--port", "port",
                     "schemaspy.port"
             }
@@ -241,4 +247,5 @@ public class CommandLineArguments {
 
     public String getReport() {return report; }
 
+    public String getNestedArguments() { return nestedArguments; }
 }

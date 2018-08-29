@@ -1,22 +1,22 @@
 #!/bin/bash
 
-isBinaryInDir=`ls | grep $1`;
-echo $isBinaryInDir
+#isBinaryInDir=`ls | grep $1`;
+#echo $isBinaryInDir
 
-if [[ -n "$isBinaryInDir" ]]
-then
-    echo "chosen binary is : "$1;
-else
-    echo "couldnt find the binary in the current folder";
-    exit 0;
-fi
+#if [[ -n "$isBinaryInDir" ]]
+#then
+ #   echo "chosen binary is : "$1;
+#else
+ #   echo "couldnt find the binary in the current folder";
+  #  exit 0;
+#fi
 
 binaryWithoutExtention=`echo $1 | cut -d '.' -f1`
 echo "saving result in : "$binaryWithoutExtention;
 
 ulimit -c 9999
 echo "--------------------------"
-./$1
+./$1 -c $3 ## -c SHOULD BE IN THE JAVA CODE AS A NESTED ARGUMENT. This is for manual testing
 echo "--------------------------"
 
 checkCoreGen=`ls | grep core`;
@@ -30,7 +30,7 @@ else
     exit 0;
 fi
 
-echo bt | gdb test_c_crash.exe errorReports/core | sed -e 's/(gdb) //' | grep \# | uniq > errorReports/stackTrace_$binaryWithoutExtention
+echo bt | gdb $1 errorReports/core | sed -e 's/(gdb) //' | grep \# | uniq > errorReports/stackTrace_$binaryWithoutExtention
 tmp=`cat errorReports/stackTrace_$binaryWithoutExtention | sed 's/.* in //' | cut -d "(" -f1`
 
 echo "function names : "$tmp
