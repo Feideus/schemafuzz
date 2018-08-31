@@ -4,6 +4,8 @@
 \usepackage{hyperref}
 \usepackage{tikz}
 \usepackage{pifont}
+\usepackage{natbib}
+\bibliographystyle{unsrtnat}
 \graphicspath{{/home/feideu/Work/Gnunet/schemafuzz/docs/}}
 \usepackage{graphicx}
 \usepackage{pdfpages}
@@ -43,7 +45,10 @@ SchemaFuzz's development enrolls in the global dynamic of the past decades regar
 It uses the principle of "fuzz testing" or "fuzzing" to help find out which are the weak code paths of one's project. 
 				\begin{quotation}
 Traditional fuzzing is defined as "testing an automated software testing technique that involves providing invalid, unexpected, or random data as inputs to a computer program".
-				\end{quotation}		
+				\end{quotation} 
+				\cite{fuzzing}		
+
+
 
 This quote is very well illustrated by the following example :
 				\begin{quotation}
@@ -63,7 +68,7 @@ SchemaFuzz focuses on the first part : modification of the content of the databa
 It is interesting to point out that this last point also qualifies SchemaFuzz as a good "database structural flaw detector".
 That is to say that errors typically triggered by a poor management of a database (wrong data type usage, incoherence between database structure and use of the content etc ...) might also appear clearly during the execution.   
 		\subsection{Perimeter}
-This tool is based on some of the SchemaSpy tool's source code. More precisely, it uses the portion of the code that detect and stores the target database's structure.
+This tool implement's some of the SchemaSpy tool's source code. More precisely, it uses the portion of the code that detect and stores the target database's structure.
 The main goal of this project is to build on top of this piece of existing code the functionalities required to test the usage of the database content by any kind of utility.  		
 The resulting software will generate a group of human readable reports on each modification that was performed.		
 		\begin{figure} [h!]
@@ -71,9 +76,9 @@ The resulting software will generate a group of human readable reports on each m
 		\caption{Shows the nature of the code for every distinct component. The slice size is a rough estimation.}
 		\end{figure}
 		\subsection{When to use it}
-SchemaFuzz is a very useful tool for anyone trying secure a piece of software that uses database resources. The target software should be GDB compatible and the DBMS has to grant access to the target database through credentials passed as argument to this tool.
+SchemaFuzz is a very useful tool for anyone trying secure a piece of software that uses database resources. The target software should be GDB(introduce GDB) compatible and the DBMS(introduce acronym) has to grant access to the target database through credentials passed as argument to this tool.
 
----It is very strongly advice to use a copy of the target database rather than on the production material. Doing so will very likely result in the database being corrupted and not usable for any useful mean.
+---It is very strongly advice to use a copy of the target database rather than on the production material. Doing so may result in the database being corrupted and not usable for any useful mean.
 
 		\clearpage
 
@@ -107,7 +112,7 @@ In order to do that, the user shall provide this set of mandatory database relat
 			\end{itemize}
 		\subsection{SchemaFuzz Core}		
 			\subsubsection{Constrains}
-The target database often contains constraints on one or several tables. These constraints have to be taken into account in the process of fabricating mutations as most of the time they restrict the possible values that the pointed field can take. This restriction can take the shape of a \underline {Not Null} constraint, \underline{Check} constraint, {Foreign key} constraint (value has to exist in some other table's field) or \underline{Primary key} constraint (no doublets of value allowed). These constraints are stored as Java objects instantiated from the corresponding class.
+The target database often contains constraints on one or several tables. These constraints have to be taken into account in the process of fabricating mutations as most of the time they restrict the possible values that the pointed field can take. These restrictions can take the shape of a \underline {Not Null} constraint, \underline{Check} constraint, {Foreign key} constraint (value has to exist in some other table's field) or \underline{Primary key} constraint (no doublets of value allowed). These constraints are stored as Java objects instantiated from the corresponding class.
 \bigskip
 
 \begin{figure} [h!]
@@ -160,8 +165,9 @@ Three parallel code paths can be triggered from this point.
 A branch is a succession of mutation that share the same database row as their modification target.
 The heuristics determining the next mutation's modification are still very primitive and will be thinly justed in futures versions.								 
 				\paragraph{Creating malformed data} 
+				%%ne veux rien dire.
 As the goal of running this tool is to submit unexpected or invalid data to the target software it is necessary to understand what t
-Fuzzing a complex type such a timestamps variables has nothing to do with fuzzing a trivial boolean. In practice, A significant part o
+Fuzzing a complex type such a timestamps variables has nothing to do with fuzzing a trivial boolean. In practice, a significant part o
 and this matter could absolutely be the subject of a more abstract work. We focused here on a very simple approach (as a first step).
 After retrieving the current row being fuzzed (may it be a new row or a previously fuzzed row), the algorithm explores the different
 The algorithm then builds the possible modification for each of the fields for the current row.
@@ -189,7 +195,7 @@ The possible modifications that this tool can produce at the moment are : \\ % a
 					\item Increment/Decrement date by 1 day/minutes depending on the precision of the date
 					\item Set date to $00/00/0000$ 
 				\end{itemize}
-Obviously, these "abnormal" values might in fact be totally legit in some cases. in that case the analyzer 
+These "abnormal" values might in fact be totally legit in some cases. in that case the analyzer 
 will rank the mutation rather poorly, which will lead to this tree path not being very likely to be developed further more.
 				\\*
 				\paragraph{SQL handling}
@@ -220,8 +226,8 @@ Each node has a number of children that depends on the ranking its mutation and 
 				\paragraph{Weight}
 Weighting the nodes is an important part of the runtime. Each mutation has a weight that is equal to the analyzer's output. This value reflects the mutation's value. If it had an interesting impact on the target program behavior (if it triggered new bugs or uncommon code paths) than this value is high and vice-versa. The weight is then used as a mean of determining the upcoming modification. The chance that a mutation gets a child is directly proportional to its weight.
 This value currently isn't biased by any other parameter, but this might change in the future.  
-				\paragraph{Path}
-Since the weighting of the mutation allows to go back to previously more interesting mutations, 
+				\paragraph{Path} %% changer la frase sur resolve
+Since the weighting of the mutation allows to go back to previous more interesting mutations, 
 there is a need for a path finder mechanism. Concretely, this routines resolves the nodes that separate nodes A and B in the tree. A and B might be children and parent but can also belong to completely different branches. This path is then given to the do/undo routine that processes back the modifications to set the database up in the required state for the upcoming mutation. 
 
 \bigskip
@@ -234,7 +240,7 @@ there is a need for a path finder mechanism. Concretely, this routines resolves 
 
 \bigskip
 			\subsubsection{The analyzer}
-Analyzing the output of the target program is another critical part of SchemaFuzz. The analyzer parses in the stack trace of the target software's execution to try measuring its interest. The main criteria that defines a mutation interest is its proximity to previously parsed stack traces. The more distance between the new mutation and the old ones, the better the ranking. 
+Analyzing the output of the target program is another critical part of SchemaFuzz. The analyzer parses in the stack trace of the target software's execution to try measuring its interest. The main criteria that defines a mutation interest is its proximity to previously parsed stack traces. The more distance between the new mutation and the old ones, the better the ranking. %%enlever les mots definis plus bas.
 				\paragraph{Stack Trace Parser}
 The stack trace parser is a separate Bash script that processes stack traces generated by the GDB C language debugger and stores all the relevant informations (function's name, line number, file name) into a Java object. The parser also generates as a secondary job a human readable file for each mutation that synthesizes the stack trace values as well as additional interesting information useful for other mechanisms (that also require parsing). These additional informations include the path from root to mutation (useful for rolling back the database to a specific state).
 				\paragraph{Hashing}
@@ -250,10 +256,7 @@ This algorithm can roughly be explain by the following :
 				\begin{quotation}
 "The Levenshtein distance between two words is the minimum number of single-character edits (insertions, deletions or substitutions) required to change one word into the other."
 				\end{quotation}				 
-After hashing the file name and the function name into numerical values trough Levenshtein distance, we are creating a triplet the fully (but not fully accurately yet) represents the stack trace that is being parsed. This triplet will be used in the clustering method. 
-
-\clearpage
-
+				
 \begin{figure} 
 \centering
 \begin{tabular}{ | l | l | l | l | l | l | c | r | }
@@ -266,7 +269,10 @@ After hashing the file name and the function name into numerical values trough L
 \caption{Example of the levenshtein distance concept.}
 \end{figure}
 
-The distance for this example is $2\div8\times100$
+The distance for this example is $2\div8\times100$				
+				
+After hashing the file name and the function name into numerical values trough Levenshtein distance, we are creating a triplet the fully (but not fully accurately yet) represents the stack trace that is being parsed. This triplet will be used in the clustering method. 
+
 
 				\paragraph{The Scoring mechanism}
 The "score" (or rank) of a mutation is a numerical value that reflects how interesting the outcome was. Crashes and unexpected behavior to raise this value whereas no crash tend to lower it. This value is calculated through a modified version of a clustering method that computes an n-uplet into a integer depending on the sum of the Euclidean distances from the n-uplet to the existing centroids (groups of mutation's n-uplets that were already processed).
@@ -297,8 +303,91 @@ The following points constitute the main flaw of the source code:
 			\clearpage
 
 	\section{Results and examples}
-In the process of being written.
+		\subsection{Results on test environment}
+The project as been developed primarily to be run against the GNU Taler database. But, a sample database was used throughout the course of the development in order to evaluate the progress of the tool as well as for testing it an environment that would not compromise any real data set.
+This sample database contains all the supported types and emulates the structure of a production database.
+the following figure shows what the format of output for a standard run is. The tree of mutations is displayed in a text format where each block stands for a successful mutation injection and is delimited by a pair of hooks $[]$. Each block is preceded by a visual representation of the depth in the tree where $--$ indicates one level in the tree. 
+The informations provided on each block follow this ordered structure:
+		\begin{itemize}
+		\item{Mutation ID (ordered)}
+		\item{Numerical representation of the Depth in the tree}
+		\item{ID of the mutation the modification is attached to}
+		\item{The value present in the target field BEFORE the modification}
+		\item{The value of the target field AFTER the modification}
+		\end{itemize}
+				
 
+It is noticeable that the algorithm does not display the tree in depth order but in ID order.
+This allows the user to analyze in what order the mutations where injected.
+
+		\bigskip
+		\begin{figure} [h!]
+			\includegraphics[width=\textwidth]{sc2.png}
+			\caption{Example of the output for an execution on the development database}
+		\end{figure}
+		\bigskip
+		
+After every successful mutation, the analyzer generates a report that summarizes the response of the target program after the modification was applied.
+Every report is structured as follow :
+
+If the program did not crash: report only contains a 0.
+	
+
+If the program crashed:
+		\begin{itemize}
+		\item{"functionNames:" item}
+		\item{List representation of the function stack from the crash (ordered from most precise to most general level) }
+		\item{"filesNames:" item}
+		\item{List representation of the file containing the function call}
+		\item{"lineNumbers" item}
+		\item{List representation of the line numbers for each function call (the line number of the main function does not appear)}
+		\item{"end:" item}
+		\item{"path:"item}
+		\item{Text representation of the path in the tree from the root. Every line described a previously processed mutation}
+		\item{"endpath:"item}
+		\end{itemize}
+	
+		\bigskip
+		\begin{figure} [h!]
+			\includegraphics[width=\textwidth]{sc1.png}
+			\caption{Example of a generated report for an execution on the development database }
+		\end{figure}
+		\bigskip
+		
+		\subsection{Results on the GNU Taler database}
+
+The outcome of the first executions of SchemaFuzz against a sample of the GNU Taler database were promising. The tool itself properly fuzzed the target and the execution ended with a success
+code on 9 of the 10 attempts. 		
+	
+		\bigskip
+		\begin{figure} [h!]
+			\includegraphics[width=\textwidth]{sc3.png}
+			\caption{Example of the output for an execution on a sample of the GNU Taler database}
+		\end{figure}
+		\bigskip
+		
+		\paragraph{Vanishing bugs}		
+Some of the bugs that were encountered during the test executions were not triggered when running against the GNU Taler database. After comparing the content and structure of both environments, it is likely that this behavior was due to the test database's minimalistic content.
+This difference between the outputs when executing the tool on the two different environments helped in debugging some of the code's unexplained behavior. 
+
+For instance, the tool would crash if meeting the following criteria:
+	\begin{itemize}
+	\item{The last mutation scored better than its parent}
+	\item{The last mutation does not have any other modification possibilities}
+	\item{In its current state, the tree does not have more than one branch}
+	\end{itemize}
+	
+By running the tool on a more dense database, the bug had vanished. This allowed us to locate the origin of the issue.
+
+
+		\bigskip
+		\begin{figure} [h!]
+			\includegraphics[width=\textwidth]{sc4.png}
+			\caption{Example of a bug fixed by changing the environment of execution}
+		\end{figure}
+		\bigskip
+   	       		
+		
 			\clearpage
 	\section{Upcoming features and changes}
 This section will provide more insights on the future features that might/may/will be implemented as well as the changes in the existing code.
@@ -346,6 +435,7 @@ Or directly create a pull request on the official repository to edit this docume
 \newpage
 \input{PersonnalExperience.tex}
 	
+	\bibliography{testcite}		
 			
 \end{empfile}
 \end{document} 
