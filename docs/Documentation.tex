@@ -91,8 +91,16 @@ The majority of this project is built on top of this already existing code and i
 		\item{the mutation Tree, used to store the mutations coherently}
 		\item{an analyzer that scores the mutations to influence the paths that will be explored afterwards}
 		\end{itemize}
-		 
 This organization will be detailed and discussed in the following sections.
+
+		 \clearpage
+\begin{figure} [h!]
+\centering
+\includepdf[pages={2},scale=0.85]{EndToEndDiagram.pdf}
+\caption{Main Loop}
+\end{figure}
+		 \clearpage		 
+		 
 		\subsection{SchemaSpy legacy/meta data extraction}
 SchemaSpy source code has provided the meta data extraction routine. The only job of this routine is to initialize the connection to the database and retrieve its meta data at the   beginning of the execution (before any actual SchemaFuzz code is run). These meta data include data types, table and table column names, views and foreign/primary key constraints. Having this pool of meta data under the shape of Java objects allows the main program to properly frame what the possibilities are in terms of modifications as well as dealing with the possible constraints on the different tables. The modifications that will be created during the main loop will be designed to respect the frame built for the result of this extraction.
 
