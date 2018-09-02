@@ -11,16 +11,44 @@
 \usepackage{pdfpages}
 \usepackage{url}
 \usepackage{emp}
+\usepackage{subcaption}
 \usetikzlibrary{shapes.arrows,chains}
 \usepackage[english]{babel}
 
-\title{Documentation for SchemaFuzz}
+% Definition of \maketitle
+\makeatletter         
+\def\@maketitle{
+
+\begin{figure}[!h]
+\centering
+\begin{minipage}{0.6\textwidth}
+  \includegraphics[width=1\linewidth]{LogoP13.png}
+\end{minipage}%
+\begin{minipage}{0.6\textwidth}
+  \includegraphics[width=1\linewidth]{LogoBFH.jpeg}
+\end{minipage}
+\end{figure}
+
+\bigskip
+
+\begin{center}
+{\Huge \bfseries \sffamily \@title }\\[4ex] 
+{\Large  \@author}\\[4ex] 
+\@date\\[8ex]
+\end{center}}
+\makeatother
+
+\title{Database Oriented Fuzz Testing Tool Development}
 \author{Ulrich "Feideus" Erwan}
 
 \begin{document}
 \begin{empfile}
-	
-\maketitle Documentation For SchemaFuzz
+
+\maketitle
+
+\vspace*{\fill}
+\raggedright{\underline{Supervisor}: Christian Grothoff} 	\\
+\underline{Promotion}: 2017-2018
 \clearpage
 
 \tableofcontents
@@ -44,29 +72,29 @@ SchemaFuzz's development enrolls in the global dynamic of the past decades regar
 
 It uses the principle of "fuzz testing" or "fuzzing" to help find out which are the weak code paths of one's project. 
 				\begin{quotation}
-Traditional fuzzing is defined as "testing an automated software testing technique that involves providing invalid, unexpected, or random data as inputs to a computer program".
-				\end{quotation} 
-				\cite{fuzzing}		
-
-
+Traditional fuzzing is defined as "an automated software testing technique that involves providing invalid, unexpected, or random data as inputs to a computer program". \end{quotation}\cite{fuzzing}		
 
 This quote is   well illustrated by the following example :
 				\begin{quotation}
 Lets consider an integer in a program, which stores the result of a user's choice between 3 questions. When the user picks one, the choice will be 0, 1 or 2. Which makes three practical cases. But what if we transmit 3, or 255 ? We can, because integers are stored a static size variable. If the default switch case hasn't been implemented securely, the program may crash and lead to "classical" security issues: (un)exploitable buffer overflows, DoS, ... 
 				\end{quotation}
 
-It is declined in severals categories that each focus on a specific type of input.
+It is divided in severals categories that each focus on a specific type of input.
  
 UI fuzzing focuses on button sequences and more generically any kind of user input during the execution of a program. The above example falls into this category.
-This principle had already successfully been used in existing fuzzing tool such as the well known "American fuzzy loop".
+This principle had already successfully been used in existing fuzzing tool such as  "MonkeyFuzz".
 File format fuzzing generates multiple malformed samples, and opens them sequentially.
+
+Certificate fuzzing is another interesting fuzzing approach that has emerged especially after it was introduced by \cite{Certif} in $Development$ $of$ $Intelligent$ $Digital$ $Certificate$ $Fuzzer$ $Tool$
+
 However, SchemaFuzz is a database oriented fuzzer. This means that it focuses on triggering unexpected behavior related to the usage of a external database content   
 
 This tool is meant to help developers, maintainers and more generically anyone that makes use of data coming from a database under his influence in their task. A good way to sum up the effect of this tool is to compare it with an "cyber attack simulator".
 This means that the idea behind it is to emulate the damage that an attacker may cause subtly or not to a database he illegally gained privileges on. This might in theory go from a simple boolean flip (subtle modifications) to removing/adding content to purely and simply destroying or erasing all the content of the database.
 SchemaFuzz focuses on the first part : modification of the content of the database by single small modification that may or may not overlap. These modifications may be   aggressive of   subtle.
 It is interesting to point out that this last point also qualifies SchemaFuzz as a good "database structural flaw detector".
-That is to say that errors typically triggered by a poor management of a database (wrong data type usage, incoherence between database structure and use of the content etc ...) might also appear clearly during the execution.   
+That is to say that errors typically triggered by a poor management of a database (wrong data type usage, incoherence between database structure and use of the content etc ...) might also appear clearly during the execution.
+For a more in depth description of different fuzzing approaches and , one can refer to $A$ $systematic$ $review$ $of$ $fuzzing$ $techniques$ \cite{Systematic}
 		\subsection{Perimeter}
 This tool implement's some of the SchemaSpy tool's source code. More precisely, it uses the portion of the code that detect and stores the target database's structure.
 The main goal of this project is to build on top of this piece of existing code the functionalities required to test the usage of the database content by any kind of utility.  		
@@ -103,8 +131,6 @@ This organization will be detailed and discussed in the following sections.
 		 
 		\subsection{SchemaSpy legacy/meta data extraction}
 SchemaSpy source code has provided the meta data extraction routine. The only job of this routine is to initialize the connection to the database and retrieve its meta data at the   beginning of the execution (before any actual SchemaFuzz code is run). These meta data include data types, table and table column names, views and foreign/primary key constraints. Having this pool of meta data under the shape of Java objects allows the main program to properly frame what the possibilities are in terms of modifications as well as dealing with the possible constraints on the different tables. The modifications that will be created during the main loop will be designed to respect the frame built for the result of this extraction.
-
-\clearpage
 
 \begin{figure} [h!]
 \centering
@@ -144,8 +170,6 @@ To do so, the software has a way to transfer the mutation from a child to its pa
 				\paragraph{What is a Mutation}
 A mutation is a Java object that bundles all the informations that are used to perform a modification in the database. Every is linked to its parent and inherits some of his parent's data. In the case of a follow up mutation the child inherits the the database row that was his parent's target.Therefore the initial state (state before the injection of the modification) of its target is exactly the final state (state after injection of the modification) of his parent's target. A mutation is created for each iteration of the main loop and represents a single step in the progress of the fuzzing.
 It also holds the informations concerning the result of the injection in the shape of a data vector. This data vector is then used to perform a clustering calculus to determine the "uniqueness" of the mutation. This value is also stored inside the mutation object and is used as the weight of this mutation in the tree.
-
-\clearpage
 
 \begin{figure} [h!]
 \centering
@@ -285,7 +309,7 @@ After hashing the file name and the function name into numerical values trough L
 It is interesting to note that this triplet is not the most accurate representation of a stack trace. The analyzer will be improved in the future is that regard.
 
 				\paragraph{The Scoring mechanism}
-The "score" (or rank) of a mutation is a numerical value that reflects how interesting the outcome was. Crashes and unexpected behavior are what makes a mutation valuable since it indicates a wrongly implemented code piece in the target source in most cases. This value is calculated through a modified version of a clustering method.
+The "score" (or rank) of a mutation is a numerical value that reflects how interesting the outcome was. Unique crashes and unexpected behavior are what makes a mutation valuable since it indicates a wrongly implemented code piece in the target source in most cases. \cite{CrashUniQ} This value is calculated through a modified version of a clustering method.
 This clustering mechanism runs as follows:
 	\begin{itemize}
 	\item{Represent the triplets in a 3 dimensional space}
