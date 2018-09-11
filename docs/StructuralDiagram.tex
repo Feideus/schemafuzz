@@ -1,0 +1,52 @@
+\documentclass{article}
+
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows,shadows}
+\usepackage{amsmath,bm,times}
+\newcommand{\mx}[1]{\mathbf{\bm{#1}}} % Matrix command
+\newcommand{\vc}[1]{\mathbf{\bm{#1}}} % Vector command
+
+\begin{document}
+% Define the layers to draw the diagram
+\pgfdeclarelayer{background}
+\pgfdeclarelayer{foreground}
+\pgfsetlayers{background,main,foreground}
+
+% Define block styles used later
+
+\tikzstyle{sensor}=[draw, fill=blue!20, text width=5em, 
+    text centered, minimum height=2.5em,drop shadow]
+\tikzstyle{ann} = [above, text width=5em, text centered]
+\tikzstyle{wa} = [sensor, text width=10em, fill=red!20, 
+    minimum height=6em, rounded corners, drop shadow]
+    \tikzstyle{wa2} = [sensor, text width=10em, fill=blue!20, 
+    minimum height=6em, rounded corners, drop shadow]
+    \tikzstyle{wa3} = [sensor, text width=10em, fill=green!20, 
+    minimum height=6em, rounded corners, drop shadow]
+    \tikzstyle{wa4} = [sensor, text width=10em, fill=yellow!20, 
+    minimum height=6em, rounded corners, drop shadow]
+    \tikzstyle{wa5} = [sensor, text width=10em, fill=orange!20, 
+    minimum height=6em, rounded corners, drop shadow]
+\tikzstyle{sc} = [sensor, text width=13em, fill=red!20, 
+    minimum height=10em, rounded corners, drop shadow]
+
+% Define distances for bordering
+\def\blockdist{2.3}
+\def\edgedist{2.5}
+
+\begin{tikzpicture}
+    \node (n1) [wa]  {$Main$ $Loop$};
+	\path (n1)+(-4,-4) node (n2)[wa2] {$Target$ $Database$};
+    \path (n1)+(0,- 8) node (n3) [wa3]  {$Target$ $Software$};
+    \path (n1)+(5,-6) node (n4) [wa4]  {$C$ $Parser$ $Script$};
+    \path (n1)+(5,-2.5) node (n5) [wa5]  {$Analyzer$};
+    
+    \path [draw, ->] (n1.west) -| (n2.north) {} node [xshift=-60,yshift=40] {$Injects$ $SQL$ $Statement$};
+    \path [draw, ->] (n3.west) -| (n2.south) {} node [xshift=-30,yshift=-40]{$Runs$ $over$};
+    \path [draw, ->] (n3.east) -| (n4.south) {} node [yshift=-40] {$Returns$ $output$};
+    \path [draw, ->] (n4.north) -- (n5.south) {} node [xshift=50,yshift=-20] {$Gives$ $score$};
+    \path [draw, ->] (n5.north) |- (n1.east) node [xshift=90,yshift=20]{$Generates$ $human$ $readable$  $report$ $file$} {} ;
+    
+\end{tikzpicture}
+
+\end{document}
