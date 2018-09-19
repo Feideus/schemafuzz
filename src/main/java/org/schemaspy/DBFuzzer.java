@@ -212,7 +212,7 @@ public class DBFuzzer
                     //currentMutation.propagateWeight(); //update parents weight according to this node new weight
 
                     LOGGER.info("Target is : " + analyzer.getCommandLineArguments().getTarget());
-                    ProcessBuilder ep = new ProcessBuilder("/bin/bash", "./stackTraceCParser.sh", analyzer.getCommandLineArguments().getTarget(), Integer.toString(currentMutation.getId()), analyzer.getCommandLineArguments().getNestedArguments());
+                    ProcessBuilder ep = new ProcessBuilder("/bin/bash", "./stackTraceCParser.sh", analyzer.getCommandLineArguments().getTarget(), Integer.toString(currentMutation.getId()));
                     ArrayList<GenericTreeNode> pathToRoot = currentMutation.pathToRoot();
                     Collections.reverse(pathToRoot);
                     for(int i=0; i< pathToRoot.size();i++)
@@ -255,7 +255,7 @@ public class DBFuzzer
             }
         }
         boolean tmp = revertToOriginalDatabaseState(mutationTree);
-        System.out.println(" reverting to original state ended up in "+tmp+"ending process");
+        System.out.println(" reverting to original state ended up in "+tmp+" .Ending process");
       return returnStatus;
     }
 
