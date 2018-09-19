@@ -241,8 +241,6 @@ public class DBFuzzer
                 TreeDepth = mutationTree.checkMaxDepth(mutationTree.getRoot());
             }
       }
-
-        removeTemporaryCascade();
         printMutationTree();
         if(analyzer.getCommandLineArguments().getReport() != null) {
             if (analyzer.getCommandLineArguments().getReport().equals("y") || analyzer.getCommandLineArguments().getReport().equals("yes")) {
@@ -256,6 +254,7 @@ public class DBFuzzer
         }
         boolean tmp = revertToOriginalDatabaseState(mutationTree);
         System.out.println(" reverting to original state ended up in "+tmp+" .Ending process");
+        removeTemporaryCascade();
       return returnStatus;
     }
 
@@ -480,6 +479,7 @@ public class DBFuzzer
         for (int i = max; i > 0; i--)
         {
             tmp = mutationTree.find(i).undo(analyzer.getSqlService(),analyzer.getDb(),mutationTree);
+            System.out.println("undo mutation N."+mutationTree.find(i).getId()+" is "+tmp);
             if(tmp == 0)
                 res = false;
         }
