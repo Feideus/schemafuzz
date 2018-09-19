@@ -16,7 +16,7 @@ echo "saving result in : "$binaryWithoutExtention;
 
 ulimit -c 9999
 echo "--------------------------"
-./$1 -c $3 ## -c SHOULD BE IN THE JAVA CODE AS A NESTED ARGUMENT. This is for manual testing
+./$1 ## -c $3  -c SHOULD BE IN THE JAVA CODE AS A NESTED ARGUMENT. This is for manual testing
 echo "--------------------------"
 
 checkCoreGen=`ls | grep core`;

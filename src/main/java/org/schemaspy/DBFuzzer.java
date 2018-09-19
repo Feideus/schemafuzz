@@ -12,6 +12,7 @@ import org.schemaspy.model.Table;
 import org.schemaspy.model.GenericTree;
 import org.schemaspy.model.GenericTreeNode;
 import org.schemaspy.service.DatabaseService;
+import org.schemaspy.service.SqlService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.BufferedReader;
@@ -253,7 +254,8 @@ public class DBFuzzer
                 }
             }
         }
-        System.out.println("ending process");
+        boolean tmp = revertToOriginalDatabaseState(mutationTree);
+        System.out.println(" reverting to original state ended up in "+tmp+"ending process");
       return returnStatus;
     }
 
@@ -467,6 +469,21 @@ public class DBFuzzer
             }
             System.out.println(displayer);
         }
+    }
+
+    public boolean revertToOriginalDatabaseState(GenericTree mutationTree)
+    {
+        int max = mutationTree.getLastId();
+        boolean res= true;
+        int tmp;
+
+        for (int i = max; i > 0; i--)
+        {
+            tmp = mutationTree.find(i).undo(analyzer.getSqlService(),analyzer.getDb(),mutationTree);
+            if(tmp == 0)
+                res = false;
+        }
+        return res;
     }
 
     public int nextId()
