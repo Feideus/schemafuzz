@@ -4,19 +4,19 @@
 			\begin{itemize}
 			\item org.apache.commons.math3 >= 3.6
 			available at \\*
-			\url{https://commons.apache.org/proper/commons-math/download_math.cgi}			
+			\url{https://commons.apache.org/proper/commons-math/download_math.cgi}
 			\end{itemize}
 The library has to be installed in the maven repository to be available. The instructions detailed at the following address explain how to do that. futher information can be found on the official maven website.\\*
 
 			\url{https://www.mkyong.com/maven/how-to-include-library-manully-into-maven-local-repository/}
-			
+
 		\subsection{setting up the code}
 			Once all the depencies have been installed successfully, clone the source available on the official git taler repository \\*
 			\url{https://git.taler.net/schemafuzz.git}
 			\begin{verbatim}
 			 git clone https://git.taler.net/schemafuzz.git
 			\end{verbatim}
-			
+
 the folder containing the code shoud hold the rights for reading writing and executing (rwx) for the user that plans to run the tool.
 if this is not the case, you can give these rights like so
 			\begin{verbatim}
@@ -25,25 +25,37 @@ if this is not the case, you can give these rights like so
 		\subsection{Building}
 SchemaFuzz is using maven for building and library management purposes.
 Therefore, using the maven command line building script is way to go.
-Standard way of building :\\*
+Before building with Maven, you must install Postgres and create a
+user "feideus" with password "feideus" and import the
+{\tt sample_database/pagila-0.10.1/setup_test_table.sql} into a
+database {\tt sample_database2}:
+\begin{verbatim}
+$ createuser -s -P feideus # as postgres user
+$ createdb sample_database2
+$ psql sample_database2 < sample_database/pagila-0.10.1/pagila-schema.sql
+$ psql sample_database2 < sample_database/pagila-0.10.1/setup_test_table.sql
+\end{verbatim}
+
+
+Standard way of building is then:\\*
 			\begin{verbatim}
 			./mvnw package
 			\end{verbatim}
-				
-This maven building method also offers alternative instructions for 	more precise/refined way of building as well as compilation and test 
+
+This maven building method also offers alternative instructions for 	more precise/refined way of building as well as compilation and test
 launching options (those should only be intresting for the contributors).
 
 Launching the test suit :\\*
 			\begin{verbatim}
 			./mvnw test
 			\end{verbatim}
-Compiling the code :\\*		
+Compiling the code :\\*
 			\begin{verbatim}
 			./mvnw compile
 			\end{verbatim}
-		
-Other usefull commands: \\*		
-		
+
+Other usefull commands: \\*
+
 			\begin{verbatim}
 			./mvnw clean
 			\end{verbatim}
@@ -53,11 +65,10 @@ Other usefull commands: \\*
 			\begin{verbatim}
 			./mvnw deploy
 			\end{verbatim}
-		
-		\subsection{Setting up the database}	
-	
+
+		\subsection{Setting up the database}
+
 Launch the "dbConfigure" script.
 			\begin{verbatim}
 				./dbConfigure
-			\end{verbatim}		 
-	
+			\end{verbatim}
