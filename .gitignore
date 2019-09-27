@@ -10,3 +10,4 @@ target/schemaspy-6.0.0-rc2.jar.original
 .idea/
 target/failsafe-reports
 target/maven-status/maven-compiler-plugin
+.forked
